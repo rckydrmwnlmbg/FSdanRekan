@@ -15,7 +15,7 @@ from PIL import Image, ImageOps
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 CONTENT_PROFILES_MD = ROOT_DIR / "CONTENT_PROFILES.md"
-IMAGES_DIR = ROOT_DIR / "images"
+IMAGES_DIR = ROOT_DIR / "Images" if (ROOT_DIR / "Images").exists() else ROOT_DIR / "images"
 PUBLIC_TEAM_DIR = ROOT_DIR / "public" / "team"
 CONTENT_DIR = ROOT_DIR / "content"
 TEAM_JSON_PATH = CONTENT_DIR / "team.json"

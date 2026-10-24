@@ -19,7 +19,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-IMAGES_DIR = ROOT_DIR / "images"
+IMAGES_DIR = ROOT_DIR / "Images" if (ROOT_DIR / "Images").exists() else ROOT_DIR / "images"
 PUBLIC_DIR = ROOT_DIR / "public"
 PUBLIC_IMAGES_DIR = PUBLIC_DIR / "images"
 

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import type {
   ArticlePublicData,
+  InstagramGalleryItem,
   PracticeAreaData,
   PublicCaseRecord,
   SiteSettingsData,
@@ -14,7 +15,9 @@ import { TeamSection } from '@/components/TeamSection'
 import { CaseRecordsSection } from '@/components/CaseRecordsSection'
 import { CtaBanner } from '@/components/CtaBanner'
 import { LatestArticlesSection } from '@/components/LatestArticlesSection'
+import { InstagramGallerySection } from '@/components/InstagramGallerySection'
 import { InquirySection } from '@/components/InquirySection'
+import { GuidedChatWidget } from '@/components/GuidedChatWidget'
 
 interface HomePageClientProps {
   settings: SiteSettingsData
@@ -22,6 +25,7 @@ interface HomePageClientProps {
   practiceAreas: PracticeAreaData[]
   caseRecords: PublicCaseRecord[]
   latestArticles: ArticlePublicData[]
+  instagramItems: InstagramGalleryItem[]
 }
 
 export function HomePageClient({
@@ -30,6 +34,7 @@ export function HomePageClient({
   practiceAreas,
   caseRecords,
   latestArticles,
+  instagramItems,
 }: HomePageClientProps) {
   const [activeProfile, setActiveProfile] = useState<TeamMemberData | null>(null)
   const [selectedPracticeName, setSelectedPracticeName] = useState<string>(
@@ -92,11 +97,18 @@ export function HomePageClient({
 
       <LatestArticlesSection articles={latestArticles} />
 
+      <InstagramGallerySection
+        items={instagramItems}
+        instagramUrl={settings.instagramUrl}
+      />
+
       <InquirySection
         settings={settings}
         practiceAreas={practiceAreas}
         selectedPracticeAreaName={selectedPracticeName}
       />
+
+      <GuidedChatWidget settings={settings} practiceAreas={practiceAreas} />
     </>
   )
 }

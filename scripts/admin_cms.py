@@ -91,6 +91,75 @@ DEFAULT_USERS = [
     },
 ]
 
+DEFAULT_INSTAGRAM_GALLERY = [
+    {
+        "id": "ig-1",
+        "imageUrl": "/images/practice-corporate.webp",
+        "alt": "Edukasi Hukum Korporasi & Kontrak Komersial – Ferdinan Silalahi dan Rekan Law Firm",
+        "category": "Edukasi Korporasi",
+        "caption": "Pentingnya perumusan klausul penyelesaian sengketa dan keadaan kahar (force majeure) dalam perjanjian kerja sama komersial.",
+        "publishedDate": "14 Okt 2026",
+        "permalink": "https://instagram.com/",
+        "displayOrder": 1,
+        "isPublished": True,
+    },
+    {
+        "id": "ig-2",
+        "imageUrl": "/images/article-land.webp",
+        "alt": "Edukasi Uji Tuntas Pertanahan & Agraria – Ferdinan Silalahi dan Rekan Law Firm",
+        "category": "Agraria & Properti",
+        "caption": "Tahapan uji tuntas hukum (legal due diligence) sebelum transaksi aset properti guna memitigasi risiko sengketa alas hak.",
+        "publishedDate": "10 Okt 2026",
+        "permalink": "https://instagram.com/",
+        "displayOrder": 2,
+        "isPublished": True,
+    },
+    {
+        "id": "ig-3",
+        "imageUrl": "/images/hero-slide-courtroom.webp",
+        "alt": "Pendampingan Litigasi & Persidangan – Ferdinan Silalahi dan Rekan Law Firm",
+        "category": "Litigasi & Advokasi",
+        "caption": "Komitmen pendampingan hukum yang berintegritas pada setiap tahapan pemeriksaan hingga persidangan.",
+        "publishedDate": "05 Okt 2026",
+        "permalink": "https://instagram.com/",
+        "displayOrder": 3,
+        "isPublished": True,
+    },
+    {
+        "id": "ig-4",
+        "imageUrl": "/images/practice-bankruptcy.webp",
+        "alt": "Kajian Hukum Kepailitan & PKPU – Ferdinan Silalahi dan Rekan Law Firm",
+        "category": "Kepailitan & PKPU",
+        "caption": "Memahami mekanisme restrukturisasi utang dan proposal perdamaian melalui proses PKPU di Pengadilan Niaga.",
+        "publishedDate": "29 Sep 2026",
+        "permalink": "https://instagram.com/",
+        "displayOrder": 4,
+        "isPublished": True,
+    },
+    {
+        "id": "ig-5",
+        "imageUrl": "/images/practice-ip.webp",
+        "alt": "Pelindungan Hak Kekayaan Intelektual – Ferdinan Silalahi dan Rekan Law Firm",
+        "category": "Kekayaan Intelektual",
+        "caption": "Langkah strategis pelindungan merek dagang, hak cipta, dan penyusunan perjanjian lisensi bagi pelaku usaha.",
+        "publishedDate": "22 Sep 2026",
+        "permalink": "https://instagram.com/",
+        "displayOrder": 5,
+        "isPublished": True,
+    },
+    {
+        "id": "ig-6",
+        "imageUrl": "/images/article-family.webp",
+        "alt": "Edukasi Hukum Perdata & Keluarga – Ferdinan Silalahi dan Rekan Law Firm",
+        "category": "Hukum Perdata",
+        "caption": "Penataan dokumen kepemilikan aset dan perjanjian perkawinan sesuai ketentuan peraturan perundang-undangan.",
+        "publishedDate": "15 Sep 2026",
+        "permalink": "https://instagram.com/",
+        "displayOrder": 6,
+        "isPublished": True,
+    },
+]
+
 
 def load_cms_state() -> dict:
     if CMS_STATE_FILE.exists():
@@ -107,6 +176,8 @@ def load_cms_state() -> dict:
             state.setdefault("caseRecords", None)
             state.setdefault("users", list(DEFAULT_USERS))
             state.setdefault("auditLogs", [])
+            state.setdefault("instagramGallery", list(DEFAULT_INSTAGRAM_GALLERY))
+            state.setdefault("chatSessions", [])
             return state
         except Exception:
             pass
@@ -120,6 +191,8 @@ def load_cms_state() -> dict:
         "customPracticeAreas": [],
         "caseRecords": None,
         "users": list(DEFAULT_USERS),
+        "instagramGallery": list(DEFAULT_INSTAGRAM_GALLERY),
+        "chatSessions": [],
         "auditLogs": [
             {
                 "id": "audit-init",
@@ -252,6 +325,20 @@ def get_merged_case_records(include_unpublished: bool = False) -> list[dict]:
     if not include_unpublished:
         records = [r for r in records if r.get("isPublished", True)]
     return records
+
+
+def get_merged_instagram_gallery(include_unpublished: bool = False) -> list[dict]:
+    state = load_cms_state()
+    items = state.get("instagramGallery") or list(DEFAULT_INSTAGRAM_GALLERY)
+    if not include_unpublished:
+        items = [i for i in items if i.get("isPublished", True)]
+    return sorted(items, key=lambda x: int(x.get("displayOrder", 999)))
+
+
+def get_chat_sessions() -> list[dict]:
+    state = load_cms_state()
+    sessions = state.get("chatSessions") or []
+    return sorted(sessions, key=lambda x: x.get("createdAt", ""), reverse=True)
 
 
 def handle_admin_api(path: str, body: dict, actor_email: str, clean_ui_fn, default_pres_by_slug: dict) -> tuple[int, dict]:
@@ -603,6 +690,94 @@ def handle_admin_api(path: str, body: dict, actor_email: str, clean_ui_fn, defau
             append_audit_log(actor_email, "DELETE_USER", "users", uid, "Menghapus akun pengguna")
             return 200, {"ok": True}
 
+    # 8. Manage Curated Instagram Gallery (SK-13 / PRD V3)
+    if path == "/api/admin/instagram":
+        action = body.get("action")
+        gallery = state.get("instagramGallery") or list(DEFAULT_INSTAGRAM_GALLERY)
+
+        if action == "create":
+            new_id = f"ig-{int(time.time() * 1000)}"
+            new_item = {
+                "id": new_id,
+                "imageUrl": str(body.get("imageUrl", "/images/hero-slide-courtroom.webp")).strip(),
+                "alt": str(body.get("alt", "Edukasi Hukum FS dan Rekan")).strip(),
+                "category": str(body.get("category", "Edukasi Hukum")).strip(),
+                "caption": str(body.get("caption", "")).strip(),
+                "publishedDate": str(body.get("publishedDate", "Baru saja")).strip(),
+                "permalink": str(body.get("permalink", "https://instagram.com/")).strip(),
+                "displayOrder": int(body.get("displayOrder", len(gallery) + 1)),
+                "isPublished": bool(body.get("isPublished", True)),
+            }
+            gallery.append(new_item)
+            state["instagramGallery"] = gallery
+            save_cms_state(state)
+            append_audit_log(actor_email, "CREATE_INSTAGRAM", "instagramGallery", new_id, f"Menambah postingan edukasi Instagram: {new_item['caption'][:40]}")
+            return 200, {"ok": True, "item": new_item}
+
+        if action == "update":
+            target_id = str(body.get("id", "")).strip()
+            found = False
+            for it in gallery:
+                if it.get("id") == target_id:
+                    it["imageUrl"] = str(body.get("imageUrl", it.get("imageUrl"))).strip()
+                    it["alt"] = str(body.get("alt", it.get("alt"))).strip()
+                    it["category"] = str(body.get("category", it.get("category"))).strip()
+                    it["caption"] = str(body.get("caption", it.get("caption"))).strip()
+                    it["publishedDate"] = str(body.get("publishedDate", it.get("publishedDate"))).strip()
+                    it["permalink"] = str(body.get("permalink", it.get("permalink"))).strip()
+                    it["displayOrder"] = int(body.get("displayOrder", it.get("displayOrder", 1)))
+                    it["isPublished"] = bool(body.get("isPublished", it.get("isPublished", True)))
+                    found = True
+                    break
+            if not found:
+                return 404, {"error": "Item Instagram tidak ditemukan."}
+            state["instagramGallery"] = gallery
+            save_cms_state(state)
+            append_audit_log(actor_email, "UPDATE_INSTAGRAM", "instagramGallery", target_id, "Memperbarui postingan Instagram")
+            return 200, {"ok": True}
+
+        if action == "toggle_publish":
+            target_id = str(body.get("id", "")).strip()
+            for it in gallery:
+                if it.get("id") == target_id:
+                    it["isPublished"] = not it.get("isPublished", True)
+                    break
+            state["instagramGallery"] = gallery
+            save_cms_state(state)
+            append_audit_log(actor_email, "TOGGLE_INSTAGRAM_PUBLISH", "instagramGallery", target_id, "Mengubah status publikasi Instagram")
+            return 200, {"ok": True}
+
+        if action == "delete":
+            target_id = str(body.get("id", "")).strip()
+            state["instagramGallery"] = [it for it in gallery if it.get("id") != target_id]
+            save_cms_state(state)
+            append_audit_log(actor_email, "DELETE_INSTAGRAM", "instagramGallery", target_id, "Menghapus postingan Instagram")
+            return 200, {"ok": True}
+
+    # 9. Manage Guided Chat Sessions (SK-11 / UU PDP Erasure)
+    if path == "/api/admin/chat-sessions":
+        action = body.get("action")
+        sessions = state.get("chatSessions") or []
+
+        if action == "update_status":
+            target_id = str(body.get("id", "")).strip()
+            new_status = str(body.get("status", "baru")).strip()
+            for s in sessions:
+                if s.get("id") == target_id:
+                    s["status"] = new_status
+                    break
+            state["chatSessions"] = sessions
+            save_cms_state(state)
+            append_audit_log(actor_email, "UPDATE_CHAT_STATUS", "chatSessions", target_id, f"Status chat diubah menjadi {new_status}")
+            return 200, {"ok": True}
+
+        if action == "delete":
+            target_id = str(body.get("id", "")).strip()
+            state["chatSessions"] = [s for s in sessions if s.get("id") != target_id]
+            save_cms_state(state)
+            append_audit_log(actor_email, "DELETE_CHAT_PDP", "chatSessions", target_id, "Penghapusan data transkrip chat pemandu sesuai hak penghapusan UU PDP")
+            return 200, {"ok": True}
+
     return 404, {"error": "Endpoint admin tidak ditemukan."}
 
 
@@ -613,6 +788,8 @@ def render_enterprise_admin_dashboard(
     inquiries: list[dict],
     clean_ui_fn,
     default_pres_by_slug: dict,
+    instagram_items: list[dict] | None = None,
+    chat_sessions: list[dict] | None = None,
 ) -> str:
     state = load_cms_state()
     settings = state["siteSettings"]
@@ -620,6 +797,10 @@ def render_enterprise_admin_dashboard(
     team = get_merged_team_members(clean_ui_fn, include_unpublished=True)
     practices = get_merged_practice_areas(default_pres_by_slug, include_unpublished=True)
     cases = get_merged_case_records(include_unpublished=True)
+    if instagram_items is None:
+        instagram_items = get_merged_instagram_gallery(include_unpublished=True)
+    if chat_sessions is None:
+        chat_sessions = get_chat_sessions()
     media_files = list_public_media_files()
     users = state.get("users", [])
     audit_logs = state.get("auditLogs", [])
@@ -854,6 +1035,83 @@ def render_enterprise_admin_dashboard(
           <td style="padding:10px 12px;border-bottom:1px solid var(--color-border-subtle);font-size:12.5px;color:var(--color-text);">{html.escape(log.get('detail', ''))}</td>
         </tr>"""
 
+    # 10. Guided Chat Sessions Rows (SK-11 / UU PDP)
+    chat_rows_html = ""
+    if not chat_sessions:
+        chat_rows_html = '<div class="cms-empty-box" style="padding:28px;text-align:center;background:var(--color-bg);border:1px dashed var(--color-border-subtle);color:var(--color-text-muted);">Belum ada transkrip sesi chat pemandu yang tersimpan. Pengunjung yang menyelesaikan formulir pada widget chat pemandu di beranda akan tercatat di sini.</div>'
+    else:
+        for s in chat_sessions:
+            st = s.get("status", "baru")
+            phone_digits = "".join(ch for ch in str(s.get("visitorPhone", "")) if ch.isdigit())
+            if phone_digits.startswith("0"):
+                phone_digits = "62" + phone_digits[1:]
+            sid = html.escape(s.get("id", ""))
+            created_label = html.escape(s.get("createdAt", "")[:19].replace("T", " "))
+            wa_text = urllib.parse.quote(
+                f"Halo Bapak/Ibu {s.get('visitorName', '')}, kami dari {settings['officialFirmName']} menindaklanjuti konsultasi chat terpandu Anda terkait bidang {s.get('practiceArea', '')}."
+            )
+            direct_wa_client = f"https://wa.me/{phone_digits}?text={wa_text}"
+            chat_rows_html += f"""
+            <div class="cms-item-card cms-chat-item" data-chat-status="{st}" style="flex-direction:column;align-items:stretch;background:var(--color-bg);padding:18px;border:1px solid var(--color-border-subtle);margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+                <div>
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <strong style="font-size:1.1rem;color:var(--color-text);">{html.escape(s.get('visitorName', ''))}</strong>
+                    <span class="cms-badge" style="background:rgba(197,168,128,0.18);color:var(--color-gold-strong);">{html.escape(s.get('practiceArea', ''))}</span>
+                    <span style="font-size:12px;color:var(--color-text-muted);">ID: {sid} &middot; {created_label}</span>
+                  </div>
+                  <div style="font-size:13px;color:var(--color-text-secondary);margin-top:6px;">
+                    Nomor WhatsApp: <strong>{html.escape(s.get('visitorPhone', ''))}</strong> &middot; Jadwal Pilihan: <strong>{html.escape(s.get('preferredSchedule', ''))}</strong>
+                  </div>
+                  <div style="font-size:12px;color:var(--color-gold-strong);margin-top:4px;">
+                    Persetujuan Pemrosesan Data (UU PDP): Disetujui ({html.escape(s.get('consentAt', '')[:19].replace('T', ' '))})
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <select class="form-select cms-btn-sm" style="width:auto;min-height:34px;padding:4px 8px;font-size:12px;" onchange="updateChatSessionStatus('{sid}', this.value)">
+                    <option value="baru" {'selected' if st == 'baru' else ''}>Status: Baru</option>
+                    <option value="dihubungi" {'selected' if st == 'dihubungi' else ''}>Status: Dihubungi</option>
+                    <option value="selesai" {'selected' if st == 'selesai' else ''}>Status: Selesai</option>
+                  </select>
+                  <a href="{direct_wa_client}" target="_blank" rel="noopener noreferrer" class="btn-gold cms-btn-sm">Hubungi WA &rarr;</a>
+                  <button type="button" class="btn-outline cms-btn-sm cms-btn-danger" onclick="deleteChatSessionPdp('{sid}')">Hapus (UU PDP)</button>
+                </div>
+              </div>
+              <div style="margin-top:12px;padding:12px 14px;background:var(--color-surface);border-left:3px solid var(--color-gold);font-size:13.5px;color:var(--color-text-secondary);line-height:1.6;">
+                <strong>Ringkasan Kebutuhan Hukum:</strong><br>
+                {html.escape(s.get('notes', ''))}
+              </div>
+            </div>"""
+
+    # 11. Instagram Gallery Cards (SK-13 / PRD V3)
+    instagram_cards_html = ""
+    for item in instagram_items:
+        iid = html.escape(item.get("id", ""))
+        status_badge = (
+            '<span class="cms-badge" style="background:#14532d;color:#86efac;">Terbit</span>'
+            if item.get("isPublished", True)
+            else '<span class="cms-badge" style="background:#451a03;color:#fdba74;">Draf</span>'
+        )
+        instagram_cards_html += f"""
+        <div class="cms-item-card" style="flex-direction:column;align-items:stretch;background:var(--color-bg);padding:14px;border:1px solid var(--color-border-subtle);">
+          <div style="position:relative;width:100%;height:180px;background:var(--bg-photo-well);overflow:hidden;margin-bottom:12px;">
+            <img src="{item.get('imageUrl', '')}" alt="{html.escape(item.get('alt', ''))}" style="width:100%;height:100%;object-fit:cover;">
+            <div style="position:absolute;top:8px;right:8px;">{status_badge}</div>
+            <div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.75);padding:2px 8px;border-radius:2px;font-size:11px;color:var(--color-gold-strong);">{html.escape(item.get('category', ''))}</div>
+          </div>
+          <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:6px;">
+            Urutan: #{item.get('displayOrder', 1)} &middot; {html.escape(item.get('publishedDate', ''))}
+          </div>
+          <p style="font-size:13.5px;color:var(--color-text);line-height:1.5;margin-bottom:14px;min-height:58px;">
+            {html.escape(item.get('caption', ''))}
+          </p>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:auto;">
+            <button type="button" class="btn-outline cms-btn-sm" onclick="openEditInstagramModal('{iid}')">Edit Post</button>
+            <button type="button" class="btn-outline cms-btn-sm" onclick="toggleInstagramPublish('{iid}')">{'Sembunyikan' if item.get('isPublished', True) else 'Terbitkan'}</button>
+            <button type="button" class="btn-outline cms-btn-sm cms-btn-danger" onclick="deleteInstagramItem('{iid}')">Hapus</button>
+          </div>
+        </div>"""
+
     return f"""<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -1037,7 +1295,7 @@ def render_enterprise_admin_dashboard(
   </header>
 
   <div class="cms-layout">
-    <!-- Left Sidebar Navigation (10 Enterprise Modules) -->
+    <!-- Left Sidebar Navigation (12 Enterprise Modules) -->
     <aside class="cms-sidebar" aria-label="Menu Navigasi CMS">
       <div class="cms-nav-group-label">Ikhtisar &amp; Publikasi</div>
       <button type="button" class="cms-nav-btn is-active" data-tab="tab-dashboard" onclick="switchCmsTab('tab-dashboard')">
@@ -1057,31 +1315,39 @@ def render_enterprise_admin_dashboard(
         <span>4. Permohonan Janji Temu</span>
         <span class="cms-nav-count">{len(inquiries)}</span>
       </button>
+      <button type="button" class="cms-nav-btn" data-tab="tab-chat" onclick="switchCmsTab('tab-chat')">
+        <span>5. Chat Pemandu (SK-11)</span>
+        <span class="cms-nav-count">{len(chat_sessions)}</span>
+      </button>
 
       <div class="cms-nav-group-label">Konten Firma &amp; Portofolio</div>
       <button type="button" class="cms-nav-btn" data-tab="tab-team" onclick="switchCmsTab('tab-team')">
-        <span>5. Profil Tim &amp; Partner</span>
+        <span>6. Profil Tim &amp; Partner</span>
         <span class="cms-nav-count">{len(team)}</span>
       </button>
       <button type="button" class="cms-nav-btn" data-tab="tab-practices" onclick="switchCmsTab('tab-practices')">
-        <span>6. 10 Bidang Praktik</span>
+        <span>7. 10 Bidang Praktik</span>
         <span class="cms-nav-count">{len(practices)}</span>
       </button>
       <button type="button" class="cms-nav-btn" data-tab="tab-cases" onclick="switchCmsTab('tab-cases')">
-        <span>7. Rekam Jejak Perkara</span>
+        <span>8. Rekam Jejak Perkara</span>
         <span class="cms-nav-count">{len(cases)}</span>
       </button>
+      <button type="button" class="cms-nav-btn" data-tab="tab-instagram" onclick="switchCmsTab('tab-instagram')">
+        <span>9. Galeri Instagram (SK-13)</span>
+        <span class="cms-nav-count">{len(instagram_items)}</span>
+      </button>
       <button type="button" class="cms-nav-btn" data-tab="tab-media" onclick="switchCmsTab('tab-media')">
-        <span>8. Pustaka Media</span>
+        <span>10. Pustaka Media</span>
         <span class="cms-nav-count">{len(media_files)}</span>
       </button>
 
       <div class="cms-nav-group-label">Konfigurasi &amp; Keamanan</div>
       <button type="button" class="cms-nav-btn" data-tab="tab-settings" onclick="switchCmsTab('tab-settings')">
-        <span>9. Pengaturan Situs &amp; SEO</span>
+        <span>11. Pengaturan Situs &amp; SEO</span>
       </button>
       <button type="button" class="cms-nav-btn" data-tab="tab-security" onclick="switchCmsTab('tab-security')">
-        <span>10. Pengguna &amp; Log Audit</span>
+        <span>12. Pengguna &amp; Log Audit</span>
         <span class="cms-nav-count">{len(audit_logs)}</span>
       </button>
     </aside>
@@ -1104,6 +1370,11 @@ def render_enterprise_admin_dashboard(
             <div class="cred-title">Permohonan Janji Temu</div>
             <div class="cred-desc">Klik untuk menindaklanjuti jadwal klien</div>
           </div>
+          <div class="cred-box" style="cursor:pointer;" onclick="switchCmsTab('tab-chat')">
+            <div class="trust-stat-num">{len(chat_sessions)} Sesi</div>
+            <div class="cred-title">Chat Pemandu (SK-11)</div>
+            <div class="cred-desc">Transkrip konsultasi &amp; kepatuhan UU PDP</div>
+          </div>
           <div class="cred-box" style="cursor:pointer;" onclick="switchCmsTab('tab-team')">
             <div class="trust-stat-num">{len(team)} Profil</div>
             <div class="cred-title">Founder &amp; Tim Advokat</div>
@@ -1119,6 +1390,11 @@ def render_enterprise_admin_dashboard(
             <div class="cred-title">Rekam Jejak (SK-14)</div>
             <div class="cred-desc">Portofolio penanganan perkara anonim</div>
           </div>
+          <div class="cred-box" style="cursor:pointer;" onclick="switchCmsTab('tab-instagram')">
+            <div class="trust-stat-num">{len(instagram_items)} Post</div>
+            <div class="cred-title">Galeri Instagram (SK-13)</div>
+            <div class="cred-desc">Edukasi hukum &amp; publikasi media sosial</div>
+          </div>
         </div>
 
         <div class="docket-booking-grid" style="margin-top:0;">
@@ -1126,8 +1402,10 @@ def render_enterprise_admin_dashboard(
             <h3 style="margin-bottom:14px;">Pintasan Pengelolaan Cepat</h3>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <button type="button" class="btn-gold cms-btn-sm" onclick="switchCmsTab('tab-articles');openNewArticleModal()">+ Tulis Artikel Baru</button>
+              <button type="button" class="btn-outline cms-btn-sm" onclick="switchCmsTab('tab-chat')">Lihat Sesi Chat Pemandu</button>
               <button type="button" class="btn-outline cms-btn-sm" onclick="switchCmsTab('tab-team')">Edit Profil Tim &amp; Gelar</button>
               <button type="button" class="btn-outline cms-btn-sm" onclick="switchCmsTab('tab-practices')">Edit 10 Bidang Praktik</button>
+              <button type="button" class="btn-outline cms-btn-sm" onclick="switchCmsTab('tab-instagram')">Kelola Galeri Instagram</button>
               <button type="button" class="btn-outline cms-btn-sm" onclick="switchCmsTab('tab-settings')">Ubah Teks Beranda &amp; Kontak WA</button>
               <button type="button" class="btn-outline cms-btn-sm" onclick="switchCmsTab('tab-cases')">Kelola Rekam Jejak Perkara</button>
               <button type="button" class="btn-outline cms-btn-sm" onclick="switchCmsTab('tab-media')">Buka Pustaka Media &amp; Upload</button>
@@ -1216,6 +1494,29 @@ def render_enterprise_admin_dashboard(
         </div>
       </section>
 
+      <!-- TAB 5: GUIDED CHAT SESSIONS (SK-11 / UU PDP) -->
+      <section id="tab-chat" class="cms-tab-pane">
+        <div class="cms-panel-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+            <div>
+              <h2>Sesi Chat Pemandu Konsultasi ({len(chat_sessions)})</h2>
+              <p style="font-size:13.5px;color:var(--color-text-muted);">Transkrip kebutuhan awal klien dari widget chat terpandu di beranda publik. Hak penghapusan data pribadi (right to erasure) dijamin sesuai UU PDP.</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <select class="form-select cms-btn-sm" style="width:auto;" onchange="filterChatSessionsByStatus(this.value)">
+                <option value="all">Semua Status ({len(chat_sessions)})</option>
+                <option value="baru">Baru</option>
+                <option value="dihubungi">Dihubungi</option>
+                <option value="selesai">Selesai</option>
+              </select>
+            </div>
+          </div>
+          <div id="cmsChatList">
+            {chat_rows_html}
+          </div>
+        </div>
+      </section>
+
       <!-- TAB 5: TEAM PROFILES MANAGEMENT -->
       <section id="tab-team" class="cms-tab-pane">
         <div class="cms-panel-box">
@@ -1298,7 +1599,23 @@ def render_enterprise_admin_dashboard(
         </div>
       </section>
 
-      <!-- TAB 8: MEDIA LIBRARY -->
+      <!-- TAB 9: CURATED INSTAGRAM GALLERY (SK-13 / PRD V3) -->
+      <section id="tab-instagram" class="cms-tab-pane">
+        <div class="cms-panel-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+            <div>
+              <h2>Galeri Edukasi Hukum Instagram ({len(instagram_items)} Post)</h2>
+              <p style="font-size:13.5px;color:var(--color-text-muted);">Kelola postingan edukasi Instagram yang tampil di Beranda publik. Dilengkapi teks alt aksesibilitas WCAG AA dan tombol sembunyikan/terbitkan.</p>
+            </div>
+            <button type="button" class="btn-gold cms-btn-sm" onclick="openNewInstagramModal()">+ Tambah Postingan Edukasi</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+            {instagram_cards_html}
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 10: MEDIA LIBRARY -->
       <section id="tab-media" class="cms-tab-pane">
         <div class="cms-panel-box">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
@@ -1711,6 +2028,56 @@ def render_enterprise_admin_dashboard(
     </div>
   </div>
 
+  <!-- MODAL: CREATE / EDIT INSTAGRAM POST (SK-13) -->
+  <div id="cmsInstagramModal" class="modal-overlay" onclick="if(event.target===this)closeCmsModal('cmsInstagramModal')">
+    <div class="modal-dialog-box" style="max-width:680px;">
+      <button type="button" class="modal-close-trigger" onclick="closeCmsModal('cmsInstagramModal')">&times;</button>
+      <h3 id="cmsInstagramModalHeading" style="margin-bottom:16px;">Tambah Postingan Edukasi Instagram</h3>
+      <form onsubmit="submitInstagramModalForm(event)">
+        <input id="modalIgId" type="hidden" value="">
+        <div class="form-row-duo">
+          <div class="form-group">
+            <label class="form-label">Kategori Edukasi</label>
+            <input id="modalIgCategory" type="text" class="form-input" required placeholder="mis. Edukasi Korporasi">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Terbit</label>
+            <input id="modalIgDate" type="text" class="form-input" required placeholder="mis. 14 Okt 2026">
+          </div>
+        </div>
+        <div class="form-row-duo">
+          <div class="form-group">
+            <label class="form-label">Gambar Postingan</label>
+            <select id="modalIgImage" class="form-select">{media_options_html}</select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Urutan Tampil (Display Order)</label>
+            <input id="modalIgOrder" type="number" class="form-input" required min="1" value="1">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teks Alternatif Gambar (Wajib Aksesibilitas WCAG AA)</label>
+          <input id="modalIgAlt" type="text" class="form-input" required placeholder="Edukasi Hukum ... - Ferdinan Silalahi dan Rekan Law Firm">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teks Caption Edukasi Hukum</label>
+          <textarea id="modalIgCaption" class="form-textarea" rows="4" required placeholder="Tuliskan ulasan ringkas wawasan edukasi hukum..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tautan Konten Instagram (Permalink)</label>
+          <input id="modalIgPermalink" type="url" class="form-input" required placeholder="https://instagram.com/">
+        </div>
+        <div class="form-group">
+          <label class="consent-checkbox-label">
+            <input id="modalIgPublished" type="checkbox" checked>
+            <span>Tampilkan di Beranda Publik (Status Terbit)</span>
+          </label>
+        </div>
+        <button type="submit" class="btn-gold full-width-btn">Simpan Postingan Instagram &rarr;</button>
+      </form>
+    </div>
+  </div>
+
   <div id="cmsToast" class="cms-toast" role="status"></div>
 
   <script>
@@ -1719,6 +2086,8 @@ def render_enterprise_admin_dashboard(
     const CMS_PRACTICES = {json.dumps({a["slug"]: a for a in practices}, ensure_ascii=False)};
     const CMS_CASES = {json.dumps({c["id"]: c for c in cases}, ensure_ascii=False)};
     const CMS_INQUIRIES = {json.dumps(inquiries, ensure_ascii=False)};
+    const CMS_INSTAGRAM = {json.dumps({it["id"]: it for it in instagram_items}, ensure_ascii=False)};
+    const CMS_CHAT_SESSIONS = {json.dumps({s["id"]: s for s in chat_sessions}, ensure_ascii=False)};
 
     function showToast(msg) {{
       const t = document.getElementById('cmsToast');
@@ -2176,6 +2545,141 @@ def render_enterprise_admin_dashboard(
       const data = await res.json().catch(() => ({{}}));
       if (res.ok) window.location.reload();
       else alert(data.error || 'Gagal menghapus akun.');
+    }}
+
+    // Instagram CRUD (SK-13)
+    function openNewInstagramModal() {{
+      document.getElementById('cmsInstagramModalHeading').textContent = 'Tambah Postingan Edukasi Instagram';
+      document.getElementById('modalIgId').value = '';
+      document.getElementById('modalIgCategory').value = 'Edukasi Hukum';
+      document.getElementById('modalIgDate').value = new Date().toLocaleDateString('id-ID', {{day:'numeric', month:'short', year:'numeric'}});
+      document.getElementById('modalIgOrder').value = Object.keys(CMS_INSTAGRAM).length + 1;
+      document.getElementById('modalIgAlt').value = 'Edukasi Hukum - Ferdinan Silalahi dan Rekan Law Firm';
+      document.getElementById('modalIgCaption').value = '';
+      document.getElementById('modalIgPermalink').value = 'https://instagram.com/';
+      document.getElementById('modalIgPublished').checked = true;
+      document.getElementById('cmsInstagramModal').classList.add('is-active');
+    }}
+
+    function openEditInstagramModal(id) {{
+      const it = CMS_INSTAGRAM[id];
+      if (!it) return;
+      document.getElementById('cmsInstagramModalHeading').textContent = 'Edit Postingan Edukasi Instagram';
+      document.getElementById('modalIgId').value = it.id;
+      document.getElementById('modalIgCategory').value = it.category || '';
+      document.getElementById('modalIgDate').value = it.publishedDate || '';
+      document.getElementById('modalIgImage').value = it.imageUrl || '';
+      document.getElementById('modalIgOrder').value = it.displayOrder || 1;
+      document.getElementById('modalIgAlt').value = it.alt || '';
+      document.getElementById('modalIgCaption').value = it.caption || '';
+      document.getElementById('modalIgPermalink').value = it.permalink || '';
+      document.getElementById('modalIgPublished').checked = it.isPublished !== false;
+      document.getElementById('cmsInstagramModal').classList.add('is-active');
+    }}
+
+    async function submitInstagramModalForm(e) {{
+      e.preventDefault();
+      const id = document.getElementById('modalIgId').value.trim();
+      const payload = {{
+        action: id ? 'update' : 'create',
+        id: id || undefined,
+        category: document.getElementById('modalIgCategory').value.trim(),
+        publishedDate: document.getElementById('modalIgDate').value.trim(),
+        imageUrl: document.getElementById('modalIgImage').value,
+        displayOrder: parseInt(document.getElementById('modalIgOrder').value, 10) || 1,
+        alt: document.getElementById('modalIgAlt').value.trim(),
+        caption: document.getElementById('modalIgCaption').value.trim(),
+        permalink: document.getElementById('modalIgPermalink').value.trim(),
+        isPublished: document.getElementById('modalIgPublished').checked,
+      }};
+      try {{
+        const res = await fetch('/api/admin/instagram', {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify(payload)
+        }});
+        const data = await res.json().catch(() => ({{}}));
+        if (res.ok) {{
+          showToast('Postingan Instagram berhasil disimpan.');
+          setTimeout(() => window.location.reload(), 700);
+        }} else {{
+          alert(data.error || 'Gagal menyimpan postingan Instagram.');
+        }}
+      }} catch (err) {{
+        alert('Terjadi kesalahan jaringan.');
+      }}
+    }}
+
+    async function toggleInstagramPublish(id) {{
+      try {{
+        const res = await fetch('/api/admin/instagram', {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify({{action: 'toggle_publish', id}})
+        }});
+        if (res.ok) {{
+          showToast('Status publikasi Instagram diperbarui.');
+          setTimeout(() => window.location.reload(), 700);
+        }}
+      }} catch (err) {{
+        alert('Terjadi kesalahan jaringan.');
+      }}
+    }}
+
+    async function deleteInstagramItem(id) {{
+      if (!confirm('Hapus postingan edukasi Instagram ini?')) return;
+      try {{
+        const res = await fetch('/api/admin/instagram', {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify({{action: 'delete', id}})
+        }});
+        if (res.ok) {{
+          showToast('Postingan Instagram berhasil dihapus.');
+          setTimeout(() => window.location.reload(), 700);
+        }}
+      }} catch (err) {{
+        alert('Terjadi kesalahan jaringan.');
+      }}
+    }}
+
+    // Chat Sessions (SK-11 / UU PDP)
+    function filterChatSessionsByStatus(st) {{
+      document.querySelectorAll('#cmsChatList .cms-chat-item').forEach(card => {{
+        card.style.display = (st === 'all' || card.getAttribute('data-chat-status') === st) ? 'flex' : 'none';
+      }});
+    }}
+
+    async function updateChatSessionStatus(id, st) {{
+      try {{
+        const res = await fetch('/api/admin/chat-sessions', {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify({{action: 'update_status', id, status: st}})
+        }});
+        if (res.ok) {{
+          showToast('Status sesi chat diperbarui.');
+        }}
+      }} catch (err) {{
+        alert('Gagal memperbarui status chat.');
+      }}
+    }}
+
+    async function deleteChatSessionPdp(id) {{
+      if (!confirm('Hapus permanen data transkrip chat ini sesuai hak penghapusan UU PDP?')) return;
+      try {{
+        const res = await fetch('/api/admin/chat-sessions', {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify({{action: 'delete', id}})
+        }});
+        if (res.ok) {{
+          showToast('Data chat pengunjung berhasil dihapus permanen (UU PDP).');
+          setTimeout(() => window.location.reload(), 700);
+        }}
+      }} catch (err) {{
+        alert('Gagal menghapus data.');
+      }}
     }}
   </script>
 </body>

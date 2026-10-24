@@ -2,6 +2,7 @@ import React from 'react'
 import type { Metadata } from 'next'
 import {
   DEFAULT_SITE_SETTINGS,
+  getInstagramGalleryItems,
   getPublicCaseRecords,
   getPublishedArticles,
   getPublishedPracticeAreas,
@@ -24,6 +25,7 @@ export default function HomePage() {
   const practiceAreas = getPublishedPracticeAreas()
   const caseRecords = getPublicCaseRecords()
   const latestArticles = getPublishedArticles().slice(0, 3)
+  const instagramItems = getInstagramGalleryItems()
 
   return (
     <>
@@ -37,6 +39,7 @@ export default function HomePage() {
         practiceAreas={practiceAreas}
         caseRecords={caseRecords}
         latestArticles={latestArticles}
+        instagramItems={instagramItems}
       />
     </>
   )

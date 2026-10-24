@@ -12,6 +12,8 @@ import { PracticeAreas } from '@/collections/PracticeAreas'
 import { Inquiries } from '@/collections/Inquiries'
 import { AuditLogs } from '@/collections/AuditLogs'
 import { CaseRecords } from '@/collections/CaseRecords'
+import { ChatSessions } from '@/collections/ChatSessions'
+import { ChatMessages } from '@/collections/ChatMessages'
 import { SiteSettings } from '@/globals/SiteSettings'
 
 const filename = fileURLToPath(import.meta.url)
@@ -31,6 +33,8 @@ export default buildConfig({
     Inquiries,
     AuditLogs,
     CaseRecords,
+    ChatSessions,
+    ChatMessages,
   ],
   globals: [SiteSettings],
   editor: lexicalEditor(),

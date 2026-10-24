@@ -1642,3 +1642,228 @@ p {
   transition: transform 0.25s var(--ease);
 }
 
+/* ==========================================================================
+   Phase 2: Article Search Bar, Instagram Gallery & Guided Chat Widget
+   ========================================================================== */
+
+/* Article Search Bar */
+.article-search-bar {
+  display: flex;
+  gap: var(--space-3);
+  margin: var(--space-6) 0 var(--space-8);
+  max-width: 640px;
+}
+
+.article-search-bar .form-input {
+  flex-grow: 1;
+}
+
+/* Instagram Gallery Grid (SK-13) */
+.instagram-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+  margin-top: var(--space-10);
+}
+
+.instagram-card {
+  background-color: var(--color-bg);
+  border-top: 2px solid var(--color-gold);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--dur-normal) var(--ease), background-color var(--dur-normal) ease;
+}
+
+.instagram-card:hover {
+  transform: translateY(-4px);
+  background-color: var(--color-surface-2);
+}
+
+.instagram-card-media {
+  aspect-ratio: 1 / 1;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-photo-well);
+}
+
+.instagram-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s var(--ease);
+}
+
+.instagram-card:hover .instagram-card-media img {
+  transform: scale(1.04);
+}
+
+.instagram-card-badge {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  background: rgba(8, 9, 12, 0.88);
+  color: var(--color-gold-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-left: 2px solid var(--color-gold);
+}
+
+.instagram-card-body {
+  padding: var(--space-5);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.instagram-card-date {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.instagram-card-caption {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Guided Chat Widget (SK-11 / SEC-015) */
+.guided-chat-root {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: 92px;
+  z-index: 990;
+}
+
+.guided-chat-trigger {
+  min-height: 56px;
+  padding: 0 22px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-2);
+  color: var(--color-gold-strong);
+  border: 1px solid var(--color-gold);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.25s var(--ease), background-color 0.25s ease;
+}
+
+.guided-chat-trigger:hover {
+  transform: translateY(-3px);
+  background-color: var(--color-surface);
+  border-color: var(--color-gold-strong);
+}
+
+.guided-chat-panel {
+  position: absolute;
+  bottom: 68px;
+  right: 0;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  max-height: 82vh;
+  overflow-y: auto;
+  background-color: var(--color-surface);
+  border-top: 3px solid var(--color-gold);
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  animation: modalDialogEnter 0.3s var(--ease) forwards;
+}
+
+.guided-chat-header {
+  padding: var(--space-4) var(--space-5);
+  background-color: var(--color-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.guided-chat-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: 700;
+  color: var(--color-gold-strong);
+}
+
+.guided-chat-sub {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.guided-chat-close {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.guided-chat-close:hover {
+  color: var(--color-gold);
+}
+
+.guided-chat-disclaimer {
+  padding: var(--space-3) var(--space-4);
+  background-color: rgba(197, 168, 128, 0.08);
+  border-bottom: 1px solid rgba(197, 168, 128, 0.2);
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.guided-chat-body {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.guided-chat-bot-bubble {
+  padding: var(--space-4);
+  background-color: var(--color-surface-2);
+  border-left: 2px solid var(--color-gold);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--space-2);
+}
+
+@media (max-width: 1024px) {
+  .instagram-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .instagram-gallery-grid {
+    grid-template-columns: 1fr;
+  }
+  .guided-chat-root {
+    right: 84px;
+  }
+  .guided-chat-trigger {
+    padding: 0 14px;
+    font-size: var(--text-xs);
+  }
+}
+

@@ -1,6 +1,12 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import {
+  getInstagramGalleryItems,
+  getPracticeAreaBySlug,
+  getTeamMemberBySlug,
+  getPublishedArticles,
+} from '../src/lib/content'
 
 interface TeamPhoto {
   id: string
@@ -111,5 +117,49 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
       expect(record.clientName).toBeNull()
       expect(record.consentRef).toBeNull()
     }
+  })
+
+  it('SK-13: getInstagramGalleryItems() returns 6 curated posts with required alt and category', () => {
+    const items = getInstagramGalleryItems()
+    expect(items).toHaveLength(6)
+    for (const item of items) {
+      expect(item.isPublished).toBe(true)
+      expect(item.alt.length).toBeGreaterThan(10)
+      expect(item.caption.length).toBeGreaterThan(20)
+      expect(item.imageUrl).toMatch(/^\/images\/.+\.webp$/)
+      expect(item.category.length).toBeGreaterThan(2)
+    }
+    // Verify sorted displayOrder
+    for (let i = 0; i < items.length - 1; i++) {
+      expect(items[i].displayOrder).toBeLessThanOrEqual(items[i + 1].displayOrder)
+    }
+  })
+
+  it('Phase 2: getPracticeAreaBySlug() and getTeamMemberBySlug() resolve correctly', async () => {
+    const corp = await getPracticeAreaBySlug('litigasi-korporasi-dan-komersial')
+    expect(corp).not.toBeNull()
+    expect(corp?.name).toBe('Litigasi Korporasi & Komersial')
+
+    const invalidArea = await getPracticeAreaBySlug('tidak-ada-layanan')
+    expect(invalidArea).toBeNull()
+
+    const founder = await getTeamMemberBySlug('ferdinan-hasiholan-silalahi')
+    expect(founder).not.toBeNull()
+    expect(founder?.fullName).toBe('Ferdinan Hasiholan Silalahi, S.H.')
+
+    const invalidMember = await getTeamMemberBySlug('tidak-ada-anggota')
+    expect(invalidMember).toBeNull()
+  })
+
+  it('Phase 2: getPublishedArticles() filters by keyword search query', () => {
+    const all = getPublishedArticles()
+    expect(all.length).toBeGreaterThanOrEqual(3)
+
+    const searchLitigasi = getPublishedArticles(undefined, 'litigasi')
+    expect(searchLitigasi.length).toBeGreaterThanOrEqual(1)
+    expect(searchLitigasi.some((a) => a.title.toLowerCase().includes('litigasi'))).toBe(true)
+
+    const searchNone = getPublishedArticles(undefined, 'kata-kunci-pasti-tidak-ada-xyz')
+    expect(searchNone).toHaveLength(0)
   })
 })

@@ -1,10 +1,16 @@
 import type { MetadataRoute } from 'next'
-import { getPublishedArticles } from '@/lib/content'
+import {
+  getPublishedArticles,
+  getPublishedPracticeAreas,
+  getPublishedTeamMembers,
+} from '@/lib/content'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fsdanrekan.id'
   // SK-07 & FR-9.2: Only published articles are included in sitemap; drafts are strictly excluded
   const publishedArticles = getPublishedArticles()
+  const practiceAreas = getPublishedPracticeAreas()
+  const teamMembers = getPublishedTeamMembers()
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -27,6 +33,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
+  const practiceRoutes: MetadataRoute.Sitemap = practiceAreas.map((area) => ({
+    url: `${siteUrl}/layanan/${area.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.85,
+  }))
+
+  const teamRoutes: MetadataRoute.Sitemap = teamMembers.map((member) => ({
+    url: `${siteUrl}/tim/${member.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.75,
+  }))
+
   const articleRoutes: MetadataRoute.Sitemap = publishedArticles.map((article) => ({
     url: `${siteUrl}/artikel/${article.slug}`,
     lastModified: new Date(article.publishedAt),
@@ -34,5 +54,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  return [...staticRoutes, ...articleRoutes]
+  return [...staticRoutes, ...practiceRoutes, ...teamRoutes, ...articleRoutes]
 }

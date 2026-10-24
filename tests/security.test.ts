@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { cleanHtml, escapeHtml } from '../src/lib/security/sanitize'
 import { verifyConstantTimeToken, verifyMetaSignature } from '../src/lib/security/signature'
 import { InquiryBodySchema } from '../src/lib/validation/inquiry'
+import { GuidedChatSchema } from '../src/lib/validation/chat'
 import { isValidIndonesianWaNumber, waLink } from '../src/lib/whatsapp'
 import {
   getPublishedArticleBySlug,
@@ -99,5 +100,29 @@ describe('Security & Validation Unit Suite (SEC-004, SEC-005, SEC-006, SEC-008, 
     })
     expect(unconsented.displayMode).toBe('anonymous')
     expect(unconsented.clientName).toBeUndefined()
+  })
+
+  it('SK-11 & SEC-005: strictly validates GuidedChatSchema and rejects missing consent or extra keys', () => {
+    const validChat = {
+      visitorName: 'Budi Santoso',
+      visitorPhone: '+6281234567890',
+      practiceArea: 'Hukum Korporasi & Bisnis',
+      preferredSchedule: 'Senin, 10.00 WIB',
+      notes: 'Konsultasi draf perjanjian komersial.',
+      consent: true,
+    }
+    expect(GuidedChatSchema.safeParse(validChat).success).toBe(true)
+
+    // Missing consent -> fails
+    expect(GuidedChatSchema.safeParse({ ...validChat, consent: false }).success).toBe(false)
+
+    // Short name -> fails
+    expect(GuidedChatSchema.safeParse({ ...validChat, visitorName: 'A' }).success).toBe(false)
+
+    // Invalid phone -> fails
+    expect(GuidedChatSchema.safeParse({ ...validChat, visitorPhone: '123' }).success).toBe(false)
+
+    // Extra unknown field -> fails (.strict())
+    expect(GuidedChatSchema.safeParse({ ...validChat, isAdmin: true }).success).toBe(false)
   })
 })

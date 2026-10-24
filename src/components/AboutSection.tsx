@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import type { TeamMemberData } from '@/lib/content'
 import { OFFICIAL_FIRM_NAME } from '@/lib/seo'
 
@@ -77,6 +78,9 @@ export function AboutSection({ founder, onOpenFounderProfile }: AboutSectionProp
               <a href="#janji-temu" className="btn-outline">
                 Konsultasi dengan Partner &rarr;
               </a>
+              <Link href={`/tim/${founder.slug}`} className="link-gold">
+                Halaman Profil Pendiri &rarr;
+              </Link>
             </div>
           </div>
         </div>

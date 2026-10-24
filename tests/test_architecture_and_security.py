@@ -206,14 +206,35 @@ class TestArchitectureAndSecurity(unittest.TestCase):
             "tab-articles",
             "tab-categories",
             "tab-inquiries",
+            "tab-chat",
             "tab-team",
             "tab-practices",
             "tab-cases",
+            "tab-instagram",
             "tab-media",
             "tab-settings",
             "tab-security",
         ):
             self.assertIn(tab_id, admin_html, f"Missing Admin CMS module {tab_id}")
+
+        self.assertIn("galeri-instagram", html)
+        self.assertIn("guidedChatWidgetRoot", html)
+
+        # Phase 2: Dedicated practice & team detail renderers
+        from scripts.preview_server import render_practice_detail, render_team_detail, render_articles_index
+        practice_html = render_practice_detail("litigasi-korporasi-dan-komersial")
+        self.assertIsNotNone(practice_html)
+        self.assertIn("Litigasi Korporasi", practice_html)
+        self.assertIsNone(render_practice_detail("non-existent-area"))
+
+        team_html = render_team_detail("ferdinan-hasiholan-silalahi")
+        self.assertIsNotNone(team_html)
+        self.assertIn("Ferdinan Hasiholan Silalahi, S.H.", team_html)
+        self.assertIsNone(render_team_detail("non-existent-member"))
+
+        # Phase 2: Keyword search filtering on articles
+        search_html = render_articles_index("litigasi")
+        self.assertIn("Litigasi", search_html)
 
         self.assertIsNone(render_article_detail("draf-internal-belum-terbit", is_admin_preview=False))
         self.assertIsNotNone(render_article_detail("draf-internal-belum-terbit", is_admin_preview=True))

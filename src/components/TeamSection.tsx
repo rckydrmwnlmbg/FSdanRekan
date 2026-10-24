@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import type { TeamMemberData } from '@/lib/content'
 import { OFFICIAL_FIRM_NAME } from '@/lib/seo'
 
@@ -229,6 +230,13 @@ export function TeamSection({
                   <a href="#janji-temu" onClick={closeModal} className="btn-gold">
                     Jadwalkan Janji Temu &rarr;
                   </a>
+                  <Link
+                    href={`/tim/${activeProfile.slug}`}
+                    onClick={closeModal}
+                    className="btn-outline"
+                  >
+                    Halaman Profil Lengkap &rarr;
+                  </Link>
                   <button type="button" onClick={closeModal} className="btn-outline">
                     Tutup Profil
                   </button>

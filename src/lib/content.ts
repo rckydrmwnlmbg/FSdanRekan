@@ -285,6 +285,11 @@ export function getPublishedTeamMembers(): TeamMemberData[] {
     .map(cleanUiTeamMember)
 }
 
+export function getTeamMemberBySlug(slug: string): TeamMemberData | null {
+  const found = getPublishedTeamMembers().find((m) => m.slug === slug)
+  return found ?? null
+}
+
 export function getPublishedPracticeAreas(): PracticeAreaData[] {
   return (practiceAreasSeed as PracticeAreaData[])
     .filter((p) => p.isPublished)
@@ -306,6 +311,104 @@ export function getPublishedPracticeAreas(): PracticeAreaData[] {
             : area.advocacyScope,
       }
     })
+}
+
+export function getPracticeAreaBySlug(slug: string): PracticeAreaData | null {
+  const found = getPublishedPracticeAreas().find((p) => p.slug === slug)
+  return found ?? null
+}
+
+export interface InstagramGalleryItem {
+  id: string
+  imageUrl: string
+  alt: string
+  category: string
+  caption: string
+  publishedDate: string
+  permalink: string
+  displayOrder: number
+  isPublished: boolean
+}
+
+export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
+  {
+    id: 'ig-1',
+    imageUrl: '/images/practice-corporate.webp',
+    alt: 'Edukasi Hukum Korporasi & Kontrak Komersial — Ferdinan Silalahi dan Rekan Law Firm',
+    category: 'Edukasi Korporasi',
+    caption:
+      'Pentingnya perumusan klausul penyelesaian sengketa dan keadaan kahar (force majeure) dalam perjanjian kerja sama komersial.',
+    publishedDate: '14 Okt 2026',
+    permalink: 'https://instagram.com/',
+    displayOrder: 1,
+    isPublished: true,
+  },
+  {
+    id: 'ig-2',
+    imageUrl: '/images/article-land.webp',
+    alt: 'Edukasi Uji Tuntas Pertanahan & Agraria — Ferdinan Silalahi dan Rekan Law Firm',
+    category: 'Agraria & Properti',
+    caption:
+      'Tahapan uji tuntas hukum (legal due diligence) sebelum transaksi aset properti guna memitigasi risiko sengketa alas hak.',
+    publishedDate: '10 Okt 2026',
+    permalink: 'https://instagram.com/',
+    displayOrder: 2,
+    isPublished: true,
+  },
+  {
+    id: 'ig-3',
+    imageUrl: '/images/hero-slide-courtroom.webp',
+    alt: 'Pendampingan Litigasi & Persidangan — Ferdinan Silalahi dan Rekan Law Firm',
+    category: 'Litigasi & Advokasi',
+    caption:
+      'Komitmen pendampingan hukum yang berintegritas pada setiap tahapan pemeriksaan hingga persidangan.',
+    publishedDate: '05 Okt 2026',
+    permalink: 'https://instagram.com/',
+    displayOrder: 3,
+    isPublished: true,
+  },
+  {
+    id: 'ig-4',
+    imageUrl: '/images/practice-bankruptcy.webp',
+    alt: 'Kajian Hukum Kepailitan & PKPU — Ferdinan Silalahi dan Rekan Law Firm',
+    category: 'Kepailitan & PKPU',
+    caption:
+      'Memahami mekanisme restrukturisasi utang dan proposal perdamaian melalui proses PKPU di Pengadilan Niaga.',
+    publishedDate: '29 Sep 2026',
+    permalink: 'https://instagram.com/',
+    displayOrder: 4,
+    isPublished: true,
+  },
+  {
+    id: 'ig-5',
+    imageUrl: '/images/practice-ip.webp',
+    alt: 'Pelindungan Hak Kekayaan Intelektual — Ferdinan Silalahi dan Rekan Law Firm',
+    category: 'Kekayaan Intelektual',
+    caption:
+      'Langkah strategis pelindungan merek dagang, hak cipta, dan penyusunan perjanjian lisensi bagi pelaku usaha.',
+    publishedDate: '22 Sep 2026',
+    permalink: 'https://instagram.com/',
+    displayOrder: 5,
+    isPublished: true,
+  },
+  {
+    id: 'ig-6',
+    imageUrl: '/images/article-family.webp',
+    alt: 'Edukasi Hukum Perdata & Keluarga — Ferdinan Silalahi dan Rekan Law Firm',
+    category: 'Hukum Perdata',
+    caption:
+      'Penataan dokumen kepemilikan aset dan perjanjian perkawinan sesuai ketentuan peraturan perundang-undangan.',
+    publishedDate: '15 Sep 2026',
+    permalink: 'https://instagram.com/',
+    displayOrder: 6,
+    isPublished: true,
+  },
+]
+
+export function getInstagramGalleryItems(): InstagramGalleryItem[] {
+  return INITIAL_INSTAGRAM_GALLERY.filter((item) => item.isPublished).sort(
+    (a, b) => a.displayOrder - b.displayOrder,
+  )
 }
 
 export function serializePublicCaseRecord(record: CaseRecordInternal): PublicCaseRecord {
@@ -441,14 +544,21 @@ export const INITIAL_ARTICLES: ArticlePublicData[] = [
   },
 ]
 
-export function getPublishedArticles(categorySlug?: string): ArticlePublicData[] {
+export function getPublishedArticles(
+  categorySlug?: string,
+  searchQuery?: string,
+): ArticlePublicData[] {
   const nowIso = new Date().toISOString()
-  return INITIAL_ARTICLES.filter(
-    (a) =>
-      a.status === 'published' &&
-      a.publishedAt <= nowIso &&
-      (!categorySlug || a.category.slug === categorySlug),
-  ).sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
+  const q = searchQuery?.trim().toLowerCase() ?? ''
+  return INITIAL_ARTICLES.filter((a) => {
+    if (a.status !== 'published' || a.publishedAt > nowIso) return false
+    if (categorySlug && a.category.slug !== categorySlug) return false
+    if (q) {
+      const haystack = `${a.title} ${a.excerpt} ${a.category.name} ${a.bodyHtml}`.toLowerCase()
+      if (!haystack.includes(q)) return false
+    }
+    return true
+  }).sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
 }
 
 export function getPublishedArticleBySlug(slug: string): ArticlePublicData | null {

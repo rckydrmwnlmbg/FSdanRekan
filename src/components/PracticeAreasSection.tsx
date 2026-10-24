@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useRef, useState } from 'react'
+import Link from 'next/link'
 import type { PracticeAreaData } from '@/lib/content'
 import { OFFICIAL_FIRM_NAME } from '@/lib/seo'
 
@@ -126,13 +127,18 @@ export function PracticeAreasSection({ areas, onSelectForForm }: PracticeAreasSe
                 </ul>
               </div>
 
-              <a
-                href="#janji-temu"
-                className="btn-gold"
-                onClick={() => onSelectForForm?.(activeArea.name)}
-              >
-                Konsultasi {activeArea.name} &rarr;
-              </a>
+              <div className="hero-actions-row">
+                <a
+                  href="#janji-temu"
+                  className="btn-gold"
+                  onClick={() => onSelectForForm?.(activeArea.name)}
+                >
+                  Konsultasi {activeArea.name} &rarr;
+                </a>
+                <Link href={`/layanan/${activeArea.slug}`} className="btn-outline">
+                  Halaman Detail Layanan &rarr;
+                </Link>
+              </div>
             </div>
           </div>
         </div>

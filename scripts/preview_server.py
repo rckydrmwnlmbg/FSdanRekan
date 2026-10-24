@@ -19,8 +19,12 @@ import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+import sys
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 CONTENT_DIR = ROOT_DIR / "content"
 PUBLIC_DIR = ROOT_DIR / "public"
 STYLES_DIR = ROOT_DIR / "src" / "styles"
@@ -37,6 +41,7 @@ ADMIN_EMAIL = "admin@fsdanrekan.id"
 ADMIN_PASSWORD_SHA256 = hashlib.sha256(b"AdminFS2026!#").hexdigest()
 ACTIVE_ADMIN_SESSIONS: dict[str, float] = {}
 LOGIN_ATTEMPTS: dict[str, list[float]] = {}
+CHAT_ATTEMPTS: dict[str, list[float]] = {}
 
 PRACTICE_PRESENTATION_BY_SLUG: dict[str, dict] = {
     "litigasi-korporasi-dan-komersial": {
@@ -380,6 +385,7 @@ def render_shell(title: str, description: str, body_html: str) -> str:
 def render_home_page() -> str:
     from scripts.admin_cms import (
         get_merged_case_records,
+        get_merged_instagram_gallery,
         get_merged_practice_areas,
         get_merged_team_members,
         load_cms_state,
@@ -390,6 +396,7 @@ def render_home_page() -> str:
     practice_areas = get_merged_practice_areas(PRACTICE_PRESENTATION_BY_SLUG, include_unpublished=False)
     case_records = get_merged_case_records(include_unpublished=False)
     published_articles = load_articles(include_drafts=False)
+    instagram_items = get_merged_instagram_gallery(include_unpublished=False)
 
     founder = next((m for m in team if m["slug"] == "ferdinan-hasiholan-silalahi"), team[0])
     # Exclude Founder from Team Grid so Ferdinan is not repeated twice
@@ -418,6 +425,24 @@ def render_home_page() -> str:
         </div>"""
 
     first_area = practice_areas[0]
+
+    ig_cards_html = ""
+    for idx, ig in enumerate(instagram_items):
+        delay = f"{idx * 0.08:.2f}s"
+        ig_cards_html += f"""
+        <article class="instagram-card" data-reveal="up" style="--reveal-delay:{delay}">
+          <div class="instagram-card-thumb">
+            <img src="{ig['imageUrl']}" alt="{html.escape(ig['alt'])}" width="480" height="480" loading="lazy">
+            <span class="instagram-badge">{html.escape(ig['category'])}</span>
+          </div>
+          <div class="instagram-card-body">
+            <div class="instagram-card-date">{html.escape(ig['publishedDate'])}</div>
+            <p class="instagram-card-caption">{html.escape(ig['caption'])}</p>
+            <a href="{html.escape(ig['permalink'])}" target="_blank" rel="noopener noreferrer" class="link-gold">
+              Lihat di Instagram &nearr;
+            </a>
+          </div>
+        </article>"""
 
     team_cards_html = ""
     for idx, member in enumerate(associates_and_admins):
@@ -537,9 +562,14 @@ def render_home_page() -> str:
                   {"".join(f"<li>{html.escape(item)}</li>" for item in first_area['advocacyScope'])}
                 </ul>
               </div>
-              <a id="practiceStageCta" href="#janji-temu" class="btn-gold" onclick="preselectPracticeInForm()">
-                Konsultasi {html.escape(first_area['name'])} &rarr;
-              </a>
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:14px;">
+                <a id="practiceStageCta" href="#janji-temu" class="btn-gold" onclick="preselectPracticeInForm()">
+                  Konsultasi {html.escape(first_area['name'])} &rarr;
+                </a>
+                <a id="practiceDetailLink" href="/layanan/{first_area['slug']}" class="link-gold">
+                  Halaman Detail Layanan &rarr;
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -652,6 +682,25 @@ def render_home_page() -> str:
           <div class="stacked-articles-column">
             {secondary_html}
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7.5. Curated Instagram Educational Gallery (SK-13 / PRD V3) -->
+    <section id="galeri-instagram" class="section-gap" aria-labelledby="instagram-heading">
+      <div class="container">
+        <div class="section-header-row" data-reveal="up">
+          <div>
+            <div class="eyebrow-tag">PUBLIKASI RESMI INSTAGRAM (SK-13)</div>
+            <h2 id="instagram-heading">Galeri Edukasi Hukum &amp; Kegiatan Firma</h2>
+            <p class="section-subtitle">Kutipan edukasi hukum, analisis kasus, dan kegiatan advokasi resmi dari akun Instagram @fsdanrekan.</p>
+          </div>
+          <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" class="btn-outline">
+            Ikuti di Instagram &nearr;
+          </a>
+        </div>
+        <div class="instagram-gallery-grid" style="margin-top:36px;">
+          {ig_cards_html}
         </div>
       </div>
     </section>
@@ -797,6 +846,92 @@ def render_home_page() -> str:
       </div>
     </div>
 
+    <!-- Guided Consultation Chat Widget (SK-11 / PRD Phase 2) -->
+    <div id="guidedChatWidgetRoot" class="guided-chat-root">
+      <button type="button" id="guidedChatTrigger" class="guided-chat-trigger" aria-label="Buka Chat Pemandu Konsultasi" onclick="toggleGuidedChat()">
+        <span class="chat-trigger-icon">💬</span>
+        <span class="chat-trigger-label">Konsultasi Pemandu</span>
+      </button>
+
+      <div id="guidedChatPanel" class="guided-chat-panel" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="chatPanelHeading">
+        <div class="guided-chat-header">
+          <div>
+            <h4 id="chatPanelHeading" style="margin:0;font-size:1rem;color:var(--color-gold-strong);">Pemandu Konsultasi Hukum</h4>
+            <div style="font-size:11.5px;color:var(--color-text-muted);">{SHORT_BRAND_NAME} &middot; Respons Cepat</div>
+          </div>
+          <button type="button" class="modal-close-trigger" style="position:static;font-size:22px;" onclick="toggleGuidedChat()">&times;</button>
+        </div>
+
+        <div class="guided-chat-body" id="chatStepContainer">
+          <!-- Step 1: Consent & Disclaimer -->
+          <div id="chatStep1" class="chat-step-pane">
+            <p style="font-size:13px;line-height:1.5;color:var(--color-text-secondary);margin-bottom:12px;">
+              Selamat datang di sarana konsultasi awal terpandu <strong>{OFFICIAL_FIRM_NAME}</strong>.
+            </p>
+            <div class="confidential-warning-banner" style="font-size:11.5px;padding:8px 10px;margin-bottom:14px;">
+              <strong>SEC-015:</strong> Layanan ini adalah sarana konsultasi awal terpandu dan bukan merupakan nasihat hukum formal (legal opinion).
+            </div>
+            <label class="consent-checkbox-label" style="font-size:12px;margin-bottom:16px;">
+              <input type="checkbox" id="chatConsentCheck" onchange="document.getElementById('chatBtnStep1').disabled = !this.checked">
+              <span>Saya menyetujui pemrosesan data awal konsultasi sesuai <a href="/kebijakan-privasi" target="_blank" class="link-gold">Kebijakan Privasi</a>.</span>
+            </label>
+            <button type="button" id="chatBtnStep1" class="btn-gold full-width-btn cms-btn-sm" disabled onclick="goToChatStep(2)">Mulai Konsultasi &rarr;</button>
+          </div>
+
+          <!-- Step 2: Practice Area Selection -->
+          <div id="chatStep2" class="chat-step-pane" style="display:none;">
+            <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:10px;">
+              Pilih bidang hukum yang paling sesuai dengan kebutuhan perkara Anda:
+            </p>
+            <select id="chatPracticeSelect" class="form-select cms-btn-sm" style="margin-bottom:14px;">
+              {"".join(f'<option value="{html.escape(a["name"])}">{html.escape(a["name"])}</option>' for a in practice_areas)}
+            </select>
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="btn-outline cms-btn-sm" onclick="goToChatStep(1)">&larr; Kembali</button>
+              <button type="button" class="btn-gold cms-btn-sm" style="flex:1;" onclick="goToChatStep(3)">Lanjut &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Preferred Schedule & Notes -->
+          <div id="chatStep3" class="chat-step-pane" style="display:none;">
+            <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;">
+              Preferensi jadwal dan uraian singkat masalah:
+            </p>
+            <input type="text" id="chatScheduleInput" class="form-input cms-btn-sm" placeholder="Contoh: Senin depan siang / Segera" style="margin-bottom:10px;">
+            <textarea id="chatNotesInput" class="form-textarea" rows="3" placeholder="Uraikan gambaran umum kebutuhan konsultasi Anda (tanpa data rahasia)..." style="font-size:12.5px;margin-bottom:12px;"></textarea>
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="btn-outline cms-btn-sm" onclick="goToChatStep(2)">&larr; Kembali</button>
+              <button type="button" class="btn-gold cms-btn-sm" style="flex:1;" onclick="goToChatStep(4)">Lanjut &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Step 4: Contact Details -->
+          <div id="chatStep4" class="chat-step-pane" style="display:none;">
+            <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;">
+              Kontak Anda untuk tindak lanjut advokat:
+            </p>
+            <input type="text" id="chatNameInput" class="form-input cms-btn-sm" placeholder="Nama Lengkap Anda" style="margin-bottom:10px;">
+            <input type="tel" id="chatPhoneInput" class="form-input cms-btn-sm" placeholder="Nomor WhatsApp (mis. 0812xxxxxxxx)" style="margin-bottom:12px;">
+            <div id="chatErrorMsg" class="server-error-box" style="display:none;font-size:12px;padding:6px 10px;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="btn-outline cms-btn-sm" onclick="goToChatStep(3)">&larr; Kembali</button>
+              <button type="button" id="chatSubmitBtn" class="btn-gold cms-btn-sm" style="flex:1;" onclick="submitGuidedChat()">Hubungkan ke WhatsApp &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Step 5: Success / Hand-off -->
+          <div id="chatStep5" class="chat-step-pane" style="display:none;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">✅</div>
+            <h4 style="color:var(--color-gold-strong);margin-bottom:6px;">Sesi Konsultasi Terbentuk</h4>
+            <p style="font-size:12.5px;color:var(--color-text-secondary);line-height:1.5;margin-bottom:14px;">
+              Data konsultasi awal Anda telah tersimpan dengan aman di sistem firma. Klik tombol di bawah untuk melanjutkan pesan WhatsApp terformat ke Hotline kami.
+            </p>
+            <a id="chatWaRedirectBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn-gold full-width-btn cms-btn-sm">Buka WhatsApp Sekarang &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       const TEAM_DATA = {json.dumps({m["slug"]: m for m in team}, ensure_ascii=False)};
       const PRACTICE_DATA = {json.dumps({a["slug"]: a for a in practice_areas}, ensure_ascii=False)};
@@ -823,6 +958,8 @@ def render_home_page() -> str:
             document.getElementById('practiceScopeDesc').textContent = area.description;
             document.getElementById('practiceScopeList').innerHTML = area.advocacyScope.map(i => '<li>' + i + '</li>').join('');
             document.getElementById('practiceStageCta').innerHTML = 'Konsultasi ' + area.name + ' &rarr;';
+            const pLink = document.getElementById('practiceDetailLink');
+            if (pLink) pLink.href = '/layanan/' + slug;
             stage.classList.remove('is-switching');
           }}, 210);
         }}
@@ -869,6 +1006,7 @@ def render_home_page() -> str:
               ${{langHtml}}
               <div class="bio-modal-actions">
                 <a href="#janji-temu" onclick="closeTeamModal()" class="btn-gold">Jadwalkan Janji Temu &rarr;</a>
+                <a href="/tim/${{m.slug}}" class="btn-outline">Halaman Profil Lengkap &rarr;</a>
                 <button type="button" onclick="closeTeamModal()" class="btn-outline">Tutup Profil</button>
               </div>
             </div>
@@ -892,6 +1030,77 @@ def render_home_page() -> str:
 
       function loadInteractiveMap() {{
         document.getElementById('mapContainer').innerHTML = '<iframe title="Peta Lokasi Resmi {OFFICIAL_FIRM_NAME}" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5292868019124!2d106.83606777579133!3d-6.193674693793977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43b67eb123b%3A0x6b4fbfe311e92067!2sGedung%20Mandira!5e0!3m2!1sid!2sid!4v1715000000000!5m2!1sid!2sid" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+      }}
+
+      function toggleGuidedChat() {{
+        const panel = document.getElementById('guidedChatPanel');
+        if (panel) {{
+          const isShown = panel.style.display !== 'none';
+          panel.style.display = isShown ? 'none' : 'block';
+        }}
+      }}
+
+      function goToChatStep(step) {{
+        for (let i = 1; i <= 5; i++) {{
+          const el = document.getElementById('chatStep' + i);
+          if (el) el.style.display = (i === step) ? 'block' : 'none';
+        }}
+      }}
+
+      async function submitGuidedChat() {{
+        const name = document.getElementById('chatNameInput').value.trim();
+        const phone = document.getElementById('chatPhoneInput').value.trim();
+        const practice = document.getElementById('chatPracticeSelect').value;
+        const schedule = document.getElementById('chatScheduleInput').value.trim() || 'Fleksibel';
+        const notes = document.getElementById('chatNotesInput').value.trim();
+        const errEl = document.getElementById('chatErrorMsg');
+
+        if (!name || name.length < 2) {{
+          errEl.textContent = 'Silakan masukkan nama lengkap Anda.';
+          errEl.style.display = 'block';
+          return;
+        }}
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
+        if (cleanPhone.length < 9) {{
+          errEl.textContent = 'Silakan masukkan nomor WhatsApp yang valid.';
+          errEl.style.display = 'block';
+          return;
+        }}
+        errEl.style.display = 'none';
+        const submitBtn = document.getElementById('chatSubmitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Menghubungkan...';
+
+        try {{
+          const res = await fetch('/api/chat', {{
+            method: 'POST',
+            headers: {{'Content-Type': 'application/json'}},
+            body: JSON.stringify({{
+              visitorName: name,
+              visitorPhone: phone,
+              practiceArea: practice,
+              preferredSchedule: schedule,
+              notes: notes,
+              consent: true
+            }})
+          }});
+          const data = await res.json();
+          if (res.ok && data.waUrl) {{
+            document.getElementById('chatWaRedirectBtn').href = data.waUrl;
+            goToChatStep(5);
+            window.open(data.waUrl, '_blank');
+          }} else {{
+            errEl.textContent = data.error || 'Terjadi kendala memproses sesi chat.';
+            errEl.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Hubungkan ke WhatsApp →';
+          }}
+        }} catch (e) {{
+          errEl.textContent = 'Gagal menghubungi server.';
+          errEl.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Hubungkan ke WhatsApp →';
+        }}
       }}
 
       async function submitInquiryForm(e) {{
@@ -960,24 +1169,36 @@ def render_home_page() -> str:
     )
 
 
-def render_articles_index() -> str:
+def render_articles_index(search_query: str = "") -> str:
     published_articles = load_articles(include_drafts=False)
+    q = search_query.strip().lower()
+    if q:
+        filtered = []
+        for a in published_articles:
+            haystack = f"{a.get('title', '')} {a.get('excerpt', '')} {a.get('category', {}).get('name', '')} {a.get('bodyHtml', '')}".lower()
+            if q in haystack:
+                filtered.append(a)
+        published_articles = filtered
+
     cards = ""
-    for idx, art in enumerate(published_articles):
-        delay = f"{idx * 0.08:.2f}s"
-        pub_label = art.get("publishedLabel") or art.get("publishedAt", "")[:10]
-        cards += f"""
-        <article class="featured-article-card" data-reveal="up" style="--reveal-delay:{delay}">
-          <div class="featured-article-thumb">
-            <img src="{art['coverUrl']}" alt="{html.escape(art['coverAlt'])}" width="600" height="340" loading="lazy">
-          </div>
-          <div class="featured-article-body">
-            <div class="article-category-badge">{html.escape(art['category']['name'])} &middot; {html.escape(pub_label)}</div>
-            <h2 class="featured-article-title"><a href="/artikel/{art['slug']}">{html.escape(art['title'])}</a></h2>
-            <p class="featured-article-excerpt">{html.escape(art['excerpt'])}</p>
-            <a href="/artikel/{art['slug']}" class="link-gold">Baca Kajian Lengkap &rarr;</a>
-          </div>
-        </article>"""
+    if not published_articles:
+        cards = '<div class="cms-empty-box" style="grid-column: 1 / -1; padding: 40px; text-align: center;">Tidak ada artikel atau kajian hukum yang sesuai dengan kata kunci pencarian.</div>'
+    else:
+        for idx, art in enumerate(published_articles):
+            delay = f"{idx * 0.08:.2f}s"
+            pub_label = art.get("publishedLabel") or art.get("publishedAt", "")[:10]
+            cards += f"""
+            <article class="featured-article-card" data-reveal="up" style="--reveal-delay:{delay}">
+              <div class="featured-article-thumb">
+                <img src="{art['coverUrl']}" alt="{html.escape(art['coverAlt'])}" width="600" height="340" loading="lazy">
+              </div>
+              <div class="featured-article-body">
+                <div class="article-category-badge">{html.escape(art['category']['name'])} &middot; {html.escape(pub_label)}</div>
+                <h2 class="featured-article-title"><a href="/artikel/{art['slug']}">{html.escape(art['title'])}</a></h2>
+                <p class="featured-article-excerpt">{html.escape(art['excerpt'])}</p>
+                <a href="/artikel/{art['slug']}" class="link-gold">Baca Kajian Lengkap &rarr;</a>
+              </div>
+            </article>"""
 
     body = f"""
     <section class="section-gap">
@@ -986,6 +1207,11 @@ def render_articles_index() -> str:
           <div class="eyebrow-tag">PUBLIKASI &amp; WAWASAN HUKUM</div>
           <h1>Wawasan &amp; Publikasi Hukum</h1>
           <p class="section-subtitle">Artikel edukasi hukum dan analisis regulasi terkini dari tim {OFFICIAL_FIRM_NAME}.</p>
+          <form method="GET" action="/artikel" class="article-search-bar" style="margin-top:24px;display:flex;gap:10px;max-width:540px;">
+            <input type="text" name="q" class="form-input" placeholder="Cari topik atau kata kunci artikel..." value="{html.escape(search_query)}">
+            <button type="submit" class="btn-gold" style="white-space:nowrap;">Cari</button>
+            {f'<a href="/artikel" class="btn-outline" style="white-space:nowrap;display:inline-flex;align-items:center;">Reset</a>' if search_query else ''}
+          </form>
         </div>
         <div class="case-records-grid" style="margin-top:40px;">
           {cards}
@@ -996,6 +1222,162 @@ def render_articles_index() -> str:
     return render_shell(
         f"Artikel & Wawasan Hukum | {OFFICIAL_FIRM_NAME}",
         f"Kumpulan artikel hukum dan wawasan regulasi dari {OFFICIAL_FIRM_NAME}.",
+        body,
+    )
+
+
+def render_practice_detail(slug: str) -> str | None:
+    from scripts.admin_cms import get_merged_practice_areas, load_cms_state
+
+    state = load_cms_state()
+    settings = state["siteSettings"]
+    practices = get_merged_practice_areas(PRACTICE_PRESENTATION_BY_SLUG, include_unpublished=False)
+    area = next((a for a in practices if a.get("slug") == slug), None)
+    if not area:
+        return None
+
+    wa_text = urllib.parse.quote(
+        f"Halo {settings['officialFirmName']}, saya ingin berkonsultasi mengenai layanan {area['name']}."
+    )
+    wa_url = f"https://wa.me/{settings['whatsappNumber']}?text={wa_text}"
+    scope_list_html = "".join(f"<li>{html.escape(item)}</li>" for item in area.get("advocacyScope", []))
+
+    body = f"""
+    <section class="section-gap">
+      <div class="container" data-reveal="up">
+        <div style="font-size:13px;color:var(--color-text-muted);margin-bottom:20px;">
+          <a href="/" class="link-gold">Beranda</a> &rsaquo;
+          <a href="/#bidang-praktik" class="link-gold">Bidang Layanan</a> &rsaquo;
+          <span>{html.escape(area['name'])}</span>
+        </div>
+
+        <div class="article-category-badge">{html.escape(area.get('label', 'Layanan Advokasi'))}</div>
+        <h1 style="margin-top:8px;font-size:clamp(2rem, 4vw, 3rem);">{html.escape(area['name'])}</h1>
+        <p class="section-subtitle" style="margin-top:12px;font-size:1.15rem;color:var(--color-text-secondary);max-width:820px;">
+          {html.escape(area.get('summary', ''))}
+        </p>
+
+        <div style="margin:36px 0 44px;border-radius:4px;overflow:hidden;max-height:480px;border:1px solid var(--color-border-subtle);">
+          <img src="{area.get('image', '/images/practice-corporate.webp')}" alt="{html.escape(area['name'])} - {html.escape(settings['officialFirmName'])}" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+
+        <div class="cms-panel-box" style="margin-bottom:36px;">
+          <h2 style="font-size:1.5rem;color:var(--color-gold-strong);margin-bottom:12px;">{html.escape(area.get('description', 'Cakupan Penanganan Hukum'))}</h2>
+          <p style="font-size:14.5px;color:var(--color-text-secondary);margin-bottom:20px;">
+            Firma hukum kami memberikan pendampingan litigasi dan non-litigasi yang komprehensif, strategis, dan berintegritas tinggi pada lingkup perkara berikut:
+          </p>
+          <ul class="practice-scope-list" style="padding-left:24px;line-height:1.9;font-size:15px;color:var(--color-text);">
+            {scope_list_html}
+          </ul>
+        </div>
+
+        <div class="confidential-warning-banner" style="margin-bottom:36px;">
+          <strong>Bukan Nasihat Hukum Formal:</strong> Informasi pada halaman ini disajikan semata-mata sebagai gambaran umum ruang lingkup advokasi firma kami. Hubungan hukum advokat-klien (attorney-client relationship) baru terbentuk setelah verifikasi bebas benturan kepentingan dan penandatanganan Perjanjian Jasa Hukum resmi.
+        </div>
+
+        <div class="hero-actions-row">
+          <a href="/#janji-temu" class="btn-gold">Jadwalkan Konsultasi Perkara Ini &rarr;</a>
+          <a href="{wa_url}" target="_blank" rel="noopener noreferrer" class="btn-outline">Konsultasi via WhatsApp &nearr;</a>
+          <a href="/#bidang-praktik" class="link-gold" style="display:inline-flex;align-items:center;margin-left:12px;">&larr; Lihat 10 Bidang Praktik Lainnya</a>
+        </div>
+      </div>
+    </section>
+    """
+    return render_shell(
+        f"{area['name']} | {settings['officialFirmName']}",
+        f"Layanan advokasi dan pendampingan hukum {area['name']} dari {settings['officialFirmName']}.",
+        body,
+    )
+
+
+def render_team_detail(slug: str) -> str | None:
+    from scripts.admin_cms import get_merged_team_members, load_cms_state
+
+    state = load_cms_state()
+    settings = state["siteSettings"]
+    team = get_merged_team_members(clean_ui_team_member, include_unpublished=False)
+    member = next((m for m in team if m.get("slug") == slug), None)
+    if not member:
+        return None
+
+    wa_text = urllib.parse.quote(
+        f"Halo {settings['officialFirmName']}, saya ingin berkonsultasi dengan {member['displayName']} ({member['roleTitle']})."
+    )
+    wa_url = f"https://wa.me/{settings['whatsappNumber']}?text={wa_text}"
+
+    paragraphs_html = "".join(
+        f'<p class="bio-paragraph" style="margin-bottom:18px;line-height:1.8;font-size:15px;color:var(--color-text-secondary);">{html.escape(p)}</p>'
+        for p in member.get("fullBio", "").split("\n\n")
+        if p.strip()
+    )
+    tags_html = "".join(
+        f'<span class="bio-tag-chip" style="display:inline-block;padding:4px 10px;background:var(--color-surface-2);border:1px solid var(--color-border-subtle);color:var(--color-gold-strong);font-size:12px;border-radius:2px;margin:0 6px 6px 0;">{html.escape(t)}</span>'
+        for t in member.get("tags", [])
+    )
+    edu_html = "".join(f"<li>{html.escape(e)}</li>" for e in member.get("education", []))
+    cred_html = "".join(f"<li>{html.escape(c)}</li>" for c in member.get("credentials", []))
+    lang_html = "".join(f"<li>{html.escape(l)}</li>" for l in member.get("languages", []))
+    motto_html = (
+        f'<blockquote class="quote-editorial-box" style="margin:20px 0 28px;font-family:var(--font-serif);font-size:1.25rem;font-style:italic;color:var(--color-gold-strong);padding:14px 20px;border-left:3px solid var(--color-gold);background:var(--color-bg);">&ldquo;{html.escape(member["motto"])}&rdquo;</blockquote>'
+        if member.get("motto")
+        else ""
+    )
+
+    body = f"""
+    <section class="section-gap">
+      <div class="container" data-reveal="up">
+        <div style="font-size:13px;color:var(--color-text-muted);margin-bottom:24px;">
+          <a href="/" class="link-gold">Beranda</a> &rsaquo;
+          <a href="/#tim-advokat" class="link-gold">Tim Advokat</a> &rsaquo;
+          <span>{html.escape(member['displayName'])}</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:44px;align-items:start;">
+          <!-- Left Column: Portrait & Key Metadata -->
+          <div>
+            <div style="aspect-ratio:4/5;border-radius:4px;overflow:hidden;border:2px solid var(--color-gold);box-shadow:var(--shadow-lg);background:var(--bg-photo-well);">
+              <img src="{member['photo']['url']}" srcset="{member['photo']['srcSet']}" alt="{html.escape(member['photo']['alt'])}" width="{member['photo']['width']}" height="{member['photo']['height']}" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div style="margin-top:20px;padding:20px;background:var(--color-surface);border:1px solid var(--color-border-subtle);">
+              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:var(--color-gold-strong);font-weight:700;">Jabatan &amp; Peran</div>
+              <div style="font-size:1.15rem;font-weight:700;color:var(--color-text);margin-top:4px;">{html.escape(member['roleTitle'])}</div>
+              {motto_html}
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
+                <a href="/#janji-temu" class="btn-gold full-width-btn" style="text-align:center;">Jadwalkan Konsultasi &rarr;</a>
+                <a href="{wa_url}" target="_blank" rel="noopener noreferrer" class="btn-outline full-width-btn" style="text-align:center;">Hubungi via WhatsApp &nearr;</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Full Biography & Credentials -->
+          <div>
+            <div class="eyebrow-tag">PROFIL ADVOKAT &amp; REKAN</div>
+            <h1 style="font-size:clamp(2.2rem, 4vw, 3.2rem);margin-bottom:8px;">{html.escape(member['displayName'])}</h1>
+            <div style="font-size:1.1rem;color:var(--color-gold-strong);font-weight:600;margin-bottom:20px;">{html.escape(member['roleTitle'])}</div>
+            <div style="margin-bottom:24px;">{tags_html}</div>
+
+            <div class="cms-panel-box" style="margin-bottom:28px;">
+              <h2 style="font-size:1.35rem;margin-bottom:14px;color:var(--color-gold-strong);">Biografi Lengkap &amp; Rekam Jejak</h2>
+              {paragraphs_html}
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:28px;">
+              {'<div class="cms-panel-box" style="margin-bottom:0;"><h3 style="font-size:1.1rem;margin-bottom:10px;color:var(--color-gold-strong);">Pendidikan</h3><ul style="padding-left:18px;line-height:1.8;font-size:13.5px;color:var(--color-text-secondary);">' + edu_html + '</ul></div>' if edu_html else ''}
+              {'<div class="cms-panel-box" style="margin-bottom:0;"><h3 style="font-size:1.1rem;margin-bottom:10px;color:var(--color-gold-strong);">Kredensial &amp; Sertifikasi</h3><ul style="padding-left:18px;line-height:1.8;font-size:13.5px;color:var(--color-text-secondary);">' + cred_html + '</ul></div>' if cred_html else ''}
+              {'<div class="cms-panel-box" style="margin-bottom:0;"><h3 style="font-size:1.1rem;margin-bottom:10px;color:var(--color-gold-strong);">Bahasa</h3><ul style="padding-left:18px;line-height:1.8;font-size:13.5px;color:var(--color-text-secondary);">' + lang_html + '</ul></div>' if lang_html else ''}
+            </div>
+
+            <div>
+              <a href="/#tim-advokat" class="link-gold">&larr; Kembali ke Daftar Seluruh Tim Advokat</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    """
+    return render_shell(
+        f"{member['displayName']} | {settings['officialFirmName']}",
+        f"Profil lengkap dan rekam jejak advokasi {member['displayName']}, {member['roleTitle']} pada {settings['officialFirmName']}.",
         body,
     )
 
@@ -1124,11 +1506,17 @@ def render_admin_login(error_msg: str = "") -> str:
 
 
 def render_admin_dashboard() -> str:
-    from scripts.admin_cms import render_enterprise_admin_dashboard
+    from scripts.admin_cms import (
+        get_chat_sessions,
+        get_merged_instagram_gallery,
+        render_enterprise_admin_dashboard,
+    )
 
     css = load_combined_css()
     all_articles = load_articles(include_drafts=True)
     inquiries = load_inquiries()
+    instagram_items = get_merged_instagram_gallery(include_unpublished=True)
+    chat_sessions = get_chat_sessions()
     return render_enterprise_admin_dashboard(
         css=css,
         actor_email=ADMIN_EMAIL,
@@ -1136,6 +1524,8 @@ def render_admin_dashboard() -> str:
         inquiries=inquiries,
         clean_ui_fn=clean_ui_team_member,
         default_pres_by_slug=PRACTICE_PRESENTATION_BY_SLUG,
+        instagram_items=instagram_items,
+        chat_sessions=chat_sessions,
     )
 
 
@@ -1214,13 +1604,66 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/artikel":
-            page = render_articles_index().encode("utf-8")
+            q = query.get("q", [""])[0]
+            page = render_articles_index(search_query=q).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(page)))
             self.send_security_headers()
             self.end_headers()
             self.wfile.write(page)
+            return
+
+        if path.startswith("/layanan/"):
+            slug = path.removeprefix("/layanan/").strip("/")
+            detail = render_practice_detail(slug)
+            if detail is None:
+                not_found = render_shell(
+                    f"404 Bidang Layanan Tidak Ditemukan | {OFFICIAL_FIRM_NAME}",
+                    "Bidang layanan hukum tidak ditemukan.",
+                    '<section class="section-gap"><div class="container"><h1>404 — Layanan Tidak Ditemukan</h1><p class="section-subtitle">Bidang praktik hukum yang Anda cari tidak tersedia.</p><div class="hero-actions-row" style="margin-top:24px;"><a href="/#bidang-praktik" class="btn-gold">Lihat Semua Bidang Layanan</a></div></div></section>',
+                ).encode("utf-8")
+                self.send_response(404)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(not_found)))
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(not_found)
+                return
+
+            encoded = detail.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(encoded)
+            return
+
+        if path.startswith("/tim/"):
+            slug = path.removeprefix("/tim/").strip("/")
+            detail = render_team_detail(slug)
+            if detail is None:
+                not_found = render_shell(
+                    f"404 Profil Advokat Tidak Ditemukan | {OFFICIAL_FIRM_NAME}",
+                    "Profil advokat tidak ditemukan.",
+                    '<section class="section-gap"><div class="container"><h1>404 — Profil Tidak Ditemukan</h1><p class="section-subtitle">Profil anggota tim advokat yang Anda cari tidak tersedia.</p><div class="hero-actions-row" style="margin-top:24px;"><a href="/#tim-advokat" class="btn-gold">Lihat Seluruh Tim Advokat</a></div></div></section>',
+                ).encode("utf-8")
+                self.send_response(404)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(not_found)))
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(not_found)
+                return
+
+            encoded = detail.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(encoded)
             return
 
         if path.startswith("/artikel/"):
@@ -1464,6 +1907,8 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
             "/api/admin/cases",
             "/api/admin/media",
             "/api/admin/users",
+            "/api/admin/instagram",
+            "/api/admin/chat-sessions",
         ):
             if not self.is_admin_authenticated():
                 self.send_response(401)
@@ -1560,6 +2005,128 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
             self.send_security_headers()
             self.end_headers()
             self.wfile.write(resp)
+            return
+
+        if self.path == "/api/chat":
+            ctype = self.headers.get("Content-Type", "")
+            if "application/json" not in ctype:
+                self.send_response(415)
+                self.send_header("Content-Type", "application/json")
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(b'{"error":"Format permintaan tidak didukung."}')
+                return
+
+            client_ip = self.client_address[0]
+            now = time.time()
+            recent_chats = [t for t in CHAT_ATTEMPTS.get(client_ip, []) if now - t < 600]
+            if len(recent_chats) >= 10:
+                self.send_response(429)
+                self.send_header("Content-Type", "application/json")
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(b'{"error":"Batas pengiriman pesan tercapai. Silakan coba lagi beberapa saat lagi."}')
+                return
+
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                length = -1
+
+            if length <= 0 or length > 64 * 1024:
+                self.send_response(413 if length > 64 * 1024 else 400)
+                self.send_header("Content-Type", "application/json")
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(b'{"error":"Ukuran data tidak valid."}')
+                return
+
+            raw = self.rfile.read(length).decode("utf-8", "ignore")
+            try:
+                body = json.loads(raw)
+            except Exception:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(b'{"error":"Format data tidak valid."}')
+                return
+
+            visitor_name = str(body.get("visitorName", "")).strip()
+            visitor_phone = str(body.get("visitorPhone", "")).strip()
+            practice_area = str(body.get("practiceArea", "")).strip()
+            preferred_schedule = str(body.get("preferredSchedule", "")).strip()
+            notes = str(body.get("notes", "")).strip()
+            consent = bool(body.get("consent", False))
+
+            if not consent or len(visitor_name) < 2:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(b'{"error":"Nama dan persetujuan pemrosesan data (UU PDP) wajib diisi."}')
+                return
+
+            digits = "".join(ch for ch in visitor_phone if ch.isdigit())
+            if len(digits) < 9:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(b'{"error":"Nomor WhatsApp tidak valid."}')
+                return
+
+            recent_chats.append(now)
+            CHAT_ATTEMPTS[client_ip] = recent_chats
+
+            from scripts.admin_cms import load_cms_state, save_cms_state, append_audit_log
+
+            state = load_cms_state()
+            sessions = state.setdefault("chatSessions", [])
+            session_id = f"chat-{secrets.token_hex(6)}"
+            cookie_sid = secrets.token_hex(16)  # 128-bit random session token (SEC-008)
+            now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+            new_session = {
+                "id": session_id,
+                "visitorName": visitor_name,
+                "visitorPhone": visitor_phone,
+                "practiceArea": practice_area,
+                "preferredSchedule": preferred_schedule,
+                "notes": notes,
+                "consentAt": now_iso,
+                "status": "baru",
+                "createdAt": now_iso,
+            }
+            sessions.append(new_session)
+            state["chatSessions"] = sessions
+            save_cms_state(state)
+            append_audit_log("visitor", "CREATE_CHAT_SESSION", "chatSessions", session_id, f"Sesi konsultasi baru ({practice_area})")
+
+            # Generate pre-filled WhatsApp link for user click
+            wa_num = state.get("siteSettings", {}).get("whatsappNumber", WHATSAPP_NUMBER)
+            msg_text = (
+                f"Halo {SHORT_BRAND_NAME},\n"
+                f"Saya ingin berkonsultasi mengenai:\n"
+                f"- Nama: {visitor_name}\n"
+                f"- Bidang Layanan: {practice_area}\n"
+                f"- Preferensi Jadwal: {preferred_schedule}\n"
+                f"- Catatan Kebutuhan: {notes or '-'}\n"
+                f"(Sesi ID: {session_id})"
+            )
+            wa_url = f"https://wa.me/{wa_num}?text={urllib.parse.quote(msg_text)}"
+
+            resp_data = json.dumps({"ok": True, "sessionId": session_id, "waUrl": wa_url}).encode("utf-8")
+            self.send_response(201)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(resp_data)))
+            self.send_header(
+                "Set-Cookie",
+                f"fs_chat_sid={cookie_sid}; HttpOnly; Path=/; SameSite=Lax; Max-Age=86400",
+            )
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(resp_data)
             return
 
         self.send_response(404)

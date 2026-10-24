@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type {
   ArticlePublicData,
   PracticeAreaData,
@@ -36,6 +36,23 @@ export function HomePageClient({
     practiceAreas[0]?.name ?? '',
   )
   const lastTriggerRef = useRef<HTMLButtonElement | null>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed')
+            observer.unobserve(entry.target)
+          }
+        }
+      },
+      { threshold: 0.14, rootMargin: '0px 0px -40px 0px' },
+    )
+
+    document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
 
   const founder =
     teamMembers.find((m) => m.slug === 'ferdinan-hasiholan-silalahi') ?? teamMembers[0]

@@ -1,0 +1,78 @@
+[
+  {
+    "id": "article-1",
+    "slug": "strategi-mitigasi-risiko-litigasi-perjanjian-bisnis",
+    "title": "Strategi Mitigasi Risiko Litigasi dalam Perjanjian Bisnis Komersial",
+    "excerpt": "Penyusunan klausul penyelesaian sengketa, pembatasan tanggung jawab, dan klausul keadaan kahar guna mengantisipasi wanprestasi mitra usaha.",
+    "category": {
+      "slug": "hukum-korporasi",
+      "name": "Hukum Korporasi & Bisnis"
+    },
+    "authorName": "Tim Redaksi FS dan Rekan",
+    "status": "published",
+    "publishedAt": "2026-10-12T09:00:00.000Z",
+    "publishedLabel": "12 Oktober 2026",
+    "coverUrl": "/images/practice-corporate.webp",
+    "coverAlt": "Ilustrasi ruang diskusi hukum korporasi dan kontrak komersial",
+    "seoTitle": "Mitigasi Risiko Litigasi Kontrak Bisnis | FS dan Rekan",
+    "seoDescription": "Panduan mitigasi risiko sengketa dalam penyusunan kontrak komersial oleh Ferdinan Silalahi dan Rekan Law Firm.",
+    "bodyHtml": "<p>Dalam dinamika bisnis komersial, sengketa antar mitra sering kali berakar dari perumusan klausul kontrak yang multitafsir. Penyusunan perjanjian yang cermat harus memperhitungkan mekanisme pencegahan dan penyelesaian sengketa sejak tahap negosiasi.</p><h2>1. Klausul Pilihan Forum dan Penyelesaian Sengketa</h2><p>Menentukan forum penyelesaian sengketa secara tegas—baik melalui Pengadilan Negeri maupun forum alternatif seperti mediasi dan arbitrase—sangat penting untuk menjaga kepastian hukum bagi para pihak.</p><h2>2. Pembatasan Tanggung Jawab dan Keadaan Kahar (Force Majeure)</h2><p>Perumusan definisi keadaan kahar serta batasan tanggung jawab perlu merujuk pada ketentuan Kitab Undang-Undang Hukum Perdata dan regulasi sektoral yang berlaku di Indonesia.</p>"
+  },
+  {
+    "id": "article-2",
+    "slug": "penyelesaian-sengketa-kepemilikan-lahan-dan-uji-tuntas",
+    "title": "Penyelesaian Sengketa Kepemilikan Lahan & Uji Tuntas (Legal Due Diligence)",
+    "excerpt": "Pentingnya pemeriksaan riwayat alas hak dan verifikasi dokumen pertanahan sebelum melakukan transaksi aset properti.",
+    "category": {
+      "slug": "agraria-dan-properti",
+      "name": "Agraria & Properti"
+    },
+    "authorName": "Tim Redaksi FS dan Rekan",
+    "status": "published",
+    "publishedAt": "2026-10-08T09:00:00.000Z",
+    "publishedLabel": "8 Oktober 2026",
+    "coverUrl": "/images/article-land.webp",
+    "coverAlt": "Ilustrasi dokumen hukum pertanahan dan agraria",
+    "seoTitle": "Uji Tuntas & Sengketa Pertanahan | FS dan Rekan",
+    "seoDescription": "Langkah uji tuntas hukum (legal due diligence) untuk mencegah sengketa pertanahan dan properti.",
+    "bodyHtml": "<p>Sengketa pertanahan kerap melibatkan tumpang tindih dokumen kepemilikan atau ketidakjelasan riwayat penguasaan fisik. Uji tuntas hukum (<em>legal due diligence</em>) merupakan langkah preventif utama sebelum transaksi properti dilakukan.</p><h2>1. Verifikasi Administrasi Pertanahan</h2><p>Pemeriksaan kesesuaian data fisik dan data yuridis pada dokumen pertanahan bertujuan memastikan tidak adanya catatan blokir, sita jaminan, atau sengketa yang sedang berjalan.</p><h2>2. Pemeriksaan Riwayat Penguasaan Fisik</h2><p>Selain pemeriksaan dokumen, peninjauan batas sempadan dan riwayat penguasaan fisik di lapangan membantu memitigasi klaim pihak ketiga di kemudian hari.</p>"
+  },
+  {
+    "id": "article-3",
+    "slug": "perjanjian-perkawinan-dan-perlindungan-harta-keluarga",
+    "title": "Pentingnya Perjanjian Perkawinan & Penataan Harta Keluarga",
+    "excerpt": "Instrumen hukum perdata untuk mengatur pemisahan harta bawaan dan tanggung jawab perikatan dalam keluarga.",
+    "category": {
+      "slug": "perdata-keluarga",
+      "name": "Perdata Keluarga"
+    },
+    "authorName": "Tim Redaksi FS dan Rekan",
+    "status": "published",
+    "publishedAt": "2026-09-28T09:00:00.000Z",
+    "publishedLabel": "28 September 2026",
+    "coverUrl": "/images/article-family.webp",
+    "coverAlt": "Ilustrasi konsultasi hukum keluarga dan perdata",
+    "seoTitle": "Perjanjian Perkawinan & Harta Keluarga | FS dan Rekan",
+    "seoDescription": "Kajian hukum perdata mengenai perjanjian perkawinan dan tata kelola harta keluarga.",
+    "bodyHtml": "<p>Perjanjian perkawinan (baik sebelum maupun selama ikatan perkawinan berlangsung sesuai ketentuan peraturan perundang-undangan) merupakan instrumen hukum untuk memberikan kejelasan mengenai status harta dan tanggung jawab perdata masing-masing pasangan.</p><h2>1. Pemisahan Tanggung Jawab Perikatan Usaha</h2><p>Dengan adanya akta notariil yang dicatatkan pada instansi berwenang, tata kelola harta pribadi dan harta bersama menjadi lebih tertib apabila salah satu pihak menjalankan kegiatan usaha dengan risiko komersial.</p><h2>2. Kepastian Perencanaan Harta Keluarga</h2><p>Penataan dokumen kepemilikan aset sejak dini turut membantu meminimalkan potensi perselisihan waris di masa mendatang.</p>"
+  },
+  {
+    "id": "article-draft-1",
+    "slug": "draf-internal-belum-terbit",
+    "title": "[Draf Internal] Analisis Restrukturisasi Kredit Korporasi",
+    "excerpt": "Artikel ini masih berstatus draf dan hanya tampil di panel admin atau mode pratinjau admin.",
+    "category": {
+      "slug": "hukum-korporasi",
+      "name": "Hukum Korporasi & Bisnis"
+    },
+    "authorName": "Tim Redaksi FS dan Rekan",
+    "status": "draft",
+    "publishedAt": "2026-10-24T09:00:00.000Z",
+    "publishedLabel": "Draf Belum Terbit",
+    "coverUrl": "/images/practice-banking.webp",
+    "coverAlt": "Ilustrasi restrukturisasi perbankan",
+    "seoTitle": "Analisis Restrukturisasi Kredit | FS dan Rekan",
+    "seoDescription": "Draf internal kajian restrukturisasi kredit.",
+    "bodyHtml": "<p>Draf kajian hukum internal yang belum dipublikasikan ke pengunjung umum.</p>"
+  }
+]

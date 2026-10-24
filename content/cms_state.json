@@ -1,0 +1,108 @@
+{
+  "siteSettings": {
+    "officialFirmName": "Ferdinan Silalahi dan Rekan Law Firm",
+    "shortBrandName": "FS dan Rekan",
+    "address": "Gedung Mandira Lt. 4, Jl. RP Soeroso No. 33, RT 002 RW 002, Gondangdia, Menteng, Jakarta Pusat 10350",
+    "whatsappNumber": "62811830991",
+    "whatsappDisplay": "+62 811-830-991",
+    "defaultWaMessage": "Halo FS dan Rekan, saya ingin konsultasi hukum.",
+    "inquiryRecipientEmail": "konsultasi@fsdanrekan.id",
+    "mapsDirectUrl": "https://www.google.com/maps/search/?api=1&query=Gedung+Mandira+Jl.+RP+Soeroso+No.+33+Menteng+Jakarta+Pusat",
+    "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5292868019124!2d106.83606777579133!3d-6.193674693793977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43b67eb123b%3A0x6b4fbfe311e92067!2sGedung%20Mandira!5e0!3m2!1sid!2sid!4v1715000000000!5m2!1sid!2sid",
+    "officeHoursPagi": "Pagi (09.30 – 12.00 WIB)",
+    "officeHoursSiang": "Siang (13.30 – 15.30 WIB)",
+    "officeHoursSore": "Sore (16.00 – 18.00 WIB)",
+    "heroEyebrow": "KANTOR HUKUM & ADVOKASI LITIGASI — JAKARTA PUSAT",
+    "heroTitleLine1": "Pendampingan Hukum Tepercaya.",
+    "heroTitleGold": "Integritas Tanpa Kompromi.",
+    "heroLead": "Ferdinan Silalahi dan Rekan Law Firm mengombinasikan analisis yuridis mendalam dengan strategi persidangan dan pendampingan hukum yang presisi untuk melindungi kepentingan klien individu maupun korporasi.",
+    "aboutEyebrow": "TENTANG FIRMA & PENDIRI",
+    "aboutHeading": "Dedikasi Advokasi Berintegritas.",
+    "founderMotto": "Life must have meaning",
+    "aboutParagraph": "Berangkat dari kepedulian terhadap akses masyarakat Indonesia terhadap layanan hukum yang berkualitas, Ferdinan Silalahi dan Rekan Law Firm didirikan dengan visi menghadirkan pendampingan hukum yang tepercaya, mudah diakses, dan profesional bagi individu, pelaku usaha, maupun masyarakat yang membutuhkan.",
+    "cred1Title": "Pendekatan Berorientasi Solusi",
+    "cred1Desc": "Menjunjung tinggi nilai integritas, profesionalisme, dan keadilan dalam setiap tahapan pendampingan hukum.",
+    "cred2Title": "Komitmen Kerahasiaan Klien",
+    "cred2Desc": "Menghormati kerahasiaan informasi klien sesuai Kode Etik Advokat dan ketentuan pelindungan data pribadi yang berlaku.",
+    "ctaEyebrow": "PENDAMPINGAN HUKUM PROFESIONAL",
+    "ctaTitle": "Solusi Hukum Efektif & Berorientasi pada Kebutuhan Klien.",
+    "ctaSubtitle": "Setiap klien berhak memperoleh pendampingan hukum yang kompeten disertai dedikasi, kepedulian, dan penghormatan dalam setiap tahapan proses hukum.",
+    "seoDefaultTitle": "Ferdinan Silalahi dan Rekan Law Firm | Kantor Hukum & Advokat Jakarta Pusat",
+    "seoDefaultDescription": "Website resmi Ferdinan Silalahi dan Rekan Law Firm (FS dan Rekan), Gedung Mandira Lt. 4, Menteng, Jakarta Pusat.",
+    "disclaimerText": "Seluruh konten pada situs ini disediakan semata-mata untuk tujuan informasi dan edukasi umum, serta bukan merupakan nasihat hukum (legal advice). Hubungan advokat dan klien baru berlaku secara sah setelah adanya penandatanganan Surat Kuasa Khusus dan Perjanjian Jasa Hukum."
+  },
+  "categories": [
+    {
+      "id": "cat-1",
+      "slug": "hukum-korporasi",
+      "name": "Hukum Korporasi & Bisnis",
+      "description": "Kajian kontrak komersial, RUPS, dan tata kelola perusahaan."
+    },
+    {
+      "id": "cat-2",
+      "slug": "agraria-dan-properti",
+      "name": "Agraria & Properti",
+      "description": "Uji tuntas pertanahan, sertifikat hak atas tanah, dan properti."
+    },
+    {
+      "id": "cat-3",
+      "slug": "pidana-dan-tipikor",
+      "name": "Pidana & Tipikor",
+      "description": "Hukum acara pidana, pembelaan persidangan, dan tindak pidana khusus."
+    },
+    {
+      "id": "cat-4",
+      "slug": "perdata-keluarga",
+      "name": "Perdata Keluarga",
+      "description": "Perjanjian perkawinan, waris, dan keperdataan keluarga."
+    },
+    {
+      "id": "cat-5",
+      "slug": "kepailitan-dan-pkpu",
+      "name": "Kepailitan & PKPU",
+      "description": "Restrukturisasi utang dan beracara di Pengadilan Niaga."
+    },
+    {
+      "id": "cat-6",
+      "slug": "ketenagakerjaan-phi",
+      "name": "Ketenagakerjaan & PHI",
+      "description": "Hubungan industrial, perundingan bipartit/tripartit, dan PHI."
+    }
+  ],
+  "teamOverrides": {},
+  "customTeamMembers": [],
+  "practiceOverrides": {},
+  "customPracticeAreas": [],
+  "caseRecords": null,
+  "users": [
+    {
+      "id": "user-1",
+      "name": "Administrator Utama",
+      "email": "admin@fsdanrekan.id",
+      "role": "admin",
+      "mfaEnabled": true,
+      "passwordSha256": "fe65a71fb4bf268960e54c3ac0c0ed3b6f9b3a1e2fa20f54b338c2e278fb399b",
+      "createdAt": "2026-10-01T08:00:00Z"
+    },
+    {
+      "id": "user-2",
+      "name": "Tim Redaksi Hukum (Editor)",
+      "email": "editor@fsdanrekan.id",
+      "role": "editor",
+      "mfaEnabled": true,
+      "passwordSha256": "d9f4be46ee2ff91251e273d7d8942367aca42b01f1fbd9febc8e207c219bbc5f",
+      "createdAt": "2026-10-05T09:00:00Z"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "audit-init",
+      "timestamp": "2026-10-24 19:26:34 UTC",
+      "actor": "system",
+      "action": "INIT_CMS",
+      "collection": "site-settings",
+      "targetId": "global",
+      "detail": "Inisialisasi awal konfigurasi CMS Ferdinan Silalahi dan Rekan Law Firm"
+    }
+  ]
+}

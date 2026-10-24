@@ -19,31 +19,43 @@ export function HeroSection({ whatsappNumber, defaultWaMessage }: HeroSectionPro
         <img
           src="/images/hero-bg.webp"
           alt={`Ruang Sidang dan Advokasi Hukum ${OFFICIAL_FIRM_NAME}`}
+          className="hero-bg-slide is-visible"
           width={1376}
           height={768}
           fetchPriority="high"
           decoding="async"
         />
+        <img
+          src="/images/hero-slide-courtroom.webp"
+          alt={`Persidangan dan Litigasi ${OFFICIAL_FIRM_NAME}`}
+          className="hero-bg-slide"
+          width={1376}
+          height={768}
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       <div className="hero-overlay-scrim" aria-hidden="true" />
+      <div className="hero-ambient-glow" aria-hidden="true" />
 
       <div className="container hero-content-wrap">
         <div className="hero-main-grid">
-          <div>
-            <h1 id="hero-heading" className="hero-title reveal-1">
-              Keahlian Litigasi.
+          <div data-reveal="up">
+            <div className="eyebrow-tag">KANTOR HUKUM &amp; ADVOKASI LITIGASI — JAKARTA PUSAT</div>
+            <h1 id="hero-heading" className="hero-title">
+              Pendampingan Hukum Tepercaya.
               <br />
-              <span className="gold-text">Integritas Tanpa Kompromi.</span>
+              <span className="gold-text gold-shimmer-text">Integritas Tanpa Kompromi.</span>
             </h1>
           </div>
 
-          <div>
-            <p className="lead-statement reveal-2">
+          <div data-reveal="up">
+            <p className="lead-statement">
               <strong>{OFFICIAL_FIRM_NAME}</strong> mengombinasikan analisis yuridis mendalam
               dengan strategi persidangan dan pendampingan hukum yang presisi untuk melindungi
               kepentingan klien individu maupun korporasi.
             </p>
-            <div className="hero-actions-row reveal-3">
+            <div className="hero-actions-row">
               <a href="#janji-temu" className="btn-gold">
                 Jadwalkan Konsultasi &rarr;
               </a>

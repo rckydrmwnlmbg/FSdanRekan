@@ -1,37 +1,44 @@
-#!/usr/bin/env python3
 """
-Local Interactive Preview Server (http://localhost:3000)
-Renders the exact pages, styles (src/styles/tokens.css + src/styles/globals.css),
-seeded content (content/team.json, content/practice_areas.json, content/case_records.json),
-and optimized WebP assets (public/team/*.webp, public/images/*.webp, public/logo-seal-transparent.png)
-with clean public-facing presentation (no internal TODO(client) markers, no duplicate Founder card).
+Local Preview Server for Ferdinan Silalahi dan Rekan Law Firm (FS dan Rekan)
+Serves the official production design tokens, real content seeds (content/*.json),
+processed WebP team portraits & background images (public/*), interactive modals,
+scroll-reveal & micro-interaction animations, consultation form submission,
+and the interactive /admin CMS Dashboard on http://localhost:3000/admin.
 """
 
 from __future__ import annotations
 
+import datetime
+import hashlib
 import html
+import http.cookies
 import json
 import mimetypes
+import secrets
+import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-PUBLIC_DIR = ROOT_DIR / "public"
 CONTENT_DIR = ROOT_DIR / "content"
+PUBLIC_DIR = ROOT_DIR / "public"
 STYLES_DIR = ROOT_DIR / "src" / "styles"
 
 OFFICIAL_FIRM_NAME = "Ferdinan Silalahi dan Rekan Law Firm"
 SHORT_BRAND_NAME = "FS dan Rekan"
-OFFICIAL_ADDRESS = (
-    "Gedung Mandira Lt. 4, Jl. RP Soeroso No. 33, RT 002 RW 002, "
-    "Gondangdia, Menteng, Jakarta Pusat 10350"
-)
+OFFICIAL_ADDRESS = "Gedung Mandira Lt. 4, Jl. RP Soeroso No. 33, RT 002 RW 002, Gondangdia, Menteng, Jakarta Pusat 10350"
 WHATSAPP_NUMBER = "62811830991"
 WHATSAPP_DISPLAY = "+62 811-830-991"
 DEFAULT_WA_MESSAGE = "Halo FS dan Rekan, saya ingin konsultasi hukum."
 
-PRACTICE_PRESENTATION_BY_SLUG = {
+# Local Admin Auth Store (SEC-001: 2-hour session, max 5 failed login attempts -> 15 min lock)
+ADMIN_EMAIL = "admin@fsdanrekan.id"
+ADMIN_PASSWORD_SHA256 = hashlib.sha256(b"AdminFS2026!#").hexdigest()
+ACTIVE_ADMIN_SESSIONS: dict[str, float] = {}
+LOGIN_ATTEMPTS: dict[str, list[float]] = {}
+
+PRACTICE_PRESENTATION_BY_SLUG: dict[str, dict] = {
     "litigasi-korporasi-dan-komersial": {
         "image": "/images/practice-corporate.webp",
         "summary": "Pendampingan penyelesaian sengketa korporasi, perjanjian komersial, tata kelola perusahaan, serta perlindungan kepentingan hukum pelaku usaha.",
@@ -44,22 +51,22 @@ PRACTICE_PRESENTATION_BY_SLUG = {
     },
     "sengketa-pertanahan-dan-agraria": {
         "image": "/images/article-land.webp",
-        "summary": "Pendampingan sengketa hak atas tanah, pemeriksaan keabsahan dokumen pertanahan (legal due diligence), dan penyelesaian klaim penguasaan lahan.",
-        "description": "Kepastian Alas Hak & Penanganan Sengketa Pertanahan",
+        "summary": "Pendampingan hukum atas sengketa kepemilikan hak atas tanah, tumpang tindih sertifikat, pembebasan lahan, dan administrasi pertanahan.",
+        "description": "Advokasi Hak Atas Tanah & Penyelesaian Sengketa Properti",
         "advocacyScope": [
-            "Uji tuntas hukum (legal due diligence) sebelum transaksi aset properti",
-            "Pendampingan sengketa tumpang tindih sertifikat dan riwayat kepemilikan",
-            "Mediasi dan litigasi sengketa hak atas tanah di peradilan",
+            "Penanganan sengketa hak atas tanah di Peradilan Umum dan PTUN",
+            "Uji tuntas hukum (legal due diligence) atas objek tanah dan bangunan",
+            "Pendampingan negosiasi, mediasi agraria, dan pengamanan aset properti",
         ],
     },
     "hukum-perdata-dan-perlindungan-aset": {
         "image": "/images/lady-justice.webp",
-        "summary": "Penanganan gugatan wanprestasi, perbuatan melawan hukum (PMH), permohonan sita jaminan, serta perancangan instrumen perlindungan aset.",
-        "description": "Penegakan Hak Perdata & Perlindungan Aset Klien",
+        "summary": "Advokasi gugatan wanprestasi, perbuatan melawan hukum (PMH), serta penyusunan instrumen hukum untuk pelindungan aset individu maupun badan hukum.",
+        "description": "Penanganan Gugatan Perdata & Pengamanan Aset",
         "advocacyScope": [
-            "Penyusunan somasi, gugatan wanprestasi, dan perbuatan melawan hukum",
-            "Permohonan sita jaminan dan pelaksanaan putusan pengadilan",
-            "Pendampingan negosiasi pemulihan hak keperdataan",
+            "Gugatan wanprestasi dan Perbuatan Melawan Hukum (PMH)",
+            "Permohonan sita jaminan dan pelaksanaan eksekusi putusan pengadilan",
+            "Penataan dokumen kepemilikan dan perlindungan hukum atas aset",
         ],
     },
     "hukum-pidana-umum-dan-tipikor": {
@@ -134,67 +141,34 @@ PRACTICE_PRESENTATION_BY_SLUG = {
     },
 }
 
-ARTICLES = [
-    {
-        "id": "article-1",
-        "slug": "strategi-mitigasi-risiko-litigasi-perjanjian-bisnis",
-        "title": "Strategi Mitigasi Risiko Litigasi dalam Perjanjian Bisnis Komersial",
-        "excerpt": "Penyusunan klausul penyelesaian sengketa, pembatasan tanggung jawab, dan klausul keadaan kahar guna mengantisipasi wanprestasi mitra usaha.",
-        "category": {"slug": "hukum-korporasi", "name": "Hukum Korporasi & Bisnis"},
-        "authorName": "Tim Redaksi FS dan Rekan",
-        "publishedAt": "12 Oktober 2026",
-        "coverUrl": "/images/practice-corporate.webp",
-        "coverAlt": "Ilustrasi ruang diskusi hukum korporasi dan kontrak komersial",
-        "bodyHtml": (
-            "<p>Dalam dinamika bisnis komersial, sengketa antar mitra sering kali berakar dari perumusan klausul kontrak yang multitafsir. "
-            "Penyusunan perjanjian yang cermat harus memperhitungkan mekanisme pencegahan dan penyelesaian sengketa sejak tahap negosiasi.</p>"
-            "<h2>1. Klausul Pilihan Forum dan Penyelesaian Sengketa</h2>"
-            "<p>Menentukan forum penyelesaian sengketa secara tegas—baik melalui Pengadilan Negeri maupun forum alternatif seperti mediasi dan arbitrase—"
-            "sangat penting untuk menjaga kepastian hukum bagi para pihak.</p>"
-            "<h2>2. Pembatasan Tanggung Jawab dan Keadaan Kahar (Force Majeure)</h2>"
-            "<p>Perumusan definisi keadaan kahar serta batasan tanggung jawab perlu merujuk pada ketentuan Kitab Undang-Undang Hukum Perdata dan regulasi sektoral yang berlaku di Indonesia.</p>"
-        ),
-    },
-    {
-        "id": "article-2",
-        "slug": "penyelesaian-sengketa-kepemilikan-lahan-dan-uji-tuntas",
-        "title": "Penyelesaian Sengketa Kepemilikan Lahan & Uji Tuntas (Legal Due Diligence)",
-        "excerpt": "Pentingnya pemeriksaan riwayat alas hak dan verifikasi dokumen pertanahan sebelum melakukan transaksi aset properti.",
-        "category": {"slug": "agraria-dan-properti", "name": "Agraria & Properti"},
-        "authorName": "Tim Redaksi FS dan Rekan",
-        "publishedAt": "8 Oktober 2026",
-        "coverUrl": "/images/article-land.webp",
-        "coverAlt": "Ilustrasi dokumen hukum pertanahan dan agraria",
-        "bodyHtml": (
-            "<p>Sengketa pertanahan kerap melibatkan tumpang tindih dokumen kepemilikan atau ketidakjelasan riwayat penguasaan fisik. "
-            "Uji tuntas hukum (<em>legal due diligence</em>) merupakan langkah preventif utama sebelum transaksi properti dilakukan.</p>"
-            "<h2>1. Verifikasi Administrasi Pertanahan</h2>"
-            "<p>Pemeriksaan kesesuaian data fisik dan data yuridis pada dokumen pertanahan bertujuan memastikan tidak adanya catatan blokir, sita jaminan, atau sengketa yang sedang berjalan.</p>"
-            "<h2>2. Pemeriksaan Riwayat Penguasaan Fisik</h2>"
-            "<p>Selain pemeriksaan dokumen, peninjauan batas sempadan dan riwayat penguasaan fisik di lapangan membantu memitigasi klaim pihak ketiga di kemudian hari.</p>"
-        ),
-    },
-    {
-        "id": "article-3",
-        "slug": "perjanjian-perkawinan-dan-perlindungan-harta-keluarga",
-        "title": "Pentingnya Perjanjian Perkawinan & Penataan Harta Keluarga",
-        "excerpt": "Instrumen hukum perdata untuk mengatur pemisahan harta bawaan dan tanggung jawab perikatan dalam keluarga.",
-        "category": {"slug": "perdata-keluarga", "name": "Perdata Keluarga"},
-        "authorName": "Tim Redaksi FS dan Rekan",
-        "publishedAt": "28 September 2026",
-        "coverUrl": "/images/article-family.webp",
-        "coverAlt": "Ilustrasi konsultasi hukum keluarga dan perdata",
-        "bodyHtml": (
-            "<p>Perjanjian perkawinan (baik sebelum maupun selama ikatan perkawinan berlangsung sesuai ketentuan peraturan perundang-undangan) "
-            "merupakan instrumen hukum untuk memberikan kejelasan mengenai status harta dan tanggung jawab perdata masing-masing pasangan.</p>"
-            "<h2>1. Pemisahan Tanggung Jawab Perikatan Usaha</h2>"
-            "<p>Dengan adanya akta notariil yang dicatatkan pada instansi berwenang, tata kelola harta pribadi dan harta bersama menjadi lebih tertib "
-            "apabila salah satu pihak menjalankan kegiatan usaha dengan risiko komersial.</p>"
-            "<h2>2. Kepastian Perencanaan Harta Keluarga</h2>"
-            "<p>Penataan dokumen kepemilikan aset sejak dini turut membantu meminimalkan potensi perselisihan waris di masa mendatang.</p>"
-        ),
-    },
-]
+
+def load_articles(include_drafts: bool = False) -> list[dict]:
+    articles_file = CONTENT_DIR / "articles.json"
+    if not articles_file.exists():
+        return []
+    raw = json.loads(articles_file.read_text(encoding="utf-8"))
+    if include_drafts:
+        return raw
+    return [a for a in raw if a.get("status", "published") == "published"]
+
+
+def save_articles(articles: list[dict]) -> None:
+    (CONTENT_DIR / "articles.json").write_text(
+        json.dumps(articles, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
+def load_inquiries() -> list[dict]:
+    inq_file = CONTENT_DIR / "inquiries.json"
+    if not inq_file.exists():
+        return []
+    return json.loads(inq_file.read_text(encoding="utf-8"))
+
+
+def save_inquiries(inquiries: list[dict]) -> None:
+    (CONTENT_DIR / "inquiries.json").write_text(
+        json.dumps(inquiries, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def wa_link(number: str, message: str) -> str:
@@ -250,7 +224,11 @@ def render_shell(title: str, description: str, body_html: str) -> str:
   <style>{css}</style>
 </head>
 <body>
-  <header class="site-header">
+  <div class="scroll-progress-track" aria-hidden="true">
+    <div class="scroll-progress-bar" id="scrollProgressBar"></div>
+  </div>
+
+  <header class="site-header" id="siteHeader">
     <div class="container nav-wrapper">
       <a href="/#beranda" class="brand-link" aria-label="Beranda {OFFICIAL_FIRM_NAME}">
         <img src="/logo-seal-transparent.png" alt="Logo {OFFICIAL_FIRM_NAME}" class="brand-logo-img" width="48" height="48">
@@ -261,13 +239,13 @@ def render_shell(title: str, description: str, body_html: str) -> str:
       </a>
       <nav aria-label="Navigasi Utama">
         <ul class="nav-menu" id="primaryNav">
-          <li><a href="/#beranda" class="active">Beranda</a></li>
-          <li><a href="/#keahlian">Keahlian</a></li>
-          <li><a href="/#tentang">Tentang</a></li>
-          <li><a href="/#tim-advokat">Tim Kami</a></li>
-          <li><a href="/#rekam-jejak">Rekam Jejak</a></li>
-          <li><a href="/#artikel">Wawasan</a></li>
-          <li><a href="/#janji-temu">Janji Temu</a></li>
+          <li><a href="/#beranda" data-nav-sec="beranda" class="active">Beranda</a></li>
+          <li><a href="/#keahlian" data-nav-sec="keahlian">Keahlian</a></li>
+          <li><a href="/#tentang" data-nav-sec="tentang">Tentang</a></li>
+          <li><a href="/#tim-advokat" data-nav-sec="tim-advokat">Tim Kami</a></li>
+          <li><a href="/#rekam-jejak" data-nav-sec="rekam-jejak">Rekam Jejak</a></li>
+          <li><a href="/#artikel" data-nav-sec="artikel">Wawasan</a></li>
+          <li><a href="/#janji-temu" data-nav-sec="janji-temu">Janji Temu</a></li>
         </ul>
       </nav>
       <div class="header-cta-group">
@@ -301,6 +279,7 @@ def render_shell(title: str, description: str, body_html: str) -> str:
         <div class="footer-links-row">
           <a href="/kebijakan-privasi" class="footer-link">Kebijakan Privasi</a>
           <button type="button" class="footer-disclaimer-btn" onclick="openDisclaimerModal()">Kebijakan Kerahasiaan &amp; Disclaimer</button>
+          <a href="/admin" class="footer-link">Panel Admin CMS</a>
         </div>
       </div>
     </div>
@@ -335,43 +314,103 @@ def render_shell(title: str, description: str, body_html: str) -> str:
       document.getElementById('disclaimerModal').classList.remove('is-active');
       document.body.style.overflow = '';
     }}
+
+    // Scroll-Reveal IntersectionObserver + Scroll Progress + Header Elevation + Hero Background Crossfade
+    (function initAnimations() {{
+      const revealEls = document.querySelectorAll('[data-reveal]');
+      if ('IntersectionObserver' in window) {{
+        const io = new IntersectionObserver((entries) => {{
+          entries.forEach(entry => {{
+            if (entry.isIntersecting) {{
+              entry.target.classList.add('is-revealed');
+              io.unobserve(entry.target);
+            }}
+          }});
+        }}, {{ threshold: 0.12, rootMargin: '0px 0px -36px 0px' }});
+        revealEls.forEach(el => io.observe(el));
+      }} else {{
+        revealEls.forEach(el => el.classList.add('is-revealed'));
+      }}
+
+      const header = document.getElementById('siteHeader');
+      const progressBar = document.getElementById('scrollProgressBar');
+      const sections = document.querySelectorAll('main section[id]');
+      const navLinks = document.querySelectorAll('.nav-menu a[data-nav-sec]');
+
+      function onScroll() {{
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        if (progressBar) {{
+          progressBar.style.width = Math.min(100, (scrollTop / docHeight) * 100) + '%';
+        }}
+        if (header) {{
+          header.classList.toggle('is-scrolled', scrollTop > 36);
+        }}
+        if (sections.length && navLinks.length) {{
+          let currentId = 'beranda';
+          sections.forEach(sec => {{
+            if (scrollTop >= sec.offsetTop - 180) {{
+              currentId = sec.id;
+            }}
+          }});
+          navLinks.forEach(link => {{
+            link.classList.toggle('active', link.getAttribute('data-nav-sec') === currentId);
+          }});
+        }}
+      }}
+      window.addEventListener('scroll', onScroll, {{ passive: true }});
+      onScroll();
+
+      // Hero Dual-Slide Ken Burns Crossfade
+      const heroSlides = document.querySelectorAll('.hero-bg-slide');
+      if (heroSlides.length > 1) {{
+        let slideIdx = 0;
+        setInterval(() => {{
+          heroSlides[slideIdx].classList.remove('is-visible');
+          slideIdx = (slideIdx + 1) % heroSlides.length;
+          heroSlides[slideIdx].classList.add('is-visible');
+        }}, 6500);
+      }}
+    }})();
   </script>
 </body>
 </html>"""
 
 
 def render_home_page() -> str:
-    raw_team = json.loads((CONTENT_DIR / "team.json").read_text(encoding="utf-8"))
-    team = [clean_ui_team_member(m) for m in raw_team]
-    practice_areas = json.loads((CONTENT_DIR / "practice_areas.json").read_text(encoding="utf-8"))
-    case_records = json.loads((CONTENT_DIR / "case_records.json").read_text(encoding="utf-8"))
+    from scripts.admin_cms import (
+        get_merged_case_records,
+        get_merged_practice_areas,
+        get_merged_team_members,
+        load_cms_state,
+    )
 
-    for area in practice_areas:
-        pres = PRACTICE_PRESENTATION_BY_SLUG.get(area["slug"])
-        if pres:
-            area["image"] = pres["image"]
-            if str(area.get("icon", "")).startswith("TODO(client)"):
-                area["icon"] = ""
-            if str(area.get("summary", "")).startswith("TODO(client)"):
-                area["summary"] = pres["summary"]
-            if str(area.get("description", "")).startswith("TODO(client)"):
-                area["description"] = pres["description"]
-            if any(str(s).startswith("TODO(client)") for s in area.get("advocacyScope", [])):
-                area["advocacyScope"] = pres["advocacyScope"]
+    cms_settings = load_cms_state()["siteSettings"]
+    team = get_merged_team_members(clean_ui_team_member, include_unpublished=False)
+    practice_areas = get_merged_practice_areas(PRACTICE_PRESENTATION_BY_SLUG, include_unpublished=False)
+    case_records = get_merged_case_records(include_unpublished=False)
+    published_articles = load_articles(include_drafts=False)
 
     founder = next((m for m in team if m["slug"] == "ferdinan-hasiholan-silalahi"), team[0])
     # Exclude Founder from Team Grid so Ferdinan is not repeated twice
     associates_and_admins = [m for m in team if m["slug"] != "ferdinan-hasiholan-silalahi"]
 
-    hero_wa = wa_link(WHATSAPP_NUMBER, f"{DEFAULT_WA_MESSAGE} (Halaman: Beranda {OFFICIAL_FIRM_NAME})")
-    direct_wa = wa_link(WHATSAPP_NUMBER, f"{DEFAULT_WA_MESSAGE} (Kantor Pusat Menteng)")
+    hero_wa = wa_link(
+        cms_settings["whatsappNumber"],
+        f"{cms_settings['defaultWaMessage']} (Halaman: Beranda {cms_settings['officialFirmName']})",
+    )
+    direct_wa = wa_link(
+        cms_settings["whatsappNumber"],
+        f"{cms_settings['defaultWaMessage']} (Kantor Pusat Menteng)",
+    )
 
     practice_buttons_html = ""
     for i, area in enumerate(practice_areas):
         active_cls = "is-active" if i == 0 else ""
         selected_attr = "true" if i == 0 else "false"
+        delay = f"{i * 0.04:.2f}s"
         practice_buttons_html += f"""
-        <div class="practice-item-wrapper">
+        <div class="practice-item-wrapper" data-reveal="left" style="--reveal-delay:{delay}">
           <button type="button" role="tab" aria-selected="{selected_attr}" class="practice-row-item {active_cls}" data-slug="{area['slug']}" onclick="selectPracticeArea('{area['slug']}')">
             <span class="practice-row-title">{html.escape(area['name'])}</span>
             <span class="practice-row-badge">{html.escape(area['label'])}</span>
@@ -381,9 +420,10 @@ def render_home_page() -> str:
     first_area = practice_areas[0]
 
     team_cards_html = ""
-    for member in associates_and_admins:
+    for idx, member in enumerate(associates_and_admins):
+        delay = f"{idx * 0.1:.2f}s"
         team_cards_html += f"""
-        <article class="team-card">
+        <article class="team-card" data-reveal="up" style="--reveal-delay:{delay}">
           <div class="team-card-photo">
             <img src="{member['photo']['url']}" srcset="{member['photo']['srcSet']}" sizes="(max-width: 768px) 100vw, 25vw" alt="{html.escape(member['photo']['alt'])}" width="{member['photo']['width']}" height="{member['photo']['height']}" loading="lazy">
             <div class="team-card-overlay" aria-hidden="true"></div>
@@ -401,18 +441,27 @@ def render_home_page() -> str:
         </article>"""
 
     case_cards_html = ""
-    for rec in case_records:
+    for idx, rec in enumerate(case_records):
+        delay = f"{idx * 0.07:.2f}s"
         case_cards_html += f"""
-        <div class="case-record-card">
+        <div class="case-record-card" data-reveal="up" style="--reveal-delay:{delay}">
           <div class="case-record-region">{html.escape(rec['region'])}</div>
           <div class="case-record-type">{html.escape(rec['caseType'])}</div>
         </div>"""
 
-    featured = ARTICLES[0]
+    featured = published_articles[0] if published_articles else {
+        "slug": "strategi-mitigasi-risiko-litigasi-perjanjian-bisnis",
+        "title": "Strategi Mitigasi Risiko Litigasi dalam Perjanjian Bisnis Komersial",
+        "excerpt": "Penyusunan klausul penyelesaian sengketa dan pembatasan tanggung jawab.",
+        "category": {"name": "Hukum Korporasi & Bisnis"},
+        "coverUrl": "/images/practice-corporate.webp",
+        "coverAlt": "Ilustrasi hukum korporasi",
+    }
     secondary_html = ""
-    for art in ARTICLES[1:]:
+    for idx, art in enumerate(published_articles[1:3]):
+        delay = f"{(idx + 1) * 0.12:.2f}s"
         secondary_html += f"""
-        <article class="article-card-item">
+        <article class="article-card-item" data-reveal="right" style="--reveal-delay:{delay}">
           <div class="article-thumb-frame">
             <img src="{art['coverUrl']}" alt="{html.escape(art['coverAlt'])}" width="300" height="200" loading="lazy">
           </div>
@@ -432,20 +481,23 @@ def render_home_page() -> str:
     <!-- 1. Hero Section -->
     <section id="beranda" class="hero-section" aria-labelledby="hero-heading">
       <div class="hero-background-art">
-        <img src="/images/hero-bg.webp" alt="Ruang Sidang dan Advokasi Hukum {OFFICIAL_FIRM_NAME}" width="1376" height="768" fetchpriority="high">
+        <img src="/images/hero-bg.webp" alt="Ruang Sidang dan Advokasi Hukum {html.escape(cms_settings['officialFirmName'])}" class="hero-bg-slide is-visible" width="1376" height="768" fetchpriority="high">
+        <img src="/images/hero-slide-courtroom.webp" alt="Persidangan dan Advokasi Litigasi {html.escape(cms_settings['officialFirmName'])}" class="hero-bg-slide" width="1376" height="768" loading="lazy">
       </div>
       <div class="hero-overlay-scrim" aria-hidden="true"></div>
+      <div class="hero-ambient-glow" aria-hidden="true"></div>
       <div class="container hero-content-wrap">
         <div class="hero-main-grid">
-          <div>
+          <div data-reveal="up">
+            <div class="eyebrow-tag">{html.escape(cms_settings['heroEyebrow'])}</div>
             <h1 id="hero-heading" class="hero-title">
-              Keahlian Litigasi.<br>
-              <span class="gold-text">Integritas Tanpa Kompromi.</span>
+              {html.escape(cms_settings['heroTitleLine1'])}<br>
+              <span class="gold-text gold-shimmer-text">{html.escape(cms_settings['heroTitleGold'])}</span>
             </h1>
           </div>
-          <div>
+          <div data-reveal="up" style="--reveal-delay:0.15s">
             <p class="lead-statement">
-              <strong>{OFFICIAL_FIRM_NAME}</strong> mengombinasikan analisis yuridis mendalam dengan strategi persidangan dan pendampingan hukum yang presisi untuk melindungi kepentingan klien individu maupun korporasi.
+              {html.escape(cms_settings['heroLead'])}
             </p>
             <div class="hero-actions-row">
               <a href="#janji-temu" class="btn-gold">Jadwalkan Konsultasi &rarr;</a>
@@ -460,7 +512,8 @@ def render_home_page() -> str:
     <!-- 2. Practice Areas (10 Bidang Layanan) -->
     <section id="keahlian" class="section-gap section-surface" aria-labelledby="practice-heading">
       <div class="container">
-        <div>
+        <div data-reveal="up">
+          <div class="eyebrow-tag">BIDANG KEAHLIAN HUKUM</div>
           <h2 id="practice-heading">10 Bidang Praktik Utama</h2>
           <p class="section-subtitle">Pilih salah satu bidang keahlian di bawah untuk meninjau ruang lingkup advokasi dan penanganan perkara.</p>
         </div>
@@ -470,7 +523,7 @@ def render_home_page() -> str:
             {practice_buttons_html}
           </div>
 
-          <div id="practiceStagePanel" role="tabpanel" class="practice-feature-stage">
+          <div id="practiceStagePanel" role="tabpanel" class="practice-feature-stage" data-reveal="right" style="--reveal-delay:0.12s">
             <img id="practiceStageImg" src="{first_area['image']}" alt="Ilustrasi {html.escape(first_area['name'])}" class="practice-stage-bg" width="900" height="600" loading="lazy">
             <div class="practice-stage-scrim" aria-hidden="true"></div>
             <div class="practice-stage-content">
@@ -497,7 +550,7 @@ def render_home_page() -> str:
     <section id="tentang" class="section-gap" aria-labelledby="about-heading">
       <div class="container">
         <div class="founder-editorial-grid">
-          <div class="founder-portrait-mat">
+          <div class="founder-portrait-mat" data-reveal="left">
             <div class="founder-photo-inner">
               <img src="{founder['photo']['url']}" srcset="{founder['photo']['srcSet']}" alt="{html.escape(founder['photo']['alt'])}" width="{founder['photo']['width']}" height="{founder['photo']['height']}" loading="lazy">
               <div class="founder-seal-tag">
@@ -506,20 +559,21 @@ def render_home_page() -> str:
               </div>
             </div>
           </div>
-          <div>
-            <h2 id="about-heading">Dedikasi Advokasi Berintegritas.</h2>
-            <blockquote class="quote-editorial-box">&ldquo;{html.escape(founder['motto'] or 'Life must have meaning')}&rdquo;</blockquote>
+          <div data-reveal="right" style="--reveal-delay:0.12s">
+            <div class="eyebrow-tag">{html.escape(cms_settings['aboutEyebrow'])}</div>
+            <h2 id="about-heading">{html.escape(cms_settings['aboutHeading'])}</h2>
+            <blockquote class="quote-editorial-box">&ldquo;{html.escape(cms_settings['founderMotto'] or founder['motto'] or 'Life must have meaning')}&rdquo;</blockquote>
             <p class="about-paragraph">
-              Berangkat dari kepedulian terhadap akses masyarakat Indonesia terhadap layanan hukum yang berkualitas, <strong>{OFFICIAL_FIRM_NAME}</strong> didirikan dengan visi menghadirkan pendampingan hukum yang tepercaya, mudah diakses, dan profesional bagi individu, pelaku usaha, maupun masyarakat yang membutuhkan.
+              {html.escape(cms_settings['aboutParagraph'])}
             </p>
             <div class="credentials-spec-grid">
               <div class="cred-box">
-                <div class="cred-title">Pendekatan Berorientasi Solusi</div>
-                <div class="cred-desc">Menjunjung tinggi nilai integritas, profesionalisme, dan keadilan dalam setiap tahapan pendampingan hukum.</div>
+                <div class="cred-title">{html.escape(cms_settings['cred1Title'])}</div>
+                <div class="cred-desc">{html.escape(cms_settings['cred1Desc'])}</div>
               </div>
               <div class="cred-box">
-                <div class="cred-title">Komitmen Kerahasiaan Klien</div>
-                <div class="cred-desc">Menghormati kerahasiaan informasi klien sesuai Kode Etik Advokat dan ketentuan pelindungan data pribadi yang berlaku.</div>
+                <div class="cred-title">{html.escape(cms_settings['cred2Title'])}</div>
+                <div class="cred-desc">{html.escape(cms_settings['cred2Desc'])}</div>
               </div>
             </div>
             <div class="hero-actions-row">
@@ -534,9 +588,10 @@ def render_home_page() -> str:
     <!-- 4. Team Section (4 Rekan Associate & Legal Administrator) -->
     <section id="tim-advokat" class="section-gap section-surface" aria-labelledby="team-heading">
       <div class="container">
-        <div>
+        <div data-reveal="up">
+          <div class="eyebrow-tag">REKAN &amp; TIM PROFESIONAL</div>
           <h2 id="team-heading">Tim Advokat &amp; Legal Administrator</h2>
-          <p class="section-subtitle">Sinergi advokat dan tenaga administrasi hukum berintegritas tinggi di {OFFICIAL_FIRM_NAME}.</p>
+          <p class="section-subtitle">Sinergi advokat dan tenaga administrasi hukum berintegritas tinggi di {html.escape(cms_settings['officialFirmName'])}.</p>
         </div>
         <div class="team-grid-5">
           {team_cards_html}
@@ -547,7 +602,8 @@ def render_home_page() -> str:
     <!-- 5. Case Records Section (7 Perkara Anonim — SK-14) -->
     <section id="rekam-jejak" class="section-gap" aria-labelledby="case-records-heading">
       <div class="container">
-        <div>
+        <div data-reveal="up">
+          <div class="eyebrow-tag">PORTOFOLIO PENANGANAN PERKARA</div>
           <h2 id="case-records-heading">Pengalaman Penanganan Perkara</h2>
           <p class="section-subtitle">Ringkasan bidang perkara dan wilayah yurisdiksi penanganan. Demi menjaga kewajiban kerahasiaan advokat, identitas pihak disajikan secara anonim.</p>
         </div>
@@ -559,11 +615,12 @@ def render_home_page() -> str:
 
     <!-- 6. Gavel CTA Banner -->
     <section class="gavel-banner-section" aria-labelledby="cta-banner-heading">
-      <img src="/images/gavel-banner.webp" alt="Ilustrasi Palu Sidang — {OFFICIAL_FIRM_NAME}" class="gavel-banner-bg" width="1376" height="768" loading="lazy">
+      <img src="/images/gavel-banner.webp" alt="Ilustrasi Palu Sidang — {html.escape(cms_settings['officialFirmName'])}" class="gavel-banner-bg" width="1376" height="768" loading="lazy">
       <div class="gavel-banner-scrim" aria-hidden="true"></div>
-      <div class="container gavel-banner-content">
-        <h2 id="cta-banner-heading" class="banner-title">Solusi Hukum Efektif &amp; Berorientasi pada Kebutuhan Klien.</h2>
-        <p class="banner-subtitle">Setiap klien berhak memperoleh pendampingan hukum yang kompeten disertai dedikasi, kepedulian, dan penghormatan dalam setiap tahapan proses hukum.</p>
+      <div class="container gavel-banner-content" data-reveal="scale">
+        <div class="eyebrow-tag">{html.escape(cms_settings['ctaEyebrow'])}</div>
+        <h2 id="cta-banner-heading" class="banner-title">{html.escape(cms_settings['ctaTitle'])}</h2>
+        <p class="banner-subtitle">{html.escape(cms_settings['ctaSubtitle'])}</p>
         <a href="#janji-temu" class="btn-gold">Konsultasikan Perkara Anda &rarr;</a>
       </div>
     </section>
@@ -571,8 +628,9 @@ def render_home_page() -> str:
     <!-- 7. Latest Articles Section -->
     <section id="artikel" class="section-gap" aria-labelledby="articles-heading">
       <div class="container">
-        <div class="section-header-row">
+        <div class="section-header-row" data-reveal="up">
           <div>
+            <div class="eyebrow-tag">PUBLIKASI &amp; EDUKASI HUKUM</div>
             <h2 id="articles-heading">Wawasan Hukum Terkini</h2>
             <p class="section-subtitle">Kajian umum regulasi, kontrak komersial, pertanahan, dan hukum keluarga.</p>
           </div>
@@ -580,7 +638,7 @@ def render_home_page() -> str:
         </div>
 
         <div class="articles-editorial-split">
-          <article class="featured-article-card">
+          <article class="featured-article-card" data-reveal="left">
             <div class="featured-article-thumb">
               <img src="{featured['coverUrl']}" alt="{html.escape(featured['coverAlt'])}" width="700" height="400" loading="lazy">
             </div>
@@ -601,13 +659,14 @@ def render_home_page() -> str:
     <!-- 8. Consultation Form & Contact Section -->
     <section id="janji-temu" class="section-gap section-surface" aria-labelledby="inquiry-heading">
       <div class="container">
-        <div>
+        <div data-reveal="up">
+          <div class="eyebrow-tag">JADWALKAN KONSULTASI RESMI</div>
           <h2 id="inquiry-heading">Permohonan Janji Temu &amp; Kontak Kantor</h2>
           <p class="section-subtitle">Jadwalkan konsultasi tatap muka di Gedung Mandira Menteng maupun secara daring.</p>
         </div>
 
         <div class="docket-booking-grid">
-          <div class="docket-info-card">
+          <div class="docket-info-card" data-reveal="left">
             <h3>Kantor Pusat Menteng</h3>
             <p class="office-address-text">{OFFICIAL_ADDRESS}</p>
 
@@ -631,7 +690,7 @@ def render_home_page() -> str:
             </a>
           </div>
 
-          <div class="docket-panel-form">
+          <div class="docket-panel-form" data-reveal="right" style="--reveal-delay:0.12s">
             <div class="confidential-warning-banner" role="note">
               <strong>Peringatan Kerahasiaan:</strong> Jangan menuliskan data rahasia atau dokumen perkara di sini. Uraikan pokok permasalahan secara umum untuk keperluan penjadwalan awal.
             </div>
@@ -753,13 +812,20 @@ def render_home_page() -> str:
           btn.classList.toggle('is-active', active);
           btn.setAttribute('aria-selected', active ? 'true' : 'false');
         }});
-        document.getElementById('practiceStageImg').src = area.image;
-        document.getElementById('practiceStageLabel').textContent = area.label;
-        document.getElementById('practiceStageTitle').textContent = area.name;
-        document.getElementById('practiceStageDesc').textContent = area.summary;
-        document.getElementById('practiceScopeDesc').textContent = area.description;
-        document.getElementById('practiceScopeList').innerHTML = area.advocacyScope.map(i => '<li>' + i + '</li>').join('');
-        document.getElementById('practiceStageCta').innerHTML = 'Konsultasi ' + area.name + ' &rarr;';
+        const stage = document.getElementById('practiceStagePanel');
+        if (stage) {{
+          stage.classList.add('is-switching');
+          setTimeout(() => {{
+            document.getElementById('practiceStageImg').src = area.image;
+            document.getElementById('practiceStageLabel').textContent = area.label;
+            document.getElementById('practiceStageTitle').textContent = area.name;
+            document.getElementById('practiceStageDesc').textContent = area.summary;
+            document.getElementById('practiceScopeDesc').textContent = area.description;
+            document.getElementById('practiceScopeList').innerHTML = area.advocacyScope.map(i => '<li>' + i + '</li>').join('');
+            document.getElementById('practiceStageCta').innerHTML = 'Konsultasi ' + area.name + ' &rarr;';
+            stage.classList.remove('is-switching');
+          }}, 210);
+        }}
       }}
 
       function preselectPracticeInForm() {{
@@ -895,27 +961,33 @@ def render_home_page() -> str:
 
 
 def render_articles_index() -> str:
+    published_articles = load_articles(include_drafts=False)
     cards = ""
-    for art in ARTICLES:
+    for idx, art in enumerate(published_articles):
+        delay = f"{idx * 0.08:.2f}s"
+        pub_label = art.get("publishedLabel") or art.get("publishedAt", "")[:10]
         cards += f"""
-        <article class="featured-article-card">
+        <article class="featured-article-card" data-reveal="up" style="--reveal-delay:{delay}">
           <div class="featured-article-thumb">
             <img src="{art['coverUrl']}" alt="{html.escape(art['coverAlt'])}" width="600" height="340" loading="lazy">
           </div>
           <div class="featured-article-body">
-            <div class="article-category-badge">{html.escape(art['category']['name'])}</div>
-            <h2 class="team-name"><a href="/artikel/{art['slug']}">{html.escape(art['title'])}</a></h2>
+            <div class="article-category-badge">{html.escape(art['category']['name'])} &middot; {html.escape(pub_label)}</div>
+            <h2 class="featured-article-title"><a href="/artikel/{art['slug']}">{html.escape(art['title'])}</a></h2>
             <p class="featured-article-excerpt">{html.escape(art['excerpt'])}</p>
-            <a href="/artikel/{art['slug']}" class="link-gold">Baca Selengkapnya &rarr;</a>
+            <a href="/artikel/{art['slug']}" class="link-gold">Baca Kajian Lengkap &rarr;</a>
           </div>
         </article>"""
 
     body = f"""
     <section class="section-gap">
       <div class="container">
-        <h1>Wawasan &amp; Artikel Hukum</h1>
-        <p class="section-subtitle">Informasi dan kajian hukum umum yang disusun oleh tim {OFFICIAL_FIRM_NAME}.</p>
-        <div class="team-grid-5">
+        <div data-reveal="up">
+          <div class="eyebrow-tag">PUBLIKASI &amp; WAWASAN HUKUM</div>
+          <h1>Wawasan &amp; Publikasi Hukum</h1>
+          <p class="section-subtitle">Artikel edukasi hukum dan analisis regulasi terkini dari tim {OFFICIAL_FIRM_NAME}.</p>
+        </div>
+        <div class="case-records-grid" style="margin-top:40px;">
           {cards}
         </div>
       </div>
@@ -923,28 +995,36 @@ def render_articles_index() -> str:
     """
     return render_shell(
         f"Artikel & Wawasan Hukum | {OFFICIAL_FIRM_NAME}",
-        f"Kumpulan artikel hukum dari {OFFICIAL_FIRM_NAME}.",
+        f"Kumpulan artikel hukum dan wawasan regulasi dari {OFFICIAL_FIRM_NAME}.",
         body,
     )
 
 
-def render_article_detail(slug: str) -> str | None:
-    art = next((a for a in ARTICLES if a["slug"] == slug), None)
+def render_article_detail(slug: str, is_admin_preview: bool = False) -> str | None:
+    all_articles = load_articles(include_drafts=is_admin_preview)
+    art = next((a for a in all_articles if a["slug"] == slug), None)
     if not art:
         return None
+
     share_wa = wa_link(
         WHATSAPP_NUMBER,
         f'Halo FS dan Rekan, saya ingin berkonsultasi terkait topik artikel "{art["title"]}".',
     )
+    pub_label = art.get("publishedLabel") or art.get("publishedAt", "")[:10]
+    draft_banner = (
+        '<div class="confidential-warning-banner" style="margin-bottom:20px;"><strong>MODE PRATINJAU ADMIN (DRAF):</strong> Artikel ini berstatus Draf dan belum dapat diakses oleh pengunjung umum (menghasilkan 404 bagi publik).</div>'
+        if art.get("status") == "draft"
+        else ""
+    )
+
     body = f"""
     <article class="section-gap">
-      <div class="container">
+      <div class="container" data-reveal="up">
+        {draft_banner}
         <div class="article-category-badge">{html.escape(art['category']['name'])}</div>
         <h1>{html.escape(art['title'])}</h1>
-        <div class="trust-stat-desc" style="margin: 8px 0 24px;">
-          Diterbitkan pada {html.escape(art['publishedAt'])} &middot; Penulis: {html.escape(art['authorName'])}
-        </div>
-        <div class="featured-article-thumb" style="max-width:900px;margin-bottom:28px;">
+        <p class="trust-stat-desc" style="margin: 12px 0 28px;">Diterbitkan pada {html.escape(pub_label)} &middot; Penulis: {html.escape(art['authorName'])}</p>
+        <div class="featured-article-thumb" style="margin-bottom: 32px;">
           <img src="{art['coverUrl']}" alt="{html.escape(art['coverAlt'])}" width="900" height="500">
         </div>
         <div class="article-prose">{art['bodyHtml']}</div>
@@ -965,10 +1045,11 @@ def render_article_detail(slug: str) -> str | None:
 def render_privacy_policy() -> str:
     body = f"""
     <section class="section-gap">
-      <div class="container">
+      <div class="container" data-reveal="up">
+        <div class="eyebrow-tag">KEPATUHAN UU PDP &amp; KODE ETIK ADVOKAT</div>
         <h1>Kebijakan Privasi &amp; Disclaimer Hukum</h1>
         <p class="section-subtitle">Komitmen pelindungan data pribadi pengunjung dan batas tanggung jawab informasi umum <strong>{OFFICIAL_FIRM_NAME}</strong>.</p>
-        <div class="article-prose">
+        <div class="article-prose" style="margin-top:28px;">
           <h2>1. Disclaimer Informasi Umum (Bukan Nasihat Hukum)</h2>
           <p>Seluruh konten, artikel, dan informasi yang ditayangkan pada situs web <strong>{OFFICIAL_FIRM_NAME}</strong> disusun semata-mata untuk tujuan informasi umum dan edukasi hukum. Tidak ada bagian dari situs ini yang dapat ditafsirkan sebagai nasihat hukum formal (<em>legal advice</em>).</p>
           <p>Pengiriman formulir permohonan janji temu atau pesan melalui WhatsApp dari situs ini <strong>belum menciptakan hubungan advokat dan klien</strong>. Hubungan hukum antara advokat dan klien baru berlaku secara sah setelah adanya penandatanganan Surat Kuasa Khusus dan/atau Perjanjian Jasa Hukum.</p>
@@ -990,17 +1071,104 @@ def render_privacy_policy() -> str:
     )
 
 
+def render_admin_login(error_msg: str = "") -> str:
+    css = load_combined_css()
+    err_html = (
+        f'<div class="server-error-box" role="alert" style="margin-bottom:18px;">{html.escape(error_msg)}</div>'
+        if error_msg
+        else ""
+    )
+    return f"""<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Panel Admin CMS | {OFFICIAL_FIRM_NAME}</title>
+  <link rel="icon" href="/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>{css}</style>
+</head>
+<body style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div class="docket-panel-form" style="max-width:460px;width:100%;box-shadow:var(--shadow-lg);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <img src="/logo-seal-transparent.png" alt="Logo {OFFICIAL_FIRM_NAME}" width="64" height="64" style="margin:0 auto 12px;display:block;">
+      <div class="eyebrow-tag" style="justify-content:center;">PAYLOAD CMS &mdash; PANEL ADMIN</div>
+      <h1 style="font-size:1.9rem;">{SHORT_BRAND_NAME}</h1>
+      <p style="font-size:0.9rem;color:var(--color-text-muted);margin-top:4px;">Masuk untuk mengelola artikel, draf, profil tim, dan permohonan janji temu.</p>
+    </div>
+
+    {err_html}
+
+    <form method="POST" action="/admin/login">
+      <div class="form-group">
+        <label for="adminEmail" class="form-label">Email Administrator</label>
+        <input id="adminEmail" name="email" type="email" class="form-input" required value="admin@fsdanrekan.id">
+      </div>
+      <div class="form-group">
+        <label for="adminPassword" class="form-label">Kata Sandi</label>
+        <input id="adminPassword" name="password" type="password" class="form-input" required value="AdminFS2026!#">
+      </div>
+      <button type="submit" class="btn-gold full-width-btn">Masuk ke Panel Admin &rarr;</button>
+    </form>
+
+    <div class="confidential-warning-banner" style="margin-top:20px;margin-bottom:0;font-size:12.5px;">
+      <strong>Info Pratinjau Lokal:</strong> Kredensial pratinjau lokal telah terisi otomatis (<code>admin@fsdanrekan.id</code> / <code>AdminFS2026!#</code>). Maksimal 5 percobaan gagal sebelum penguncian akun 15 menit (<code>SEC-001</code>).
+    </div>
+
+    <div style="text-align:center;margin-top:18px;">
+      <a href="/" class="link-gold">&larr; Kembali ke Halaman Publik</a>
+    </div>
+  </div>
+</body>
+</html>"""
+
+
+def render_admin_dashboard() -> str:
+    from scripts.admin_cms import render_enterprise_admin_dashboard
+
+    css = load_combined_css()
+    all_articles = load_articles(include_drafts=True)
+    inquiries = load_inquiries()
+    return render_enterprise_admin_dashboard(
+        css=css,
+        actor_email=ADMIN_EMAIL,
+        all_articles=all_articles,
+        inquiries=inquiries,
+        clean_ui_fn=clean_ui_team_member,
+        default_pres_by_slug=PRACTICE_PRESENTATION_BY_SLUG,
+    )
+
+
 class PreviewRequestHandler(BaseHTTPRequestHandler):
     def send_security_headers(self) -> None:
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-        self.send_header("Content-Security-Policy", "frame-ancestors 'none'; base-uri 'self'; object-src 'none'")
+        self.send_header(
+            "Content-Security-Policy", "frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+        )
+
+    def is_admin_authenticated(self) -> bool:
+        cookie_header = self.headers.get("Cookie", "")
+        if not cookie_header:
+            return False
+        jar = http.cookies.SimpleCookie()
+        jar.load(cookie_header)
+        token_morsel = jar.get("fs_admin_session")
+        if not token_morsel:
+            return False
+        token = token_morsel.value
+        exp = ACTIVE_ADMIN_SESSIONS.get(token)
+        if not exp or exp < time.time():
+            ACTIVE_ADMIN_SESSIONS.pop(token, None)
+            return False
+        return True
 
     def do_GET(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
+        query = urllib.parse.parse_qs(parsed.query)
 
         if path == "/" or path == "/index.html":
             page = render_home_page().encode("utf-8")
@@ -1010,6 +1178,39 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
             self.send_security_headers()
             self.end_headers()
             self.wfile.write(page)
+            return
+
+        if path == "/admin" or path == "/admin/":
+            if not self.is_admin_authenticated():
+                page = render_admin_login().encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(page)))
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(page)
+                return
+
+            page = render_admin_dashboard().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(page)))
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(page)
+            return
+
+        if path == "/admin/logout":
+            cookie_header = self.headers.get("Cookie", "")
+            if cookie_header:
+                jar = http.cookies.SimpleCookie()
+                jar.load(cookie_header)
+                if "fs_admin_session" in jar:
+                    ACTIVE_ADMIN_SESSIONS.pop(jar["fs_admin_session"].value, None)
+            self.send_response(302)
+            self.send_header("Location", "/admin")
+            self.send_header("Set-Cookie", "fs_admin_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax")
+            self.end_headers()
             return
 
         if path == "/artikel":
@@ -1024,7 +1225,8 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
 
         if path.startswith("/artikel/"):
             slug = path.removeprefix("/artikel/").strip("/")
-            detail = render_article_detail(slug)
+            allow_preview = query.get("preview") == ["1"] and self.is_admin_authenticated()
+            detail = render_article_detail(slug, is_admin_preview=allow_preview)
             if detail is None:
                 not_found = render_shell(
                     f"404 Halaman Tidak Ditemukan | {OFFICIAL_FIRM_NAME}",
@@ -1076,6 +1278,217 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self) -> None:
+        if self.path == "/admin/login":
+            length = int(self.headers.get("Content-Length", "0"))
+            raw = self.rfile.read(min(length, 16384)).decode("utf-8", "ignore")
+            form = urllib.parse.parse_qs(raw)
+            email = (form.get("email", [""])[0]).strip()
+            password = form.get("password", [""])[0]
+            client_ip = self.client_address[0]
+
+            now = time.time()
+            recent_attempts = [t for t in LOGIN_ATTEMPTS.get(client_ip, []) if now - t < 900]
+            if len(recent_attempts) >= 5:
+                page = render_admin_login(
+                    "Akun dikunci sementara selama 15 menit karena 5 percobaan gagal berturut-turut (SEC-001)."
+                ).encode("utf-8")
+                self.send_response(429)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(page)))
+                self.send_security_headers()
+                self.end_headers()
+                self.wfile.write(page)
+                return
+
+            pw_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
+            if email.lower() == ADMIN_EMAIL and secrets.compare_digest(pw_hash, ADMIN_PASSWORD_SHA256):
+                LOGIN_ATTEMPTS.pop(client_ip, None)
+                session_token = secrets.token_urlsafe(32)
+                ACTIVE_ADMIN_SESSIONS[session_token] = now + 7200  # 2-hour session (SEC-001)
+                self.send_response(302)
+                self.send_header("Location", "/admin")
+                self.send_header(
+                    "Set-Cookie",
+                    f"fs_admin_session={session_token}; HttpOnly; Path=/; Max-Age=7200; SameSite=Lax",
+                )
+                self.send_security_headers()
+                self.end_headers()
+                return
+
+            recent_attempts.append(now)
+            LOGIN_ATTEMPTS[client_ip] = recent_attempts
+            page = render_admin_login("Email atau kata sandi salah.").encode("utf-8")
+            self.send_response(401)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(page)))
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(page)
+            return
+
+        if self.path == "/api/admin/article":
+            if not self.is_admin_authenticated():
+                self.send_response(401)
+                self.end_headers()
+                return
+            from scripts.admin_cms import append_audit_log
+
+            length = int(self.headers.get("Content-Length", "0"))
+            body = json.loads(self.rfile.read(min(length, 100 * 1024)).decode("utf-8"))
+            articles = load_articles(include_drafts=True)
+            action = body.get("action")
+            if action == "create":
+                title = str(body.get("title", "")).strip()
+                custom_slug = str(body.get("slug", "")).strip()
+                slug = (
+                    "-".join("".join(ch.lower() if ch.isalnum() else " " for ch in (custom_slug or title)).split())
+                    or f"artikel-{int(time.time())}"
+                )
+                raw_body = str(body.get("bodyText", "")).strip()
+                if "<p>" in raw_body or "<h2>" in raw_body:
+                    body_html = raw_body
+                else:
+                    body_html = "".join(
+                        f"<p>{html.escape(p.strip())}</p>" for p in raw_body.split("\n") if p.strip()
+                    )
+                new_id = f"article-{int(time.time())}"
+                articles.insert(
+                    0,
+                    {
+                        "id": new_id,
+                        "slug": slug,
+                        "title": title,
+                        "excerpt": str(body.get("excerpt", "")).strip(),
+                        "category": {
+                            "slug": "kajian-hukum",
+                            "name": str(body.get("categoryName", "Hukum Korporasi & Bisnis")),
+                        },
+                        "authorName": str(body.get("authorName", "Tim Redaksi FS dan Rekan")).strip() or "Tim Redaksi FS dan Rekan",
+                        "status": "draft" if body.get("status") == "draft" else "published",
+                        "publishedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                        "publishedLabel": datetime.date.today().strftime("%d %B %Y"),
+                        "coverUrl": str(body.get("coverUrl", "/images/practice-corporate.webp")),
+                        "coverAlt": f"Ilustrasi {title}",
+                        "seoTitle": str(body.get("seoTitle", "")).strip(),
+                        "seoDescription": str(body.get("seoDescription", "")).strip(),
+                        "bodyHtml": body_html,
+                    },
+                )
+                save_articles(articles)
+                append_audit_log(ADMIN_EMAIL, "CREATE_ARTICLE", "articles", new_id, f"Membuat artikel: {title}")
+            elif action == "update":
+                aid = str(body.get("id", ""))
+                for a in articles:
+                    if a.get("id") == aid:
+                        a["title"] = str(body.get("title", a["title"])).strip()
+                        if body.get("slug"):
+                            a["slug"] = "-".join(
+                                "".join(ch.lower() if ch.isalnum() else " " for ch in str(body["slug"])).split()
+                            )
+                        a["excerpt"] = str(body.get("excerpt", a.get("excerpt", ""))).strip()
+                        a["category"] = {
+                            "slug": "kajian-hukum",
+                            "name": str(body.get("categoryName", a.get("category", {}).get("name", "Umum"))),
+                        }
+                        a["authorName"] = str(body.get("authorName", a.get("authorName", "Tim Redaksi FS dan Rekan"))).strip()
+                        a["status"] = "draft" if body.get("status") == "draft" else "published"
+                        a["coverUrl"] = str(body.get("coverUrl", a.get("coverUrl", "/images/practice-corporate.webp")))
+                        a["seoTitle"] = str(body.get("seoTitle", a.get("seoTitle", ""))).strip()
+                        a["seoDescription"] = str(body.get("seoDescription", a.get("seoDescription", ""))).strip()
+                        raw_body = str(body.get("bodyText", "")).strip()
+                        if "<p>" in raw_body or "<h2>" in raw_body:
+                            a["bodyHtml"] = raw_body
+                        else:
+                            a["bodyHtml"] = "".join(
+                                f"<p>{html.escape(p.strip())}</p>" for p in raw_body.split("\n") if p.strip()
+                            )
+                save_articles(articles)
+                append_audit_log(ADMIN_EMAIL, "UPDATE_ARTICLE", "articles", aid, "Memperbarui konten & SEO artikel")
+            elif action == "toggle":
+                aid = str(body.get("id", ""))
+                for a in articles:
+                    if a.get("id") == aid:
+                        a["status"] = "draft" if body.get("status") == "draft" else "published"
+                save_articles(articles)
+                append_audit_log(ADMIN_EMAIL, "TOGGLE_ARTICLE_STATUS", "articles", aid, f"Mengubah status publikasi ke {body.get('status')}")
+            elif action == "delete":
+                aid = str(body.get("id", ""))
+                articles = [a for a in articles if a.get("id") != aid]
+                save_articles(articles)
+                append_audit_log(ADMIN_EMAIL, "DELETE_ARTICLE", "articles", aid, "Menghapus artikel")
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(b'{"ok":true}')
+            return
+
+        if self.path == "/api/admin/inquiry-status":
+            if not self.is_admin_authenticated():
+                self.send_response(401)
+                self.end_headers()
+                return
+            from scripts.admin_cms import append_audit_log
+
+            length = int(self.headers.get("Content-Length", "0"))
+            body = json.loads(self.rfile.read(min(length, 32768)).decode("utf-8"))
+            inquiries = load_inquiries()
+            action = body.get("action", "update")
+            iid = str(body.get("id", ""))
+            if action == "delete":
+                inquiries = [i for i in inquiries if i.get("id") != iid]
+                save_inquiries(inquiries)
+                append_audit_log(ADMIN_EMAIL, "DELETE_INQUIRY_PDP", "inquiries", iid, "Menghapus data permohonan sesuai hak subjek data UU PDP")
+            else:
+                for inq in inquiries:
+                    if inq.get("id") == iid:
+                        if body.get("status"):
+                            inq["status"] = str(body.get("status"))
+                        if "internalNotes" in body and body["internalNotes"] is not None:
+                            inq["internalNotes"] = str(body["internalNotes"]).strip()
+                save_inquiries(inquiries)
+                append_audit_log(ADMIN_EMAIL, "UPDATE_INQUIRY", "inquiries", iid, "Memperbarui status / catatan internal permohonan janji temu")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(b'{"ok":true}')
+            return
+
+        if self.path in (
+            "/api/admin/settings",
+            "/api/admin/category",
+            "/api/admin/team",
+            "/api/admin/practice",
+            "/api/admin/cases",
+            "/api/admin/media",
+            "/api/admin/users",
+        ):
+            if not self.is_admin_authenticated():
+                self.send_response(401)
+                self.end_headers()
+                return
+            from scripts.admin_cms import handle_admin_api
+
+            length = int(self.headers.get("Content-Length", "0"))
+            body = json.loads(self.rfile.read(min(length, 8 * 1024 * 1024)).decode("utf-8"))
+            status_code, resp_dict = handle_admin_api(
+                self.path,
+                body,
+                ADMIN_EMAIL,
+                clean_ui_team_member,
+                PRACTICE_PRESENTATION_BY_SLUG,
+            )
+            encoded = json.dumps(resp_dict, ensure_ascii=False).encode("utf-8")
+            self.send_response(status_code)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(encoded)
+            return
+
         if self.path == "/api/inquiry":
             ctype = self.headers.get("Content-Type", "")
             if "application/json" not in ctype:
@@ -1110,13 +1523,35 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(b'{"error":"Data tidak valid."}')
                 return
 
-            if not isinstance(body, dict) or not body.get("consent") or len(str(body.get("name", "")).strip()) < 2:
+            if (
+                not isinstance(body, dict)
+                or not body.get("consent")
+                or len(str(body.get("name", "")).strip()) < 2
+            ):
                 self.send_response(400)
                 self.send_header("Content-Type", "application/json")
                 self.send_security_headers()
                 self.end_headers()
                 self.wfile.write(b'{"error":"Data tidak valid."}')
                 return
+
+            inquiries = load_inquiries()
+            inquiries.append(
+                {
+                    "id": f"inq-{int(time.time() * 1000)}",
+                    "name": str(body.get("name", "")).strip(),
+                    "email": str(body.get("email", "")).strip(),
+                    "phone": str(body.get("phone", "")).strip(),
+                    "practiceAreaId": str(body.get("practiceAreaId", "")).strip(),
+                    "preferredDate": str(body.get("preferredDate", "")).strip(),
+                    "sessionSlot": str(body.get("sessionSlot", "pagi")).strip(),
+                    "method": str(body.get("method", "tatap-muka")).strip(),
+                    "summary": str(body.get("summary", "")).strip(),
+                    "consentAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    "status": "baru",
+                }
+            )
+            save_inquiries(inquiries)
 
             resp = b'{"ok":true}'
             self.send_response(201)
@@ -1134,7 +1569,7 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
 def main() -> None:
     mimetypes.add_type("image/webp", ".webp")
     server = HTTPServer(("127.0.0.1", 3000), PreviewRequestHandler)
-    print("Preview server running at http://localhost:3000")
+    print("Preview server running at http://localhost:3000 (Admin CMS: http://localhost:3000/admin)")
     server.serve_forever()
 
 

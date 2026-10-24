@@ -180,7 +180,12 @@ class TestArchitectureAndSecurity(unittest.TestCase):
         self.assertTrue((ROOT_DIR / "docs" / "LAUNCH_AND_DNS_CHECKLIST.md").exists())
 
     def test_ui_has_no_todo_client_or_duplicate_ferdinan_or_fake_stats(self) -> None:
-        from scripts.preview_server import render_home_page
+        from scripts.preview_server import (
+            render_admin_dashboard,
+            render_admin_login,
+            render_article_detail,
+            render_home_page,
+        )
 
         html = render_home_page()
         self.assertNotIn("TODO(client)", html)
@@ -188,6 +193,64 @@ class TestArchitectureAndSecurity(unittest.TestCase):
         self.assertNotIn("2 Metode", html)
         self.assertEqual(html.count('class="team-card"'), 4)
         self.assertIn("Ferdinan Hasiholan Silalahi, S.H.", html)
+        # Verify scroll-reveal & luxury motion classes
+        self.assertIn('data-reveal="up"', html)
+        self.assertIn('class="scroll-progress-bar"', html)
+        self.assertIn('class="hero-bg-slide is-visible"', html)
+        # Verify Admin CMS panel & draft article protection (FR-5.3 / SEC-008)
+        self.assertIn("Login Panel Admin CMS", render_admin_login())
+        admin_html = render_admin_dashboard()
+        self.assertIn("Dasbor Pengelolaan Website", admin_html)
+        for tab_id in (
+            "tab-dashboard",
+            "tab-articles",
+            "tab-categories",
+            "tab-inquiries",
+            "tab-team",
+            "tab-practices",
+            "tab-cases",
+            "tab-media",
+            "tab-settings",
+            "tab-security",
+        ):
+            self.assertIn(tab_id, admin_html, f"Missing Admin CMS module {tab_id}")
+
+        self.assertIsNone(render_article_detail("draf-internal-belum-terbit", is_admin_preview=False))
+        self.assertIsNotNone(render_article_detail("draf-internal-belum-terbit", is_admin_preview=True))
+
+        # Verify Admin API security guards (SEC-001, SEC-013, SK-14)
+        from scripts.admin_cms import handle_admin_api
+        from scripts.preview_server import PRACTICE_PRESENTATION_BY_SLUG, clean_ui_team_member
+
+        # SEC-013: Reject SVG upload
+        code_svg, _ = handle_admin_api(
+            "/api/admin/media",
+            {"filename": "xss.svg", "mimeType": "image/svg+xml", "dataBase64": "PHN2Zz48L3N2Zz4="},
+            "admin@fsdanrekan.id",
+            clean_ui_team_member,
+            PRACTICE_PRESENTATION_BY_SLUG,
+        )
+        self.assertEqual(code_svg, 400)
+
+        # SK-14: Reject named case record without consentRef
+        code_case, _ = handle_admin_api(
+            "/api/admin/cases",
+            {"action": "create", "caseType": "Perdata", "region": "Jakarta", "displayMode": "named"},
+            "admin@fsdanrekan.id",
+            clean_ui_team_member,
+            PRACTICE_PRESENTATION_BY_SLUG,
+        )
+        self.assertEqual(code_case, 400)
+
+        # SEC-001: Reject user creation with password < 12 chars
+        code_pw, _ = handle_admin_api(
+            "/api/admin/users",
+            {"action": "create", "name": "Test", "email": "test@fsdanrekan.id", "password": "short"},
+            "admin@fsdanrekan.id",
+            clean_ui_team_member,
+            PRACTICE_PRESENTATION_BY_SLUG,
+        )
+        self.assertEqual(code_pw, 400)
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ export const Categories: CollectionConfig = {
       async ({ id, req }) => {
         // FR-6.4: Category that is still referenced by articles cannot be deleted
         const referenced = await req.payload.find({
-          collection: 'articles',
+          collection: 'articles' as never,
           where: { category: { equals: id } },
           limit: 1,
           overrideAccess: true,

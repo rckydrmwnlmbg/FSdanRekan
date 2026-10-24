@@ -71,40 +71,24 @@ export function PracticeAreasSection({ areas, onSelectForForm }: PracticeAreasSe
               const panelId = `panel-practice-${area.slug}`
 
               return (
-                <div key={area.id} className="practice-item-wrapper">
-                  <button
-                    ref={(el) => {
-                      tabRefs.current[idx] = el
-                    }}
-                    id={tabId}
-                    type="button"
-                    role="tab"
-                    aria-selected={isSelected}
-                    aria-controls={panelId}
-                    tabIndex={isSelected ? 0 : -1}
-                    className={`practice-row-item ${isSelected ? 'is-active' : ''}`}
-                    onClick={() => setSelectedSlug(area.slug)}
-                    onKeyDown={(e) => handleKeyDown(e, idx)}
-                  >
-                    <span className="practice-row-title">{area.name}</span>
-                    <span className="practice-row-badge">{area.label}</span>
-                  </button>
-
-                  {/* Mobile Accordion Detail Panel */}
-                  <div
-                    className={`practice-mobile-accordion ${isSelected ? 'is-open' : ''}`}
-                    aria-hidden={!isSelected}
-                  >
-                    <p className="practice-mobile-summary">{area.summary}</p>
-                    <a
-                      href="#janji-temu"
-                      className="link-gold"
-                      onClick={() => onSelectForForm?.(area.name)}
-                    >
-                      Konsultasi {area.name} &rarr;
-                    </a>
-                  </div>
-                </div>
+                <button
+                  key={area.id}
+                  ref={(el) => {
+                    tabRefs.current[idx] = el
+                  }}
+                  id={tabId}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  aria-controls={panelId}
+                  tabIndex={isSelected ? 0 : -1}
+                  className={`practice-row-item ${isSelected ? 'is-active' : ''}`}
+                  onClick={() => setSelectedSlug(area.slug)}
+                  onKeyDown={(e) => handleKeyDown(e, idx)}
+                >
+                  <span className="practice-row-title">{area.name}</span>
+                  <span className="practice-row-badge">{area.label}</span>
+                </button>
               )
             })}
           </div>

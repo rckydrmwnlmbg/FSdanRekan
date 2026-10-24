@@ -32,7 +32,7 @@ export const Articles: CollectionConfig = {
           let counter = 2
           while (true) {
             const existing = await req.payload.find({
-              collection: 'articles',
+              collection: 'articles' as never,
               where: { slug: { equals: candidate } },
               limit: 1,
               overrideAccess: true,
@@ -83,13 +83,13 @@ export const Articles: CollectionConfig = {
     {
       name: 'coverImage',
       type: 'upload',
-      relationTo: 'media',
+      relationTo: 'media' as never,
       required: true,
     },
     {
       name: 'category',
       type: 'relationship',
-      relationTo: 'categories',
+      relationTo: 'categories' as never,
       required: true,
     },
     {
@@ -118,7 +118,7 @@ export const Articles: CollectionConfig = {
     {
       name: 'createdBy',
       type: 'relationship',
-      relationTo: 'users',
+      relationTo: 'users' as never,
       admin: {
         readOnly: true,
       },

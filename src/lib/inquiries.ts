@@ -30,7 +30,7 @@ export async function createInquiry(
 
   // Deliberately authorized server-side creation after Origin, RateLimit, Zod, and Turnstile checks (SEC-002 / SEC-005)
   const created = await payload.create({
-    collection: 'inquiries',
+    collection: 'inquiries' as never,
     overrideAccess: true,
     data: {
       name: data.name,
@@ -45,7 +45,7 @@ export async function createInquiry(
       status: 'baru',
       emailFailed: false,
       ipHash,
-    },
+    } as never,
   })
 
   const inquiryId = String(created.id)
@@ -60,10 +60,10 @@ export async function createInquiry(
       'Inquiry saved but notification email failed; marking emailFailed=true',
     )
     await payload.update({
-      collection: 'inquiries',
+      collection: 'inquiries' as never,
       id: inquiryId,
       overrideAccess: true,
-      data: { emailFailed: true },
+      data: { emailFailed: true } as never,
     })
   }
 

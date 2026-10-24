@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdmin, isPublishedPublic } from '@/lib/access'
+import { getUserRole, isAdmin, isPublishedPublic } from '@/lib/access'
 
 export const CaseRecords: CollectionConfig = {
   slug: 'case-records',
@@ -18,9 +18,12 @@ export const CaseRecords: CollectionConfig = {
       required: true,
       defaultValue: 'anonymous',
       options: ['anonymous', 'named'],
-      validate: (value: unknown, { siblingData }: { siblingData?: Record<string, unknown> }) => {
+      validate: (value: unknown, { siblingData }: { siblingData?: unknown }) => {
         if (value === 'named') {
-          const ref = siblingData?.consentRef
+          const sib = (
+            siblingData && typeof siblingData === 'object' ? siblingData : {}
+          ) as Record<string, unknown>
+          const ref = sib.consentRef
           if (typeof ref !== 'string' || ref.trim().length === 0) {
             return 'Mode "named" wajib disertai bukti persetujuan tertulis pada consentRef (SK-14).'
           }
@@ -34,11 +37,14 @@ export const CaseRecords: CollectionConfig = {
       access: {
         // SK-14: Never expose clientName to public unless displayMode === 'named' AND consentRef is filled
         read: ({ req, siblingData }) => {
-          if (req.user?.role === 'admin') return true
+          if (getUserRole(req.user) === 'admin') return true
+          const sib = (
+            siblingData && typeof siblingData === 'object' ? siblingData : {}
+          ) as Record<string, unknown>
           return (
-            siblingData?.displayMode === 'named' &&
-            typeof siblingData?.consentRef === 'string' &&
-            siblingData.consentRef.trim().length > 0
+            sib.displayMode === 'named' &&
+            typeof sib.consentRef === 'string' &&
+            sib.consentRef.trim().length > 0
           )
         },
       },
@@ -47,7 +53,7 @@ export const CaseRecords: CollectionConfig = {
       name: 'consentRef',
       type: 'text',
       access: {
-        read: ({ req }) => req.user?.role === 'admin',
+        read: ({ req }) => getUserRole(req.user) === 'admin',
       },
     },
     { name: 'displayOrder', type: 'number', required: true, defaultValue: 1 },

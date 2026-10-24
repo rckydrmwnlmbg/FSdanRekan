@@ -22,7 +22,7 @@ export async function POST(req: Request): Promise<Response> {
     const payload = await getPayload({ config: configPromise })
 
     const deleted = await payload.delete({
-      collection: 'inquiries',
+      collection: 'inquiries' as never,
       overrideAccess: true,
       where: {
         createdAt: {

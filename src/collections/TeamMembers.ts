@@ -70,7 +70,7 @@ export const TeamMembers: CollectionConfig = {
     {
       name: 'photo',
       type: 'upload',
-      relationTo: 'media',
+      relationTo: 'media' as never,
     },
     {
       name: 'displayOrder',

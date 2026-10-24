@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdmin } from '@/lib/access'
+import { getUserRole, isAdmin } from '@/lib/access'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -17,12 +17,12 @@ export const Users: CollectionConfig = {
     create: isAdmin,
     read: ({ req: { user } }) => {
       if (!user) return false
-      if (user.role === 'admin') return true
+      if (getUserRole(user) === 'admin') return true
       return { id: { equals: user.id } }
     },
     update: ({ req: { user } }) => {
       if (!user) return false
-      if (user.role === 'admin') return true
+      if (getUserRole(user) === 'admin') return true
       return { id: { equals: user.id } }
     },
     delete: isAdmin,
@@ -36,7 +36,7 @@ export const Users: CollectionConfig = {
       options: ['admin', 'editor'],
       saveToJWT: true,
       access: {
-        update: ({ req }) => req.user?.role === 'admin',
+        update: ({ req }) => getUserRole(req.user) === 'admin',
       },
     },
     {
@@ -44,8 +44,11 @@ export const Users: CollectionConfig = {
       type: 'checkbox',
       defaultValue: false,
       required: true,
-      validate: (value: unknown, { siblingData }: { siblingData?: Record<string, unknown> }) => {
-        if (siblingData?.role === 'admin' && value !== true) {
+      validate: (value: unknown, { siblingData }: { siblingData?: unknown }) => {
+        const sib = (
+          siblingData && typeof siblingData === 'object' ? siblingData : {}
+        ) as Record<string, unknown>
+        if (sib.role === 'admin' && value !== true) {
           return 'Peran admin wajib mengaktifkan MFA (FR-6.1 / SEC-001).'
         }
         return true

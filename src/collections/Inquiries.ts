@@ -16,14 +16,14 @@ export const Inquiries: CollectionConfig = {
         if (req.user?.id && doc?.id) {
           try {
             await req.payload.create({
-              collection: 'audit-logs',
+              collection: 'audit-logs' as never,
               overrideAccess: true,
               data: {
                 userId: String(req.user.id),
                 action: 'read',
                 entity: 'Inquiry',
                 entityId: String(doc.id),
-              },
+              } as never,
             })
           } catch {
             // Avoid breaking read if audit log insert fails

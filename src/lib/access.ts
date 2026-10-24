@@ -1,6 +1,14 @@
 import type { Access } from 'payload'
 
-export const isAdmin: Access = ({ req }) => req.user?.role === 'admin'
+export function getUserRole(user: unknown): string | undefined {
+  if (user && typeof user === 'object' && 'role' in user) {
+    const role = (user as { role?: unknown }).role
+    return typeof role === 'string' ? role : undefined
+  }
+  return undefined
+}
+
+export const isAdmin: Access = ({ req }) => getUserRole(req.user) === 'admin'
 
 export const isLoggedIn: Access = ({ req }) => Boolean(req.user)
 

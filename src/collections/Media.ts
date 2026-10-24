@@ -25,8 +25,9 @@ export const Media: CollectionConfig = {
   hooks: {
     beforeOperation: [
       async ({ args, operation }) => {
-        if ((operation === 'create' || operation === 'update') && args.req?.file) {
-          const file = args.req.file
+        const reqObj = (args as { req?: { file?: { size: number; name?: string } } })?.req
+        if ((operation === 'create' || operation === 'update') && reqObj?.file) {
+          const file = reqObj.file
           if (file.size > MAX_UPLOAD_BYTES) {
             throw new Error('Ukuran berkas melebihi batas maksimal 5 MB (FR-6.8 / SEC-013).')
           }

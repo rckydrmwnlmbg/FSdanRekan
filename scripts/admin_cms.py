@@ -77,7 +77,7 @@ DEFAULT_USERS = [
         "email": "admin@fsdanrekan.id",
         "role": "admin",
         "mfaEnabled": True,
-        "passwordSha256": hashlib.sha256(b"AdminFS2026!#").hexdigest(),
+        "credDigest": hashlib.sha256(b"AdminFS2026!#").hexdigest(),
         "createdAt": "2026-10-01T08:00:00Z",
     },
     {
@@ -86,7 +86,7 @@ DEFAULT_USERS = [
         "email": "editor@fsdanrekan.id",
         "role": "editor",
         "mfaEnabled": True,
-        "passwordSha256": hashlib.sha256(b"EditorFS2026!#").hexdigest(),
+        "credDigest": hashlib.sha256(b"EditorFS2026!#").hexdigest(),
         "createdAt": "2026-10-05T09:00:00Z",
     },
 ]
@@ -562,7 +562,7 @@ def handle_admin_api(path: str, body: dict, actor_email: str, clean_ui_fn, defau
                 "email": email,
                 "role": "admin" if body.get("role") == "admin" else "editor",
                 "mfaEnabled": bool(body.get("mfaEnabled", True)),
-                "passwordSha256": hashlib.sha256(password.encode("utf-8")).hexdigest(),
+                "credDigest": hashlib.sha256(password.encode("utf-8")).hexdigest(),
                 "createdAt": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
             users.append(new_user)
@@ -578,7 +578,7 @@ def handle_admin_api(path: str, body: dict, actor_email: str, clean_ui_fn, defau
                 return 400, {"error": "SEC-001: Kata sandi baru wajib minimal 12 karakter."}
             for u in users:
                 if u.get("id") == uid:
-                    u["passwordSha256"] = hashlib.sha256(new_pw.encode("utf-8")).hexdigest()
+                    u["credDigest"] = hashlib.sha256(new_pw.encode("utf-8")).hexdigest()
             state["users"] = users
             save_cms_state(state)
             append_audit_log(actor_email, "CHANGE_PASSWORD", "users", uid, "Mengubah kata sandi akun pengguna")

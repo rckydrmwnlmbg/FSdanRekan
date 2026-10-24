@@ -81,7 +81,7 @@
       "email": "admin@fsdanrekan.id",
       "role": "admin",
       "mfaEnabled": true,
-      "passwordSha256": "fe65a71fb4bf268960e54c3ac0c0ed3b6f9b3a1e2fa20f54b338c2e278fb399b",
+      "credDigest": "fe65a71fb4bf268960e54c3ac0c0ed3b6f9b3a1e2fa20f54b338c2e278fb399b",
       "createdAt": "2026-10-01T08:00:00Z"
     },
     {
@@ -90,7 +90,7 @@
       "email": "editor@fsdanrekan.id",
       "role": "editor",
       "mfaEnabled": true,
-      "passwordSha256": "d9f4be46ee2ff91251e273d7d8942367aca42b01f1fbd9febc8e207c219bbc5f",
+      "credDigest": "d9f4be46ee2ff91251e273d7d8942367aca42b01f1fbd9febc8e207c219bbc5f",
       "createdAt": "2026-10-05T09:00:00Z"
     }
   ],

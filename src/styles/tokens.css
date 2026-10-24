@@ -1,0 +1,127 @@
+/**
+ * Design Tokens extracted from https://fhspdemo.vercel.app/ (DESIGN.md Section 2 & 3)
+ * Single source of truth for colors, typography, layout, spacing, radii, shadows, and motion.
+ * Do not hardcode visual values in components; reference these CSS variables or their Tailwind mappings.
+ */
+
+:root {
+  /* Raw Demo Tokens (Midnight Obsidian & Champagne Gold Palette) */
+  --bg-base: #08090c;
+  --bg-surface: #10121a;
+  --bg-surface-elevated: #181b26;
+  --bg-darker: #050608;
+  --bg-photo-well: #0e0f14;
+
+  --gold-primary: #c5a880;
+  --gold-light: #dfceb8;
+  --gold-muted: #8e7654;
+
+  --text-primary: #f0f2f5;
+  --text-secondary: #d8dce6;
+  --text-muted: #8e94a4;
+
+  /* Brand Seal Accent Tokens (DESIGN.md Section 3A) */
+  --seal-navy: #071e38;
+  --seal-gold: #dfb35d;
+  --seal-gold-dark: #9d7a3f;
+
+  /* Semantic Design System Aliases (DESIGN.md Section 3) */
+  --color-bg: var(--bg-base);
+  --color-bg-darker: var(--bg-darker);
+  --color-surface: var(--bg-surface);
+  --color-surface-2: var(--bg-surface-elevated);
+  --color-border: rgba(255, 255, 255, 0.14);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-text: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-gold: var(--gold-primary);
+  --color-gold-strong: var(--gold-light);
+  --color-gold-dark: var(--gold-muted);
+  --color-navy: var(--seal-navy);
+  --color-on-gold: #08090c;
+  --color-whatsapp: #25d366;
+  --color-danger: #f87171;
+  --color-success: #34d399;
+
+  /* Typography (Self-hosted via next/font/local or Google Fonts local subset, font-display: swap) */
+  --font-serif: 'Cormorant Garamond', Garamond, Georgia, serif;
+  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: var(--font-serif);
+  --font-body: var(--font-sans);
+
+  /* Type Scale & Line Heights (from demo CSS) */
+  --text-h1: clamp(2.8rem, 5.2vw, 4.2rem);
+  --text-h2: clamp(2rem, 3.2vw, 2.6rem);
+  --text-banner: clamp(1.8rem, 3.2vw, 2.5rem);
+  --text-h3: clamp(1.35rem, 2vw, 1.75rem);
+  --text-h4: 1.125rem;
+  --text-body: 1rem; /* 16px minimum on mobile (FR-3.4, FR-10.1) */
+  --text-lead: 1.0625rem; /* 17px */
+  --text-sm: 0.90625rem; /* 14.5px */
+  --text-xs: 0.84375rem; /* 13.5px */
+
+  --leading-tight: 1.1;
+  --leading-heading: 1.15;
+  --leading-snug: 1.25;
+  --leading-body: 1.7;
+  --measure-body: 65ch; /* <= 70ch requirement (FR-3.4) */
+
+  /* Layout & Spacing Scale */
+  --container-max: 1320px;
+  --container-pad: 32px;
+  --section-gap: clamp(96px, 9vw, 144px);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+
+  /* Radii (Demo uses sharp 0px architectural corners for cards/buttons and 50% for round emblems/WA) */
+  --radius-none: 0px;
+  --radius-sm: 0px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+  --radius-full: 9999px;
+
+  /* Shadows & Scrims */
+  --shadow-sm: 0 4px 16px rgba(5, 6, 8, 0.4);
+  --shadow-md: 0 12px 32px rgba(5, 6, 8, 0.6);
+  --shadow-lg: 0 24px 64px rgba(5, 6, 8, 0.82);
+  --scrim-header: rgba(8, 9, 12, 0.94);
+  --scrim-modal: rgba(5, 6, 8, 0.96);
+
+  /* Motion & Transitions */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease: var(--ease-out-expo);
+  --dur-fast: 0.2s;
+  --dur-normal: 0.25s;
+  --dur-slow: 0.65s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0.01ms;
+    --dur-normal: 0.01ms;
+    --dur-slow: 0.01ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

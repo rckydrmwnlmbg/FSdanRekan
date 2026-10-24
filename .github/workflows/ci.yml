@@ -1,0 +1,66 @@
+name: CI Pipeline — FS dan Rekan
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-and-security:
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: https://fsdanrekan.id
+      NEXT_PUBLIC_SITE_URL: https://fsdanrekan.id
+      DATABASE_URI: postgresql://postgres:postgres@localhost:5432/fsdanrekan_test
+      PAYLOAD_SECRET: test-payload-secret-at-least-32-characters-long
+      RESEND_API_KEY: re_test_placeholder
+      INQUIRY_TO: kontak@fsdanrekan.id
+      TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
+      UPSTASH_REDIS_REST_URL: https://example.upstash.io
+      UPSTASH_REDIS_REST_TOKEN: test_upstash_token
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Python for content seed tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies from lockfile
+        run: npm ci
+
+      - name: Run Gitleaks secret scan (SEC-003)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Audit production dependencies (SEC-010)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: TypeScript strict typecheck
+        run: npm run typecheck
+
+      - name: ESLint check
+        run: npm run lint
+
+      - name: Run Vitest unit tests
+        run: npm run test
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Install Playwright browsers & run E2E + axe accessibility tests
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e

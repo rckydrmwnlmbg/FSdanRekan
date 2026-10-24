@@ -1,0 +1,142 @@
+[
+  {
+    "id": "practice-area-1",
+    "slug": "litigasi-korporasi-dan-komersial",
+    "name": "Litigasi Korporasi & Komersial",
+    "label": "BISNIS",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Litigasi Korporasi & Komersial.",
+    "description": "TODO(client): Deskripsi bidang Litigasi Korporasi & Komersial.",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Litigasi Korporasi & Komersial"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 1,
+    "isPublished": true
+  },
+  {
+    "id": "practice-area-2",
+    "slug": "sengketa-pertanahan-dan-agraria",
+    "name": "Sengketa Pertanahan & Agraria",
+    "label": "PROPERTI",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Sengketa Pertanahan & Agraria.",
+    "description": "TODO(client): Deskripsi bidang Sengketa Pertanahan & Agraria.",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Sengketa Pertanahan & Agraria"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 2,
+    "isPublished": true
+  },
+  {
+    "id": "practice-area-3",
+    "slug": "hukum-perdata-dan-perlindungan-aset",
+    "name": "Hukum Perdata & Perlindungan Aset",
+    "label": "ASET",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Hukum Perdata & Perlindungan Aset.",
+    "description": "TODO(client): Deskripsi bidang Hukum Perdata & Perlindungan Aset.",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Hukum Perdata & Perlindungan Aset"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 3,
+    "isPublished": true
+  },
+  {
+    "id": "practice-area-4",
+    "slug": "hukum-pidana-umum-dan-tipikor",
+    "name": "Hukum Pidana Umum & Tipikor",
+    "label": "PIDANA",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Hukum Pidana Umum & Tipikor.",
+    "description": "TODO(client): Deskripsi bidang Hukum Pidana Umum & Tipikor.",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Hukum Pidana Umum & Tipikor"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 4,
+    "isPublished": true
+  },
+  {
+    "id": "practice-area-5",
+    "slug": "hak-kekayaan-intelektual-hki",
+    "name": "Hak Kekayaan Intelektual (HKI)",
+    "label": "HKI",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Hak Kekayaan Intelektual (HKI).",
+    "description": "TODO(client): Deskripsi bidang Hak Kekayaan Intelektual (HKI).",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Hak Kekayaan Intelektual (HKI)"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 5,
+    "isPublished": true
+  },
+  {
+    "id": "practice-area-6",
+    "slug": "ketenagakerjaan-dan-phi",
+    "name": "Ketenagakerjaan & PHI",
+    "label": "INDUSTRIAL",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Ketenagakerjaan & PHI.",
+    "description": "TODO(client): Deskripsi bidang Ketenagakerjaan & PHI.",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Ketenagakerjaan & PHI"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 6,
+    "isPublished": true
+  },
+  {
+    "id": "practice-area-7",
+    "slug": "kepailitan-dan-pkpu-niaga",
+    "name": "Kepailitan & PKPU Niaga",
+    "label": "RESTRUKTURISASI",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Kepailitan & PKPU Niaga.",
+    "description": "TODO(client): Deskripsi bidang Kepailitan & PKPU Niaga.",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Kepailitan & PKPU Niaga"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 7,
+    "isPublished": true
+  },
+  {
+    "id": "practice-area-8",
+    "slug": "arbitrase-dan-mediasi-bisnis",
+    "name": "Arbitrase & Mediasi Bisnis",
+    "label": "ADR",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Arbitrase & Mediasi Bisnis.",
+    "description": "TODO(client): Deskripsi bidang Arbitrase & Mediasi Bisnis.",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Arbitrase & Mediasi Bisnis"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 8,
+    "isPublished": true
+  },
+  {
+    "id": "practice-area-9",
+    "slug": "hukum-perbankan-dan-pembiayaan",
+    "name": "Hukum Perbankan & Pembiayaan",
+    "label": "FINANSIAL",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Hukum Perbankan & Pembiayaan.",
+    "description": "TODO(client): Deskripsi bidang Hukum Perbankan & Pembiayaan.",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Hukum Perbankan & Pembiayaan"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 9,
+    "isPublished": true
+  },
+  {
+    "id": "practice-area-10",
+    "slug": "hukum-keluarga-dan-waris",
+    "name": "Hukum Keluarga & Waris",
+    "label": "WARIS",
+    "summary": "TODO(client): Ringkasan 1-2 kalimat untuk bidang Hukum Keluarga & Waris.",
+    "description": "TODO(client): Deskripsi bidang Hukum Keluarga & Waris.",
+    "advocacyScope": [
+      "TODO(client): Butir Cakupan Advokasi untuk Hukum Keluarga & Waris"
+    ],
+    "icon": "TODO(client)",
+    "displayOrder": 10,
+    "isPublished": true
+  }
+]

@@ -1,0 +1,79 @@
+[
+  {
+    "id": "case-record-1",
+    "caseType": "Perselisihan Hubungan Industrial",
+    "region": "Jakarta",
+    "displayMode": "anonymous",
+    "clientName": null,
+    "consentRef": null,
+    "scope": "v2",
+    "displayOrder": 1,
+    "isPublished": true
+  },
+  {
+    "id": "case-record-2",
+    "caseType": "Tindak Pidana Korupsi",
+    "region": "Semarang, Jawa Tengah",
+    "displayMode": "anonymous",
+    "clientName": null,
+    "consentRef": null,
+    "scope": "v2",
+    "displayOrder": 2,
+    "isPublished": true
+  },
+  {
+    "id": "case-record-3",
+    "caseType": "Tindak Pidana Korupsi",
+    "region": "Semarang, Jawa Tengah",
+    "displayMode": "anonymous",
+    "clientName": null,
+    "consentRef": null,
+    "scope": "v2",
+    "displayOrder": 3,
+    "isPublished": true
+  },
+  {
+    "id": "case-record-4",
+    "caseType": "Tindak pidana penggelapan terkait hubungan kerja",
+    "region": "Surabaya, Jawa Timur",
+    "displayMode": "anonymous",
+    "clientName": null,
+    "consentRef": null,
+    "scope": "v2",
+    "displayOrder": 4,
+    "isPublished": true
+  },
+  {
+    "id": "case-record-5",
+    "caseType": "Kecelakaan lalu lintas",
+    "region": "Bandung, Jawa Barat",
+    "displayMode": "anonymous",
+    "clientName": null,
+    "consentRef": null,
+    "scope": "v2",
+    "displayOrder": 5,
+    "isPublished": true
+  },
+  {
+    "id": "case-record-6",
+    "caseType": "Sengketa hak atas tanah",
+    "region": "Gunung Putri, Bogor, Jawa Barat",
+    "displayMode": "anonymous",
+    "clientName": null,
+    "consentRef": null,
+    "scope": "v2",
+    "displayOrder": 6,
+    "isPublished": true
+  },
+  {
+    "id": "case-record-7",
+    "caseType": "Sengketa hak atas tanah",
+    "region": "Manado, Sulawesi Utara",
+    "displayMode": "anonymous",
+    "clientName": null,
+    "consentRef": null,
+    "scope": "v2",
+    "displayOrder": 7,
+    "isPublished": true
+  }
+]

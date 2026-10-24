@@ -46,15 +46,16 @@ def generate_pdf() -> None:
         draw.rectangle([margin_x, 48, page_w - margin_x, 52], fill=(197, 168, 128))
         draw.text(
             (margin_x, 60),
-            "Ferdinan Silalahi dan Rekan Law Firm — Panduan Admin (SK-06 / FR-11.4)",
+            "Ferdinan Silalahi dan Rekan Law Firm - Panduan Admin (SK-06 / FR-11.4)",
             fill=(7, 30, 56),
             font=font,
         )
 
         y = margin_y
         for line in chunk:
+            safe_line = line.encode("latin-1", "replace").decode("latin-1")
             color = (7, 30, 56) if line.startswith("#") else (20, 24, 33)
-            draw.text((margin_x, y), line, fill=color, font=font)
+            draw.text((margin_x, y), safe_line, fill=color, font=font)
             y += line_height
 
         pages.append(page)

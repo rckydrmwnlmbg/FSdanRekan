@@ -50,7 +50,7 @@ export function Header({ whatsappNumber, defaultWaMessage }: HeaderProps) {
   return (
     <header className="site-header">
       <div className="container nav-wrapper">
-        <Link href="/#beranda" className="brand-link" aria-label={`Beranda ${OFFICIAL_FIRM_NAME}`}>
+        <Link href="/#beranda" className="brand-link">
           <img
             src="/logo-seal-transparent.png"
             alt={`Logo ${OFFICIAL_FIRM_NAME}`}

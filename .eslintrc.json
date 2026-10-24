@@ -3,6 +3,7 @@
   "rules": {
     "@typescript-eslint/no-explicit-any": "error",
     "@next/next/no-img-element": "off",
+    "@next/next/no-html-link-for-pages": "off",
     "jsx-a11y/label-has-associated-control": ["error", { "assert": "either" }],
     "jsx-a11y/click-events-have-key-events": "off",
     "jsx-a11y/no-noninteractive-element-interactions": "off",

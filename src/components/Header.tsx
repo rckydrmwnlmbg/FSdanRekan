@@ -95,9 +95,9 @@ export function Header({ whatsappNumber, defaultWaMessage }: HeaderProps) {
           >
             WhatsApp
           </a>
-          <a href="/#janji-temu" className="btn-gold header-consult-btn">
+          <Link href="/#janji-temu" className="btn-gold header-consult-btn">
             Konsultasi
-          </a>
+          </Link>
           <button
             ref={toggleBtnRef}
             type="button"

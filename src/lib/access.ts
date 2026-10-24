@@ -1,4 +1,4 @@
-import type { Access } from 'payload'
+import type { Access, Where } from 'payload'
 
 export function getUserRole(user: unknown): string | undefined {
   if (user && typeof user === 'object' && 'role' in user) {
@@ -14,17 +14,18 @@ export const isLoggedIn: Access = ({ req }) => Boolean(req.user)
 
 export const denyAll: Access = () => false
 
-export const publishedOrLoggedIn: Access = ({ req }) => {
+export const publishedOrLoggedIn: Access = ({ req }): boolean | Where => {
   if (req.user) {
     return true
   }
-  return {
+  const where: Where = {
     and: [
       { _status: { equals: 'published' } },
       { publishedAt: { less_than_equal: new Date().toISOString() } },
     ],
   }
+  return where
 }
 
-export const isPublishedPublic: Access = ({ req }) =>
+export const isPublishedPublic: Access = ({ req }): boolean | Where =>
   req.user ? true : { isPublished: { equals: true } }

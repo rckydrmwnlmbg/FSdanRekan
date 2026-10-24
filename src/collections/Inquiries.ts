@@ -35,7 +35,7 @@ export const Inquiries: CollectionConfig = {
   },
   fields: [
     { name: 'name', type: 'text', required: true, maxLength: 100 },
-    { name: 'email', type: 'email', required: true, maxLength: 254 },
+    { name: 'email', type: 'email', required: true },
     { name: 'phone', type: 'text', required: true, maxLength: 20 },
     { name: 'practiceAreaId', type: 'text', required: true, maxLength: 64 },
     { name: 'preferredDate', type: 'text', required: true, maxLength: 10 },

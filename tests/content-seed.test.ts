@@ -131,7 +131,11 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
     }
     // Verify sorted displayOrder
     for (let i = 0; i < items.length - 1; i++) {
-      expect(items[i].displayOrder).toBeLessThanOrEqual(items[i + 1].displayOrder)
+      const current = items[i]
+      const next = items[i + 1]
+      if (current && next) {
+        expect(current.displayOrder).toBeLessThanOrEqual(next.displayOrder)
+      }
     }
   })
 

@@ -694,9 +694,9 @@ def render_home_page() -> str:
           <div>
             <div class="eyebrow-tag">PUBLIKASI RESMI INSTAGRAM (SK-13)</div>
             <h2 id="instagram-heading">Galeri Edukasi Hukum &amp; Kegiatan Firma</h2>
-            <p class="section-subtitle">Kutipan edukasi hukum, analisis kasus, dan kegiatan advokasi resmi dari akun Instagram @fsdanrekan.</p>
+            <p class="section-subtitle">Kutipan edukasi hukum, analisis kasus, dan kegiatan advokasi resmi dari akun Instagram {SHORT_BRAND_NAME}.</p>
           </div>
-          <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" class="btn-outline">
+          <a href="{html.escape(cms_settings.get('instagramUrl', 'https://instagram.com/'))}" target="_blank" rel="noopener noreferrer" class="btn-outline">
             Ikuti di Instagram &nearr;
           </a>
         </div>
@@ -1704,6 +1704,18 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(page)
             return
 
+        if path == "/api/instagram":
+            from scripts.admin_cms import get_merged_instagram_gallery
+            items = get_merged_instagram_gallery(include_unpublished=False)
+            payload = json.dumps({"ok": True, "items": items}, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
         # Serve static assets from public/
         rel = path.lstrip("/")
         static_file = (PUBLIC_DIR / rel).resolve()
@@ -1909,6 +1921,7 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
             "/api/admin/media",
             "/api/admin/users",
             "/api/admin/instagram",
+            "/api/admin/instagram/sync",
             "/api/admin/chat-sessions",
         ):
             if not self.is_admin_authenticated():
@@ -2128,6 +2141,22 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
             self.send_security_headers()
             self.end_headers()
             self.wfile.write(resp_data)
+            return
+
+        if self.path == "/api/instagram/sync":
+            from scripts.admin_cms import sync_instagram_media
+            length = int(self.headers.get("Content-Length", "0"))
+            body = json.loads(self.rfile.read(min(length, 1024 * 1024)).decode("utf-8")) if length > 0 else {}
+            token = str(body.get("accessToken", "")).strip()
+            ok, msg, items = sync_instagram_media(token)
+            status_code = 200 if ok else 400
+            resp = json.dumps({"ok": ok, "message": msg, "error": (msg if not ok else None), "count": len(items), "items": items}, ensure_ascii=False).encode("utf-8")
+            self.send_response(status_code)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(resp)))
+            self.send_security_headers()
+            self.end_headers()
+            self.wfile.write(resp)
             return
 
         self.send_response(404)

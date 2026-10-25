@@ -7,6 +7,7 @@ import {
   getTeamMemberBySlug,
   getPublishedArticles,
 } from '../src/lib/content'
+import { fetchLiveInstagramMedia } from '../src/lib/instagram'
 
 interface TeamPhoto {
   id: string
@@ -166,5 +167,19 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
 
     const searchNone = getPublishedArticles(undefined, 'kata-kunci-pasti-tidak-ada-xyz')
     expect(searchNone).toHaveLength(0)
+  })
+
+  it('SK-13: fetchLiveInstagramMedia() gracefully handles missing token with curated fallback', async () => {
+    const result = await fetchLiveInstagramMedia(undefined)
+    expect(result.source).toBe('curated')
+    expect(result.items.length).toBeGreaterThanOrEqual(1)
+    expect(result.items[0]?.permalink).toBeDefined()
+    expect(result.items[0]?.alt).toContain('Ferdinan Silalahi dan Rekan Law Firm')
+  })
+
+  it('SK-13: fetchLiveInstagramMedia() gracefully recovers on network/API failure', async () => {
+    const result = await fetchLiveInstagramMedia('mock-invalid-token')
+    expect(result.source).toBe('curated')
+    expect(result.items.length).toBeGreaterThanOrEqual(1)
   })
 })

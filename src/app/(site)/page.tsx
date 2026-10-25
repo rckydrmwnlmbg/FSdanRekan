@@ -2,12 +2,12 @@ import React from 'react'
 import type { Metadata } from 'next'
 import {
   DEFAULT_SITE_SETTINGS,
-  getInstagramGalleryItems,
   getPublicCaseRecords,
   getPublishedArticles,
   getPublishedPracticeAreas,
   getPublishedTeamMembers,
 } from '@/lib/content'
+import { fetchLiveInstagramMedia } from '@/lib/instagram'
 import { buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
 import { HeroSection } from '@/components/HeroSection'
 import { HomePageClient } from '@/components/HomePageClient'
@@ -19,13 +19,16 @@ export const metadata: Metadata = buildPageMetadata({
   path: '/',
 })
 
-export default function HomePage() {
+export default async function HomePage() {
   const settings = DEFAULT_SITE_SETTINGS
   const teamMembers = getPublishedTeamMembers()
   const practiceAreas = getPublishedPracticeAreas()
   const caseRecords = getPublicCaseRecords()
   const latestArticles = getPublishedArticles().slice(0, 3)
-  const instagramItems = getInstagramGalleryItems()
+
+  // SK-13 / Phase 2: Live Instagram Graph API integration with graceful fallback
+  const instagramResult = await fetchLiveInstagramMedia()
+  const instagramItems = instagramResult.items
 
   return (
     <>

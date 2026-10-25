@@ -20,7 +20,11 @@ import datetime
 import hashlib
 import html
 import json
+import os
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -36,6 +40,8 @@ DEFAULT_SITE_SETTINGS = {
     "whatsappDisplay": "+62 811-830-991",
     "defaultWaMessage": "Halo FS dan Rekan, saya ingin konsultasi hukum.",
     "inquiryRecipientEmail": "konsultasi@fsdanrekan.id",
+    "instagramUrl": "https://instagram.com/fsdanrekan",
+    "instagramAccessToken": "",
     "mapsDirectUrl": "https://www.google.com/maps/search/?api=1&query=Gedung+Mandira+Jl.+RP+Soeroso+No.+33+Menteng+Jakarta+Pusat",
     "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5292868019124!2d106.83606777579133!3d-6.193674693793977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43b67eb123b%3A0x6b4fbfe311e92067!2sGedung%20Mandira!5e0!3m2!1sid!2sid!4v1715000000000!5m2!1sid!2sid",
     "officeHoursPagi": "Pagi (09.30 – 12.00 WIB)",
@@ -333,6 +339,93 @@ def get_merged_instagram_gallery(include_unpublished: bool = False) -> list[dict
     if not include_unpublished:
         items = [i for i in items if i.get("isPublished", True)]
     return sorted(items, key=lambda x: int(x.get("displayOrder", 999)))
+
+
+def sync_instagram_media(access_token: str = "") -> tuple[bool, str, list[dict]]:
+    """
+    Fetch live posts from Meta Instagram Graph API (SK-13).
+    Returns (success, message, items).
+    """
+    state = load_cms_state()
+    settings = state.get("siteSettings", {})
+    token = access_token.strip() or settings.get("instagramAccessToken", "").strip() or os.environ.get("INSTAGRAM_ACCESS_TOKEN", "").strip()
+
+    if not token:
+        return False, "Token Instagram belum dimasukkan. Masukkan User Access Token dari Meta for Developers terlebih dahulu.", []
+
+    url = f"https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=6&access_token={urllib.parse.quote(token)}"
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "FSDanRekan-CMS/2.0"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=12) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            data = payload.get("data", [])
+            if not data:
+                return True, "Akun Instagram terhubung, namun belum memiliki postingan media.", []
+
+            new_items = []
+            for idx, item in enumerate(data):
+                full_caption = (item.get("caption") or "").strip() or "Publikasi resmi Ferdinan Silalahi dan Rekan Law Firm."
+                mtype = item.get("media_type")
+                image_url = item.get("thumbnail_url") if mtype == "VIDEO" else item.get("media_url")
+                if not image_url:
+                    image_url = "/images/hero-slide-courtroom.webp"
+
+                lower = full_caption.lower()
+                category = "Publikasi Resmi"
+                if any(w in lower for w in ("korporasi", "kontrak", "bisnis", "pt", "rups")):
+                    category = "Hukum Korporasi"
+                elif any(w in lower for w in ("tanah", "lahan", "properti", "agraria", "sertifikat")):
+                    category = "Agraria & Properti"
+                elif any(w in lower for w in ("litigasi", "sidang", "pengadilan", "gugatan")):
+                    category = "Litigasi & Advokasi"
+                elif any(w in lower for w in ("pailit", "pkpu", "utang", "piutang")):
+                    category = "Kepailitan & PKPU"
+                elif any(w in lower for w in ("merek", "hki", "hak cipta", "paten")):
+                    category = "Kekayaan Intelektual"
+                elif any(w in lower for w in ("keluarga", "waris", "perdata", "cerai")):
+                    category = "Hukum Perdata"
+                elif any(w in lower for w in ("pidana", "polisi", "kejaksaan", "tipikor")):
+                    category = "Pidana & Tipikor"
+
+                ts = item.get("timestamp")
+                formatted_date = "Baru saja"
+                if ts:
+                    try:
+                        clean_ts = ts.replace("Z", "+00:00")
+                        dt = datetime.datetime.fromisoformat(clean_ts)
+                        months_id = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"]
+                        formatted_date = f"{dt.day} {months_id[dt.month - 1]} {dt.year}"
+                    except Exception:
+                        pass
+
+                new_items.append({
+                    "id": f"ig-live-{item.get('id', idx+1)}",
+                    "imageUrl": image_url,
+                    "alt": f"Postingan Instagram: {full_caption[:60]} – Ferdinan Silalahi dan Rekan Law Firm",
+                    "category": category,
+                    "caption": full_caption[:180] + ("..." if len(full_caption) > 180 else ""),
+                    "publishedDate": formatted_date,
+                    "permalink": item.get("permalink") or "https://instagram.com/",
+                    "displayOrder": idx + 1,
+                    "isPublished": True,
+                })
+
+            state["instagramGallery"] = new_items
+            save_cms_state(state)
+            return True, f"Berhasil sinkronisasi {len(new_items)} postingan langsung dari Meta Instagram API.", new_items
+    except urllib.error.HTTPError as he:
+        try:
+            err_body = json.loads(he.read().decode("utf-8"))
+            err_msg = err_body.get("error", {}).get("message", str(he))
+        except Exception:
+            err_msg = str(he)
+        return False, f"Meta API Error ({he.code}): {err_msg}", []
+    except Exception as exc:
+        return False, f"Gagal menghubungi server Instagram: {exc}", []
+
 
 
 def get_chat_sessions() -> list[dict]:
@@ -690,7 +783,25 @@ def handle_admin_api(path: str, body: dict, actor_email: str, clean_ui_fn, defau
             append_audit_log(actor_email, "DELETE_USER", "users", uid, "Menghapus akun pengguna")
             return 200, {"ok": True}
 
-    # 8. Manage Curated Instagram Gallery (SK-13 / PRD V3)
+    # 8. Manage Curated & Live Instagram Gallery (SK-13 / PRD V3)
+    if path == "/api/admin/instagram/sync":
+        token = str(body.get("accessToken", "")).strip()
+        profile_url = str(body.get("profileUrl", "")).strip()
+        settings = state.get("siteSettings", {})
+        if profile_url:
+            settings["instagramUrl"] = profile_url
+        if token:
+            settings["instagramAccessToken"] = token
+        state["siteSettings"] = settings
+        save_cms_state(state)
+
+        ok, msg, items = sync_instagram_media(token)
+        if ok:
+            append_audit_log(actor_email, "SYNC_INSTAGRAM", "instagramGallery", "meta-api", f"Sinkronisasi live Meta Instagram Graph API ({len(items)} post)")
+            return 200, {"ok": True, "message": msg, "count": len(items), "items": items}
+        else:
+            return 400, {"ok": False, "error": msg}
+
     if path == "/api/admin/instagram":
         action = body.get("action")
         gallery = state.get("instagramGallery") or list(DEFAULT_INSTAGRAM_GALLERY)
@@ -1084,6 +1195,12 @@ def render_enterprise_admin_dashboard(
             </div>"""
 
     # 11. Instagram Gallery Cards (SK-13 / PRD V3)
+    has_ig_token = bool(settings.get("instagramAccessToken"))
+    ig_status_badge = (
+        '<span class="cms-badge" style="background:#14532d;color:#86efac;font-size:12px;padding:3px 10px;">🟢 Terhubung ke Meta Instagram Graph API</span>'
+        if has_ig_token
+        else '<span class="cms-badge" style="background:#451a03;color:#fdba74;font-size:12px;padding:3px 10px;">🟡 Mode Kurasi / Menunggu Token Instagram</span>'
+    )
     instagram_cards_html = ""
     for item in instagram_items:
         iid = html.escape(item.get("id", ""))
@@ -1599,12 +1716,65 @@ def render_enterprise_admin_dashboard(
         </div>
       </section>
 
-      <!-- TAB 9: CURATED INSTAGRAM GALLERY (SK-13 / PRD V3) -->
+      <!-- TAB 9: CURATED & LIVE INSTAGRAM GALLERY (SK-13 / PRD V3) -->
       <section id="tab-instagram" class="cms-tab-pane">
+        <!-- Live Meta Graph API Connection Box -->
+        <div class="cms-panel-box" style="margin-bottom:24px;border:1px solid var(--color-border-subtle);background:linear-gradient(180deg, rgba(201,168,111,0.05) 0%, rgba(20,20,20,0.6) 100%);">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+                <h2 style="margin:0;font-size:1.25rem;">Koneksi Akun Instagram Langsung (Meta Graph API / SK-13)</h2>
+                {ig_status_badge}
+              </div>
+              <p style="font-size:13px;color:var(--color-text-muted);margin:0;">
+                Hubungkan akun Instagram resmi firma langsung menggunakan official Meta Graph API. Galeri publik akan otomatis menampilkan 6 unggahan terbaru beserta gambar asli, caption, dan tautan permalink Instagram.
+              </p>
+            </div>
+            <button type="button" class="btn-gold cms-btn-sm" onclick="triggerInstagramLiveSync()" id="btnSyncInstagram">
+              🔄 Sinkronkan Live dari Instagram
+            </button>
+          </div>
+
+          <form onsubmit="saveInstagramLiveConfig(event)" style="display:grid;grid-template-columns:1fr 1.5fr auto;gap:14px;align-items:flex-end;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:12px;">URL Profil Akun Instagram Resmi</label>
+              <input type="url" id="cmsInstagramProfileUrl" class="form-input" placeholder="https://instagram.com/fsdanrekan" value="{html.escape(settings.get('instagramUrl', 'https://instagram.com/fsdanrekan'))}" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:12px;">
+                Meta Instagram User Access Token (Long-Lived 60 Hari)
+                <span style="font-weight:normal;color:var(--color-gold-strong);cursor:pointer;margin-left:8px;" onclick="toggleTokenVisibility()">[Lihat/Sembunyikan]</span>
+              </label>
+              <input type="password" id="cmsInstagramAccessToken" class="form-input" placeholder="Masukkan User Access Token dari Meta for Developers..." value="{html.escape(settings.get('instagramAccessToken', ''))}">
+            </div>
+            <div>
+              <button type="submit" class="btn-outline cms-btn-sm" style="white-space:nowrap;height:42px;">
+                Simpan &amp; Hubungkan
+              </button>
+            </div>
+          </form>
+
+          <div id="igSyncFeedback" style="display:none;margin-top:14px;padding:10px 14px;font-size:13px;border-radius:4px;"></div>
+
+          <details style="margin-top:16px;background:rgba(0,0,0,0.3);border:1px solid var(--color-border-subtle);border-radius:4px;padding:10px 14px;">
+            <summary style="font-size:12.5px;color:var(--color-gold-strong);cursor:pointer;font-weight:600;">
+              📖 Panduan Langkah Menghubungkan Akun Instagram Resmi (Meta for Developers)
+            </summary>
+            <ol style="margin:10px 0 0 18px;padding:0;font-size:12.5px;line-height:1.6;color:var(--color-text-secondary);">
+              <li>Buka <a href="https://developers.facebook.com" target="_blank" rel="noopener noreferrer" class="link-gold">Meta for Developers</a>, buat App (pilih tipe <strong>Business</strong> atau <strong>Consumer</strong>).</li>
+              <li>Tambahkan produk <strong>Instagram Basic Display</strong> atau <strong>Instagram Graph API</strong>, lalu tautkan akun Instagram resmi firma pada menu <em>User Token Generator</em>.</li>
+              <li>Klik <strong>Generate Token</strong> (dapat diperpanjang menjadi Long-Lived Token 60 hari melalui Graph API Explorer), salin token tersebut, lalu tempelkan ke kolom input di atas dan klik <strong>Simpan &amp; Hubungkan</strong>.</li>
+            </ol>
+            <p style="font-size:11.5px;color:var(--color-text-muted);margin:8px 0 0 0;">
+              *Sesuai <code>SEC-003</code>, token hanya disimpan di sisi server dan tidak pernah diekspos ke bundel peramban publik.
+            </p>
+          </details>
+        </div>
+
         <div class="cms-panel-box">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
             <div>
-              <h2>Galeri Edukasi Hukum Instagram ({len(instagram_items)} Post)</h2>
+              <h2>Unggahan Edukasi &amp; Galeri Instagram Aktif ({len(instagram_items)} Post)</h2>
               <p style="font-size:13.5px;color:var(--color-text-muted);">Kelola postingan edukasi Instagram yang tampil di Beranda publik. Dilengkapi teks alt aksesibilitas WCAG AA dan tombol sembunyikan/terbitkan.</p>
             </div>
             <button type="button" class="btn-gold cms-btn-sm" onclick="openNewInstagramModal()">+ Tambah Postingan Edukasi</button>
@@ -2545,6 +2715,92 @@ def render_enterprise_admin_dashboard(
       const data = await res.json().catch(() => ({{}}));
       if (res.ok) window.location.reload();
       else alert(data.error || 'Gagal menghapus akun.');
+    }}
+
+    // Instagram Live Sync & Config (SK-13 / Meta Graph API)
+    function toggleTokenVisibility() {{
+      const el = document.getElementById('cmsInstagramAccessToken');
+      if (el) el.type = el.type === 'password' ? 'text' : 'password';
+    }}
+
+    async function saveInstagramLiveConfig(e) {{
+      if (e) e.preventDefault();
+      const profileUrl = document.getElementById('cmsInstagramProfileUrl').value.trim();
+      const accessToken = document.getElementById('cmsInstagramAccessToken').value.trim();
+      const fb = document.getElementById('igSyncFeedback');
+      fb.style.display = 'block';
+      fb.style.background = 'rgba(201,168,111,0.1)';
+      fb.style.border = '1px solid var(--color-gold-strong)';
+      fb.style.color = 'var(--color-gold-strong)';
+      fb.textContent = 'Menyimpan konfigurasi dan memeriksa koneksi Instagram...';
+
+      try {{
+        const res = await fetch('/api/admin/instagram/sync', {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify({{ profileUrl, accessToken }})
+        }});
+        const data = await res.json().catch(() => ({{}}));
+        if (res.ok && data.ok) {{
+          fb.style.background = '#14532d';
+          fb.style.borderColor = '#86efac';
+          fb.style.color = '#86efac';
+          fb.textContent = data.message || 'Berhasil terhubung ke akun Instagram!';
+          showToast('Koneksi Instagram berhasil diperbarui.');
+          setTimeout(() => window.location.reload(), 1200);
+        }} else {{
+          fb.style.background = '#451a03';
+          fb.style.borderColor = '#fdba74';
+          fb.style.color = '#fdba74';
+          fb.textContent = (data.error || 'Gagal terhubung ke Instagram. Konfigurasi disimpan, namun token belum aktif.') + ' Galeri beralih ke mode kurasi yang aman.';
+          showToast('Pengaturan disimpan.');
+        }}
+      }} catch (err) {{
+        fb.style.background = '#451a03';
+        fb.style.borderColor = '#fdba74';
+        fb.style.color = '#fdba74';
+        fb.textContent = 'Terjadi kesalahan jaringan saat menghubungi API Instagram.';
+      }}
+    }}
+
+    async function triggerInstagramLiveSync() {{
+      const btn = document.getElementById('btnSyncInstagram');
+      if (btn) btn.disabled = true;
+      const fb = document.getElementById('igSyncFeedback');
+      fb.style.display = 'block';
+      fb.style.background = 'rgba(201,168,111,0.1)';
+      fb.style.border = '1px solid var(--color-gold-strong)';
+      fb.style.color = 'var(--color-gold-strong)';
+      fb.textContent = 'Menghubungi Meta Instagram Graph API...';
+
+      try {{
+        const res = await fetch('/api/admin/instagram/sync', {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify({{}})
+        }});
+        const data = await res.json().catch(() => ({{}}));
+        if (res.ok && data.ok) {{
+          fb.style.background = '#14532d';
+          fb.style.borderColor = '#86efac';
+          fb.style.color = '#86efac';
+          fb.textContent = data.message || 'Sinkronisasi berhasil!';
+          showToast(data.message || 'Sinkronisasi Instagram berhasil.');
+          setTimeout(() => window.location.reload(), 1000);
+        }} else {{
+          fb.style.background = '#451a03';
+          fb.style.borderColor = '#fdba74';
+          fb.style.color = '#fdba74';
+          fb.textContent = data.error || 'Gagal sinkronisasi Instagram.';
+        }}
+      }} catch (err) {{
+        fb.style.background = '#451a03';
+        fb.style.borderColor = '#fdba74';
+        fb.style.color = '#fdba74';
+        fb.textContent = 'Kesalahan jaringan saat melakukan sinkronisasi.';
+      }} finally {{
+        if (btn) btn.disabled = false;
+      }}
     }}
 
     // Instagram CRUD (SK-13)

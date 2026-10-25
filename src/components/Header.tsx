@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { href: '/#tentang', label: 'Tentang' },
   { href: '/#tim-advokat', label: 'Tim Advokat' },
   { href: '/#artikel', label: 'Wawasan' },
+  { href: '/#galeri-instagram', label: 'Galeri' },
   { href: '/#janji-temu', label: 'Janji Temu' },
 ]
 

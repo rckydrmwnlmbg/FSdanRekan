@@ -250,6 +250,7 @@ def render_shell(title: str, description: str, body_html: str) -> str:
           <li><a href="/#tim-advokat" data-nav-sec="tim-advokat">Tim Kami</a></li>
           <li><a href="/#rekam-jejak" data-nav-sec="rekam-jejak">Rekam Jejak</a></li>
           <li><a href="/#artikel" data-nav-sec="artikel">Wawasan</a></li>
+          <li><a href="/#galeri-instagram" data-nav-sec="galeri-instagram">Galeri</a></li>
           <li><a href="/#janji-temu" data-nav-sec="janji-temu">Janji Temu</a></li>
         </ul>
       </nav>

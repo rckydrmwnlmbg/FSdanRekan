@@ -692,15 +692,41 @@ def render_home_page() -> str:
       <div class="container">
         <div class="section-header-row" data-reveal="up">
           <div>
-            <div class="eyebrow-tag">PUBLIKASI RESMI INSTAGRAM (SK-13)</div>
-            <h2 id="instagram-heading">Galeri Edukasi Hukum &amp; Kegiatan Firma</h2>
-            <p class="section-subtitle">Kutipan edukasi hukum, analisis kasus, dan kegiatan advokasi resmi dari akun Instagram {SHORT_BRAND_NAME}.</p>
+            <div class="eyebrow-tag">PUBLIKASI &amp; MEDIA SOSIAL RESMI — {SHORT_BRAND_NAME}</div>
+            <h2 id="instagram-heading">Sorotan &amp; Edukasi Instagram</h2>
+            <p class="section-subtitle">Ikuti pembaruan informasi, kajian regulasi, dan dokumentasi advokasi resmi dari akun Instagram @fhspartners.</p>
           </div>
-          <a href="{html.escape(cms_settings.get('instagramUrl', 'https://instagram.com/'))}" target="_blank" rel="noopener noreferrer" class="btn-outline">
-            Ikuti di Instagram &nearr;
+          <a href="{html.escape(cms_settings.get('instagramUrl', 'https://instagram.com/fhspartners'))}" target="_blank" rel="noopener noreferrer" class="btn-outline">
+            Ikuti @fhspartners di Instagram &nearr;
           </a>
         </div>
-        <div class="instagram-gallery-grid" style="margin-top:36px;">
+
+        <!-- Official Instagram Profile Spotlight Card -->
+        <div class="instagram-spotlight-card" data-reveal="up" style="background:var(--color-surface);border:1px solid var(--color-border-subtle);border-radius:6px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;margin-bottom:28px;">
+          <div style="display:flex;align-items:center;gap:18px;">
+            <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);padding:2.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <div style="width:100%;height:100%;border-radius:50%;background:var(--color-bg);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--color-gold-strong);font-size:18px;letter-spacing:0.05em;">
+                FS
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <h3 style="margin:0;font-size:1.25rem;color:#FFFFFF;font-weight:600;">@fhspartners</h3>
+                <span style="font-size:11px;background:rgba(201,168,111,0.15);color:var(--color-gold-strong);border:1px solid rgba(201,168,111,0.3);padding:2px 8px;border-radius:2px;font-weight:600;">Akun Resmi Instagram</span>
+              </div>
+              <p style="margin:4px 0 0 0;font-size:13.5px;color:var(--color-text-secondary);max-width:580px;line-height:1.5;">
+                Kanal resmi publikasi wawasan hukum, agenda persidangan, dan edukasi hukum {OFFICIAL_FIRM_NAME}.
+              </p>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <a href="{html.escape(cms_settings.get('instagramUrl', 'https://instagram.com/fhspartners'))}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;gap:6px;">
+              <span>Buka Instagram @fhspartners</span> &nearr;
+            </a>
+          </div>
+        </div>
+
+        <div class="instagram-gallery-grid">
           {ig_cards_html}
         </div>
       </div>

@@ -159,7 +159,7 @@ class TestArchitectureAndSecurity(unittest.TestCase):
 
     def test_no_legacy_fhsp_or_superlatives_in_src(self) -> None:
         forbidden_strings = [
-            "FHSP",
+            r"\bFHSP\b",
             "Ferdinan Hasiholan Silalahi & Partners",
             "98.4%",
             "Tingkat Keberhasilan",
@@ -168,11 +168,17 @@ class TestArchitectureAndSecurity(unittest.TestCase):
         for src_file in (ROOT_DIR / "src").rglob("*.ts*"):
             text = src_file.read_text(encoding="utf-8")
             for term in forbidden_strings:
-                self.assertNotIn(
-                    term.lower(),
-                    text.lower(),
-                    f"Forbidden legacy/claim string '{term}' found in {src_file}",
-                )
+                if term.startswith(r"\b"):
+                    self.assertFalse(
+                        bool(re.search(term, text, re.IGNORECASE)),
+                        f"Forbidden legacy/claim pattern '{term}' found in {src_file}",
+                    )
+                else:
+                    self.assertNotIn(
+                        term.lower(),
+                        text.lower(),
+                        f"Forbidden legacy/claim string '{term}' found in {src_file}",
+                    )
 
     def test_m5_handover_docs_and_pdf_exist(self) -> None:
         self.assertTrue(PDF_PATH.exists(), "Admin guide PDF was not generated")

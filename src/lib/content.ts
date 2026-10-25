@@ -246,7 +246,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
   whatsappDisplay: '+62 811-830-991',
   defaultWaMessage: 'Halo FS dan Rekan, saya ingin konsultasi hukum.',
   inquiryRecipientEmail: 'kontak@fsdanrekan.id',
-  instagramUrl: 'https://instagram.com/',
+  instagramUrl: 'https://instagram.com/fhspartners',
   mapEmbedUrl:
     'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5292868019124!2d106.83606777579133!3d-6.193674693793977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43b67eb123b%3A0x6b4fbfe311e92067!2sGedung%20Mandira!5e0!3m2!1sid!2sid!4v1715000000000!5m2!1sid!2sid',
   mapsDirectUrl:
@@ -339,7 +339,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
     caption:
       'Pentingnya perumusan klausul penyelesaian sengketa dan keadaan kahar (force majeure) dalam perjanjian kerja sama komersial.',
     publishedDate: '14 Okt 2026',
-    permalink: 'https://instagram.com/',
+    permalink: 'https://instagram.com/fhspartners',
     displayOrder: 1,
     isPublished: true,
   },
@@ -351,7 +351,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
     caption:
       'Tahapan uji tuntas hukum (legal due diligence) sebelum transaksi aset properti guna memitigasi risiko sengketa alas hak.',
     publishedDate: '10 Okt 2026',
-    permalink: 'https://instagram.com/',
+    permalink: 'https://instagram.com/fhspartners',
     displayOrder: 2,
     isPublished: true,
   },
@@ -363,7 +363,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
     caption:
       'Komitmen pendampingan hukum yang berintegritas pada setiap tahapan pemeriksaan hingga persidangan.',
     publishedDate: '05 Okt 2026',
-    permalink: 'https://instagram.com/',
+    permalink: 'https://instagram.com/fhspartners',
     displayOrder: 3,
     isPublished: true,
   },
@@ -375,7 +375,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
     caption:
       'Memahami mekanisme restrukturisasi utang dan proposal perdamaian melalui proses PKPU di Pengadilan Niaga.',
     publishedDate: '29 Sep 2026',
-    permalink: 'https://instagram.com/',
+    permalink: 'https://instagram.com/fhspartners',
     displayOrder: 4,
     isPublished: true,
   },
@@ -387,7 +387,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
     caption:
       'Langkah strategis pelindungan merek dagang, hak cipta, dan penyusunan perjanjian lisensi bagi pelaku usaha.',
     publishedDate: '22 Sep 2026',
-    permalink: 'https://instagram.com/',
+    permalink: 'https://instagram.com/fhspartners',
     displayOrder: 5,
     isPublished: true,
   },
@@ -399,7 +399,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
     caption:
       'Penataan dokumen kepemilikan aset dan perjanjian perkawinan sesuai ketentuan peraturan perundang-undangan.',
     publishedDate: '15 Sep 2026',
-    permalink: 'https://instagram.com/',
+    permalink: 'https://instagram.com/fhspartners',
     displayOrder: 6,
     isPublished: true,
   },

@@ -40,7 +40,7 @@ DEFAULT_SITE_SETTINGS = {
     "whatsappDisplay": "+62 811-830-991",
     "defaultWaMessage": "Halo FS dan Rekan, saya ingin konsultasi hukum.",
     "inquiryRecipientEmail": "konsultasi@fsdanrekan.id",
-    "instagramUrl": "https://instagram.com/fsdanrekan",
+    "instagramUrl": "https://instagram.com/fhspartners",
     "instagramAccessToken": "",
     "mapsDirectUrl": "https://www.google.com/maps/search/?api=1&query=Gedung+Mandira+Jl.+RP+Soeroso+No.+33+Menteng+Jakarta+Pusat",
     "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5292868019124!2d106.83606777579133!3d-6.193674693793977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43b67eb123b%3A0x6b4fbfe311e92067!2sGedung%20Mandira!5e0!3m2!1sid!2sid!4v1715000000000!5m2!1sid!2sid",
@@ -105,7 +105,7 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "category": "Edukasi Korporasi",
         "caption": "Pentingnya perumusan klausul penyelesaian sengketa dan keadaan kahar (force majeure) dalam perjanjian kerja sama komersial.",
         "publishedDate": "14 Okt 2026",
-        "permalink": "https://instagram.com/",
+        "permalink": "https://instagram.com/fhspartners",
         "displayOrder": 1,
         "isPublished": True,
     },
@@ -116,7 +116,7 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "category": "Agraria & Properti",
         "caption": "Tahapan uji tuntas hukum (legal due diligence) sebelum transaksi aset properti guna memitigasi risiko sengketa alas hak.",
         "publishedDate": "10 Okt 2026",
-        "permalink": "https://instagram.com/",
+        "permalink": "https://instagram.com/fhspartners",
         "displayOrder": 2,
         "isPublished": True,
     },
@@ -127,7 +127,7 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "category": "Litigasi & Advokasi",
         "caption": "Komitmen pendampingan hukum yang berintegritas pada setiap tahapan pemeriksaan hingga persidangan.",
         "publishedDate": "05 Okt 2026",
-        "permalink": "https://instagram.com/",
+        "permalink": "https://instagram.com/fhspartners",
         "displayOrder": 3,
         "isPublished": True,
     },
@@ -138,7 +138,7 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "category": "Kepailitan & PKPU",
         "caption": "Memahami mekanisme restrukturisasi utang dan proposal perdamaian melalui proses PKPU di Pengadilan Niaga.",
         "publishedDate": "29 Sep 2026",
-        "permalink": "https://instagram.com/",
+        "permalink": "https://instagram.com/fhspartners",
         "displayOrder": 4,
         "isPublished": True,
     },
@@ -149,7 +149,7 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "category": "Kekayaan Intelektual",
         "caption": "Langkah strategis pelindungan merek dagang, hak cipta, dan penyusunan perjanjian lisensi bagi pelaku usaha.",
         "publishedDate": "22 Sep 2026",
-        "permalink": "https://instagram.com/",
+        "permalink": "https://instagram.com/fhspartners",
         "displayOrder": 5,
         "isPublished": True,
     },
@@ -160,7 +160,7 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "category": "Hukum Perdata",
         "caption": "Penataan dokumen kepemilikan aset dan perjanjian perkawinan sesuai ketentuan peraturan perundang-undangan.",
         "publishedDate": "15 Sep 2026",
-        "permalink": "https://instagram.com/",
+        "permalink": "https://instagram.com/fhspartners",
         "displayOrder": 6,
         "isPublished": True,
     },
@@ -1738,7 +1738,7 @@ def render_enterprise_admin_dashboard(
           <form onsubmit="saveInstagramLiveConfig(event)" style="display:grid;grid-template-columns:1fr 1.5fr auto;gap:14px;align-items:flex-end;">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label" style="font-size:12px;">URL Profil Akun Instagram Resmi</label>
-              <input type="url" id="cmsInstagramProfileUrl" class="form-input" placeholder="https://instagram.com/fsdanrekan" value="{html.escape(settings.get('instagramUrl', 'https://instagram.com/fsdanrekan'))}" required>
+              <input type="url" id="cmsInstagramProfileUrl" class="form-input" placeholder="https://instagram.com/fhspartners" value="{html.escape(settings.get('instagramUrl', 'https://instagram.com/fhspartners'))}" required>
             </div>
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label" style="font-size:12px;">

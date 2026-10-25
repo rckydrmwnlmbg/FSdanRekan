@@ -334,7 +334,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
   {
     id: 'ig-1',
     imageUrl: '/images/hero-slide-courtroom.webp',
-    alt: 'Edukasi Hukum Acara Pidana: Perbedaan Alat Bukti dan Barang Bukti — @fhspartners',
+    alt: 'Edukasi Hukum Acara Pidana: Perbedaan Alat Bukti dan Barang Bukti — Ferdinan Silalahi dan Rekan Law Firm (@fhspartners)',
     category: 'Hukum Acara Pidana',
     caption:
       'Perbedaan mendasar antara alat bukti yang sah (Pasal 184 KUHAP) dan barang bukti dalam pembuktian persidangan perkara pidana.',
@@ -346,7 +346,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
   {
     id: 'ig-2',
     imageUrl: '/images/lady-justice.webp',
-    alt: 'Kewenangan Mengadili: Pengadilan Negeri vs Pengadilan Agama — @fhspartners',
+    alt: 'Kewenangan Mengadili: Pengadilan Negeri vs Pengadilan Agama — Ferdinan Silalahi dan Rekan Law Firm (@fhspartners)',
     category: 'Kompetensi Peradilan',
     caption:
       'Memahami batas yurisdiksi dan kompetensi absolut antara Pengadilan Negeri dan Pengadilan Agama dalam perkara sengketa hukum.',
@@ -358,7 +358,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
   {
     id: 'ig-3',
     imageUrl: '/images/gavel-banner.webp',
-    alt: 'Penyusunan Pledoi dan Strategi Litigasi Pembelaan Hak Klien — @fhspartners',
+    alt: 'Penyusunan Pledoi dan Strategi Litigasi Pembelaan Hak Klien — Ferdinan Silalahi dan Rekan Law Firm (@fhspartners)',
     category: 'Litigasi & Pembelaan',
     caption:
       'Penyusunan nota pembelaan (pledoi) yang komprehensif berdasarkan fakta persidangan guna menjamin terpenuhinya hak-hak hukum terdakwa.',
@@ -370,7 +370,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
   {
     id: 'ig-4',
     imageUrl: '/images/article-land.webp',
-    alt: 'Uji Tuntas Hukum Pertanahan & Kepemilikan Properti — @fhspartners',
+    alt: 'Uji Tuntas Hukum Pertanahan & Kepemilikan Properti — Ferdinan Silalahi dan Rekan Law Firm (@fhspartners)',
     category: 'Agraria & Properti',
     caption:
       'Pentingnya uji tuntas hukum (legal due diligence) terhadap alas hak sertifikat tanah sebelum transaksi guna mencegah sengketa kepemilikan.',
@@ -382,7 +382,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
   {
     id: 'ig-5',
     imageUrl: '/images/practice-bankruptcy.webp',
-    alt: 'Kajian Hukum Kepailitan & Permohonan PKPU — @fhspartners',
+    alt: 'Kajian Hukum Kepailitan & Permohonan PKPU — Ferdinan Silalahi dan Rekan Law Firm (@fhspartners)',
     category: 'Kepailitan & PKPU',
     caption:
       'Mekanisme permohonan PKPU di Pengadilan Niaga sebagai sarana restrukturisasi utang dan penyelamatan kelangsungan usaha korporasi.',
@@ -394,7 +394,7 @@ export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
   {
     id: 'ig-6',
     imageUrl: '/images/practice-corporate.webp',
-    alt: 'Perlindungan Hak Keperdataan, Somasi, dan Wanprestasi — @fhspartners',
+    alt: 'Perlindungan Hak Keperdataan, Somasi, dan Wanprestasi — Ferdinan Silalahi dan Rekan Law Firm (@fhspartners)',
     category: 'Hukum Perdata & Kontrak',
     caption:
       'Tahapan hukum pengiriman somasi dan penanganan gugatan wanprestasi atas kelalaian pemenuhan kewajiban dalam perjanjian bisnis.',

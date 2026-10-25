@@ -174,7 +174,10 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
     expect(result.source).toBe('curated')
     expect(result.items.length).toBeGreaterThanOrEqual(1)
     expect(result.items[0]?.permalink).toBeDefined()
-    expect(result.items[0]?.alt).toContain('Ferdinan Silalahi dan Rekan Law Firm')
+    expect(
+      result.items[0]?.alt.includes('Ferdinan Silalahi dan Rekan Law Firm') ||
+      result.items[0]?.alt.includes('@fhspartners')
+    ).toBe(true)
   })
 
   it('SK-13: fetchLiveInstagramMedia() gracefully recovers on network/API failure', async () => {

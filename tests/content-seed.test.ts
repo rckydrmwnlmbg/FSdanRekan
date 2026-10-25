@@ -149,7 +149,8 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
 
     const founder = await getTeamMemberBySlug('ferdinan-hasiholan-silalahi')
     expect(founder).not.toBeNull()
-    expect(founder?.fullName).toBe('Ferdinan Hasiholan Silalahi, S.H.')
+    expect(founder?.fullName).toBe('Ferdinan Hasiholan Silalahi')
+    expect(founder?.displayName).toBe('Ferdinan Hasiholan Silalahi, S.H.')
 
     const invalidMember = await getTeamMemberBySlug('tidak-ada-anggota')
     expect(invalidMember).toBeNull()

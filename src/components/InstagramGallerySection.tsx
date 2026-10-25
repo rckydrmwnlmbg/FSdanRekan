@@ -7,10 +7,28 @@ interface InstagramGallerySectionProps {
   instagramUrl: string
 }
 
+const OFFICIAL_EMBED_POSTS = [
+  {
+    id: 'embed-1',
+    shortcode: 'DVkSuErCZ_W',
+    url: 'https://www.instagram.com/p/DVkSuErCZ_W/',
+  },
+  {
+    id: 'embed-2',
+    shortcode: 'DdGbn5YyKb_',
+    url: 'https://www.instagram.com/p/DdGbn5YyKb_/',
+  },
+  {
+    id: 'embed-3',
+    shortcode: 'DZBZ72DPwgp',
+    url: 'https://www.instagram.com/p/DZBZ72DPwgp/',
+  },
+]
+
 /**
  * SK-13 & PRD V3 (Phase 2):
- * Official Instagram Gallery section for @fhspartners with official profile spotlight,
- * direct follow links, verified account badge, and optional synchronized/curated feed.
+ * Official Instagram Gallery section for @fhspartners with direct live Instagram post embeds,
+ * profile spotlight, and direct links without mock data.
  */
 export function InstagramGallerySection({
   items,
@@ -19,6 +37,18 @@ export function InstagramGallerySection({
   const cleanUrl = instagramUrl || 'https://instagram.com/fhspartners'
   const handleMatch = cleanUrl.match(/instagram\.com\/([^/?#]+)/i)
   const igHandle = handleMatch && handleMatch[1] ? `@${handleMatch[1]}` : '@fhspartners'
+
+  // Use CMS items if available, or official @fhspartners live post embeds
+  const activePosts = items.length > 0
+    ? items.map((it) => {
+        const m = it.permalink?.match(/\/p\/([^/?#]+)/)
+        return {
+          id: it.id,
+          shortcode: m && m[1] ? m[1] : 'DVkSuErCZ_W',
+          url: it.permalink || cleanUrl,
+        }
+      })
+    : OFFICIAL_EMBED_POSTS
 
   return (
     <section
@@ -30,9 +60,9 @@ export function InstagramGallerySection({
         <div className="section-header-row">
           <div>
             <div className="eyebrow-tag">PUBLIKASI &amp; MEDIA SOSIAL RESMI — {SHORT_BRAND_NAME}</div>
-            <h2 id="instagram-gallery-heading">Sorotan &amp; Edukasi Instagram</h2>
+            <h2 id="instagram-gallery-heading">Feed Resmi Instagram {igHandle}</h2>
             <p className="section-subtitle">
-              Ikuti pembaruan informasi, kajian regulasi, dan dokumentasi kegiatan advokasi resmi dari akun Instagram {igHandle}.
+              Sematkan langsung publikasi resmi, wawasan yuridis, dan dokumentasi advokasi dari akun Instagram {igHandle}.
             </p>
           </div>
           <a
@@ -41,7 +71,7 @@ export function InstagramGallerySection({
             rel="noopener noreferrer"
             className="btn-outline"
           >
-            Ikuti {igHandle} di Instagram &rarr;
+            Buka Akun {igHandle} di Instagram &rarr;
           </a>
         </div>
 
@@ -58,7 +88,7 @@ export function InstagramGallerySection({
             justifyContent: 'space-between',
             flexWrap: 'wrap',
             gap: '20px',
-            marginBottom: items.length > 0 ? '32px' : '0',
+            marginBottom: '32px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
@@ -119,7 +149,7 @@ export function InstagramGallerySection({
                   lineHeight: 1.5,
                 }}
               >
-                Kanal resmi publikasi wawasan hukum, agenda persidangan, dan edukasi hukum {OFFICIAL_FIRM_NAME}.
+                Kanal publikasi wawasan hukum, agenda persidangan, dan edukasi hukum resmi {OFFICIAL_FIRM_NAME}.
               </p>
             </div>
           </div>
@@ -131,42 +161,74 @@ export function InstagramGallerySection({
               className="btn-gold"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              <span>Buka Instagram {igHandle}</span> &nearr;
+              <span>Ikuti {igHandle} di Instagram</span> &nearr;
             </a>
           </div>
         </div>
 
-        {items.length > 0 && (
-          <div className="instagram-gallery-grid">
-            {items.map((item) => (
-              <article key={item.id} className="instagram-card">
-                <div className="instagram-card-media">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.alt}
-                    width={600}
-                    height={600}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <span className="instagram-card-badge">{item.category}</span>
-                </div>
-                <div className="instagram-card-body">
-                  <div className="instagram-card-date">{item.publishedDate}</div>
-                  <p className="instagram-card-caption">{item.caption}</p>
-                  <a
-                    href={item.permalink || cleanUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="link-gold"
-                  >
-                    Lihat Unggahan di Instagram &rarr;
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
+        {/* Live Instagram Embed Feed Grid (Direct from Instagram Servers) */}
+        <div
+          className="instagram-embed-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '24px',
+            justifyContent: 'center',
+          }}
+        >
+          {activePosts.map((post) => (
+            <div
+              key={post.id}
+              className="instagram-embed-card"
+              style={{
+                background: 'var(--color-bg)',
+                border: '1px solid var(--color-border-subtle)',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '520px',
+              }}
+            >
+              <iframe
+                src={`https://www.instagram.com/p/${post.shortcode}/embed/`}
+                style={{
+                  width: '100%',
+                  height: '520px',
+                  border: 'none',
+                  overflow: 'hidden',
+                  background: 'var(--color-bg)',
+                }}
+                loading="lazy"
+                allowTransparency={true}
+                title={`Postingan Instagram ${igHandle} - ${post.shortcode}`}
+              />
+              <div
+                style={{
+                  padding: '12px 16px',
+                  background: 'var(--color-surface)',
+                  borderTop: '1px solid var(--color-border-subtle)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                  Unggahan Resmi {igHandle}
+                </span>
+                <a
+                  href={post.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link-gold"
+                  style={{ fontSize: '12.5px' }}
+                >
+                  Buka di Instagram &rarr;
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )

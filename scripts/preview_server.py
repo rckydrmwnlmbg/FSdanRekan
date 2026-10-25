@@ -427,23 +427,18 @@ def render_home_page() -> str:
 
     first_area = practice_areas[0]
 
-    ig_cards_html = ""
-    for idx, ig in enumerate(instagram_items):
-        delay = f"{idx * 0.08:.2f}s"
-        ig_cards_html += f"""
-        <article class="instagram-card" data-reveal="up" style="--reveal-delay:{delay}">
-          <div class="instagram-card-thumb">
-            <img src="{ig['imageUrl']}" alt="{html.escape(ig['alt'])}" width="480" height="480" loading="lazy">
-            <span class="instagram-badge">{html.escape(ig['category'])}</span>
+    embed_shortcodes = ["DVkSuErCZ_W", "DdGbn5YyKb_", "DZBZ72DPwgp"]
+    ig_embeds_html = ""
+    for idx, sc in enumerate(embed_shortcodes):
+        delay = f"{idx * 0.1:.2f}s"
+        ig_embeds_html += f"""
+        <div class="instagram-embed-card" data-reveal="up" style="--reveal-delay:{delay};background:var(--color-bg);border:1px solid var(--color-border-subtle);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;min-height:520px;">
+          <iframe src="https://www.instagram.com/p/{sc}/embed/" style="width:100%;height:520px;border:none;overflow:hidden;background:var(--color-bg);" loading="lazy" allowtransparency="true" title="Postingan Instagram @fhspartners - {sc}"></iframe>
+          <div style="padding:12px 16px;background:var(--color-surface);border-top:1px solid var(--color-border-subtle);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:var(--color-text-muted);">Unggahan Resmi @fhspartners</span>
+            <a href="https://www.instagram.com/p/{sc}/" target="_blank" rel="noopener noreferrer" class="link-gold" style="font-size:12.5px;">Buka di Instagram &rarr;</a>
           </div>
-          <div class="instagram-card-body">
-            <div class="instagram-card-date">{html.escape(ig['publishedDate'])}</div>
-            <p class="instagram-card-caption">{html.escape(ig['caption'])}</p>
-            <a href="{html.escape(ig['permalink'])}" target="_blank" rel="noopener noreferrer" class="link-gold">
-              Lihat di Instagram &nearr;
-            </a>
-          </div>
-        </article>"""
+        </div>"""
 
     team_cards_html = ""
     for idx, member in enumerate(associates_and_admins):
@@ -726,8 +721,8 @@ def render_home_page() -> str:
           </div>
         </div>
 
-        <div class="instagram-gallery-grid">
-          {ig_cards_html}
+        <div class="instagram-embed-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;justify-content:center;">
+          {ig_embeds_html}
         </div>
       </div>
     </section>

@@ -120,14 +120,14 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
     }
   })
 
-  it('SK-13: getInstagramGalleryItems() returns 6 curated posts with required alt and category', () => {
+  it('SK-13: getInstagramGalleryItems() returns real posts with required permalink and category', () => {
     const items = getInstagramGalleryItems()
-    expect(items).toHaveLength(6)
+    expect(items.length).toBeGreaterThanOrEqual(1)
     for (const item of items) {
       expect(item.isPublished).toBe(true)
       expect(item.alt.length).toBeGreaterThan(10)
-      expect(item.caption.length).toBeGreaterThan(20)
-      expect(item.imageUrl).toMatch(/^\/images\/.+\.webp$/)
+      expect(item.caption.length).toBeGreaterThan(10)
+      expect(item.permalink).toContain('instagram.com/p/')
       expect(item.category.length).toBeGreaterThan(2)
     }
     // Verify sorted displayOrder

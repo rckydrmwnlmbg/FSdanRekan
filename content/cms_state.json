@@ -7,6 +7,8 @@
     "whatsappDisplay": "+62 811-830-991",
     "defaultWaMessage": "Halo FS dan Rekan, saya ingin konsultasi hukum.",
     "inquiryRecipientEmail": "konsultasi@fsdanrekan.id",
+    "instagramUrl": "https://instagram.com/fhspartners",
+    "instagramAccessToken": "",
     "mapsDirectUrl": "https://www.google.com/maps/search/?api=1&query=Gedung+Mandira+Jl.+RP+Soeroso+No.+33+Menteng+Jakarta+Pusat",
     "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5292868019124!2d106.83606777579133!3d-6.193674693793977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43b67eb123b%3A0x6b4fbfe311e92067!2sGedung%20Mandira!5e0!3m2!1sid!2sid!4v1715000000000!5m2!1sid!2sid",
     "officeHoursPagi": "Pagi (09.30 – 12.00 WIB)",
@@ -29,8 +31,7 @@
     "ctaSubtitle": "Setiap klien berhak memperoleh pendampingan hukum yang kompeten disertai dedikasi, kepedulian, dan penghormatan dalam setiap tahapan proses hukum.",
     "seoDefaultTitle": "Ferdinan Silalahi dan Rekan Law Firm | Kantor Hukum & Advokat Jakarta Pusat",
     "seoDefaultDescription": "Website resmi Ferdinan Silalahi dan Rekan Law Firm (FS dan Rekan), Gedung Mandira Lt. 4, Menteng, Jakarta Pusat.",
-    "disclaimerText": "Seluruh konten pada situs ini disediakan semata-mata untuk tujuan informasi dan edukasi umum, serta bukan merupakan nasihat hukum (legal advice). Hubungan advokat dan klien baru berlaku secara sah setelah adanya penandatanganan Surat Kuasa Khusus dan Perjanjian Jasa Hukum.",
-    "instagramUrl": "https://instagram.com/fhspartners"
+    "disclaimerText": "Seluruh konten pada situs ini disediakan semata-mata untuk tujuan informasi dan edukasi umum, serta bukan merupakan nasihat hukum (legal advice). Hubungan advokat dan klien baru berlaku secara sah setelah adanya penandatanganan Surat Kuasa Khusus dan Perjanjian Jasa Hukum."
   },
   "categories": [
     {
@@ -97,6 +98,15 @@
   ],
   "auditLogs": [
     {
+      "id": "audit-1792932849501",
+      "timestamp": "2026-10-25 12:54:09 UTC",
+      "actor": "visitor",
+      "action": "CREATE_CHAT_SESSION",
+      "collection": "chatSessions",
+      "targetId": "chat-9204ba2684bf",
+      "detail": "Sesi konsultasi baru (Litigasi Korporasi & Komersial)"
+    },
+    {
       "id": "audit-init",
       "timestamp": "2026-10-24 19:26:34 UTC",
       "actor": "system",
@@ -108,70 +118,56 @@
   ],
   "instagramGallery": [
     {
-      "id": "ig-1",
-      "imageUrl": "/images/hero-slide-courtroom.webp",
-      "alt": "Edukasi Hukum Acara Pidana: Perbedaan Alat Bukti dan Barang Bukti — @fhspartners",
-      "category": "Hukum Acara Pidana",
-      "caption": "Perbedaan mendasar antara alat bukti yang sah (Pasal 184 KUHAP) dan barang bukti dalam pembuktian persidangan perkara pidana.",
-      "publishedDate": "Terbaru",
-      "permalink": "https://instagram.com/fhspartners",
+      "id": "ig-real-1",
+      "shortcode": "DVkSuErCZ_W",
+      "permalink": "https://www.instagram.com/p/DVkSuErCZ_W/",
+      "embedUrl": "https://www.instagram.com/p/DVkSuErCZ_W/embed/",
+      "alt": "Postingan Instagram Resmi @fhspartners (DVkSuErCZ_W)",
+      "category": "Publikasi Resmi",
+      "caption": "Unggahan edukasi hukum resmi dari akun Instagram @fhspartners.",
+      "publishedDate": "Instagram Live",
+      "imageUrl": "https://www.instagram.com/p/DVkSuErCZ_W/media/?size=l",
       "displayOrder": 1,
       "isPublished": true
     },
     {
-      "id": "ig-2",
-      "imageUrl": "/images/lady-justice.webp",
-      "alt": "Kewenangan Mengadili: Pengadilan Negeri vs Pengadilan Agama — @fhspartners",
-      "category": "Kompetensi Peradilan",
-      "caption": "Memahami batas yurisdiksi dan kompetensi absolut antara Pengadilan Negeri dan Pengadilan Agama dalam perkara sengketa hukum.",
-      "publishedDate": "Terbaru",
-      "permalink": "https://instagram.com/fhspartners",
+      "id": "ig-real-2",
+      "shortcode": "DdGbn5YyKb_",
+      "permalink": "https://www.instagram.com/p/DdGbn5YyKb_/",
+      "embedUrl": "https://www.instagram.com/p/DdGbn5YyKb_/embed/",
+      "alt": "Postingan Instagram Resmi @fhspartners (DdGbn5YyKb_)",
+      "category": "Publikasi Resmi",
+      "caption": "Unggahan edukasi hukum resmi dari akun Instagram @fhspartners.",
+      "publishedDate": "Instagram Live",
+      "imageUrl": "https://www.instagram.com/p/DdGbn5YyKb_/media/?size=l",
       "displayOrder": 2,
       "isPublished": true
     },
     {
-      "id": "ig-3",
-      "imageUrl": "/images/gavel-banner.webp",
-      "alt": "Penyusunan Pledoi dan Strategi Litigasi Pembelaan Hak Klien — @fhspartners",
-      "category": "Litigasi & Pembelaan",
-      "caption": "Penyusunan nota pembelaan (pledoi) yang komprehensif berdasarkan fakta persidangan guna menjamin terpenuhinya hak-hak hukum terdakwa.",
-      "publishedDate": "Terbaru",
-      "permalink": "https://instagram.com/fhspartners",
+      "id": "ig-real-3",
+      "shortcode": "DZBZ72DPwgp",
+      "permalink": "https://www.instagram.com/p/DZBZ72DPwgp/",
+      "embedUrl": "https://www.instagram.com/p/DZBZ72DPwgp/embed/",
+      "alt": "Postingan Instagram Resmi @fhspartners (DZBZ72DPwgp)",
+      "category": "Publikasi Resmi",
+      "caption": "Unggahan edukasi hukum resmi dari akun Instagram @fhspartners.",
+      "publishedDate": "Instagram Live",
+      "imageUrl": "https://www.instagram.com/p/DZBZ72DPwgp/media/?size=l",
       "displayOrder": 3,
       "isPublished": true
-    },
+    }
+  ],
+  "chatSessions": [
     {
-      "id": "ig-4",
-      "imageUrl": "/images/article-land.webp",
-      "alt": "Uji Tuntas Hukum Pertanahan & Kepemilikan Properti — @fhspartners",
-      "category": "Agraria & Properti",
-      "caption": "Pentingnya uji tuntas hukum (legal due diligence) terhadap alas hak sertifikat tanah sebelum transaksi guna mencegah sengketa kepemilikan.",
-      "publishedDate": "Terbaru",
-      "permalink": "https://instagram.com/fhspartners",
-      "displayOrder": 4,
-      "isPublished": true
-    },
-    {
-      "id": "ig-5",
-      "imageUrl": "/images/practice-bankruptcy.webp",
-      "alt": "Kajian Hukum Kepailitan & Permohonan PKPU — @fhspartners",
-      "category": "Kepailitan & PKPU",
-      "caption": "Mekanisme permohonan PKPU di Pengadilan Niaga sebagai sarana restrukturisasi utang dan penyelamatan kelangsungan usaha korporasi.",
-      "publishedDate": "Terbaru",
-      "permalink": "https://instagram.com/fhspartners",
-      "displayOrder": 5,
-      "isPublished": true
-    },
-    {
-      "id": "ig-6",
-      "imageUrl": "/images/practice-corporate.webp",
-      "alt": "Perlindungan Hak Keperdataan, Somasi, dan Wanprestasi — @fhspartners",
-      "category": "Hukum Perdata & Kontrak",
-      "caption": "Tahapan hukum pengiriman somasi dan penanganan gugatan wanprestasi atas kelalaian pemenuhan kewajiban dalam perjanjian bisnis.",
-      "publishedDate": "Terbaru",
-      "permalink": "https://instagram.com/fhspartners",
-      "displayOrder": 6,
-      "isPublished": true
+      "id": "chat-9204ba2684bf",
+      "visitorName": "Ricky",
+      "visitorPhone": "085718561693",
+      "practiceArea": "Litigasi Korporasi & Komersial",
+      "preferredSchedule": "Senin",
+      "notes": "alsndlasnd",
+      "consentAt": "2026-10-25T12:54:09.443852+00:00",
+      "status": "baru",
+      "createdAt": "2026-10-25T12:54:09.443852+00:00"
     }
   ]
 }

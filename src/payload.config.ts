@@ -38,7 +38,7 @@ export default buildConfig({
   ],
   globals: [SiteSettings],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: process.env.PAYLOAD_SECRET || 'build-time-secret-at-least-32-characters-long-default',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

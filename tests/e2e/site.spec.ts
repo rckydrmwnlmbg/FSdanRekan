@@ -25,8 +25,10 @@ test.describe('Ferdinan Silalahi dan Rekan Law Firm — E2E & Accessibility Suit
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
 
-    // Check WCAG AA accessibility via axe
-    const accessibilityScanResults = await new AxeBuilder({ page }).analyze()
+    // Check WCAG AA accessibility via axe (excluding 3rd-party embedded iframes)
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .exclude('iframe')
+      .analyze()
     const seriousOrCritical = accessibilityScanResults.violations.filter(
       (v) => v.impact === 'serious' || v.impact === 'critical',
     )

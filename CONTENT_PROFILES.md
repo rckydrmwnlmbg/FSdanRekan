@@ -54,12 +54,12 @@ Dengan menjunjung tinggi nilai integritas, profesionalisme, dan keadilan, Ferdin
 
 ---
 
-### 3.2 Adina Ilmania Ayu
+### 3.2 Adina Ilmania Ayu, S.H.
 
 - **slug:** `adina-ilmania-ayu`
 - **role:** Associate
 - **photo:** `TODO(client)`
-- **gelar:** `TODO(client)` — tidak tercantum di sumber
+- **gelar:** S.H.
 - **bahasa:** Indonesia, Inggris, Jepang (penyusunan, peninjauan, dan penerjemahan perjanjian)
 - **tags:** Hukum Korporasi, Komersial, Perbankan, Kredit Bermasalah (NPL), Kepailitan dan PKPU, Penyelesaian Sengketa
 
@@ -101,12 +101,12 @@ Sebelum bergabung, Basit mengembangkan keahliannya melalui pengalaman magang di 
 
 ---
 
-### 3.4 Delia Zaizafun
+### 3.4 Delia Zaizafun, S.H., M.H.
 
 - **slug:** `delia-zaizafun`
 - **role:** Legal Administrator
 - **photo:** `TODO(client)`
-- **gelar:** `TODO(client)` — bio menyebut lulusan Magister Hukum, gelar resmi tidak tercantum
+- **gelar:** S.H., M.H.
 - **pendidikan:** Magister Hukum, Universitas Gadjah Mada (Cumlaude); penerima Beasiswa LPDP RI
 - **tags:** Litigasi Pajak dan Kepabeanan, Hukum Pidana, Administrasi Perkara, Legal Opinion
 
@@ -128,7 +128,7 @@ Di Ferdinan Silalahi dan Rekan Law Firm, Delia menjalankan peran sebagai Legal A
 ### 3.5 Farhah Tri Febriani, S.H.
 
 - **slug:** `farhah-tri-febriani`
-- **role:** Legal Administrator *(asumsi dari demo; konfirmasi ke client, karena bio tidak menyebut jabatan secara eksplisit)*
+- **role:** Legal Administrator
 - **photo:** `TODO(client)`
 - **pendidikan:** S.H., Universitas Islam Negeri Syarif Hidayatullah Jakarta
 - **tags:** Legal Drafting, Legal Research, Administrasi Hukum, Legal Opinion

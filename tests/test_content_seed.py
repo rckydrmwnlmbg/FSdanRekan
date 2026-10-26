@@ -106,18 +106,12 @@ class TestContentSeed(unittest.TestCase):
 
     def test_todo_placeholders_and_no_invented_titles(self) -> None:
         by_slug = {p["slug"]: p for p in self.team}
-        self.assertTrue(
-            by_slug["adina-ilmania-ayu"]["honorific"].startswith("TODO(client)")
-        )
-        self.assertTrue(
-            by_slug["delia-zaizafun"]["honorific"].startswith("TODO(client)")
-        )
-        self.assertTrue(
-            by_slug["farhah-tri-febriani"]["roleTitle"].startswith("TODO(client)")
-        )
         self.assertEqual(by_slug["ferdinan-hasiholan-silalahi"]["honorific"], "S.H.")
+        self.assertEqual(by_slug["adina-ilmania-ayu"]["honorific"], "S.H.")
         self.assertEqual(by_slug["basit-rezki"]["honorific"], "S.H.")
+        self.assertEqual(by_slug["delia-zaizafun"]["honorific"], "S.H., M.H.")
         self.assertEqual(by_slug["farhah-tri-febriani"]["honorific"], "S.H.")
+        self.assertEqual(by_slug["farhah-tri-febriani"]["roleTitle"], "Legal Administrator")
 
     def test_all_photos_mapped_4_by_5_and_exif_stripped(self) -> None:
         self.assertEqual(len(FILENAME_TO_SLUG), 5)

@@ -12,8 +12,11 @@ interface FooterProps {
 
 export function Footer({ settings }: FooterProps) {
   const [disclaimerOpen, setDisclaimerOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const triggerBtnRef = useRef<HTMLButtonElement | null>(null)
   const closeBtnRef = useRef<HTMLButtonElement | null>(null)
+  const floatingBtnRef = useRef<HTMLButtonElement | null>(null)
+  const menuCardRef = useRef<HTMLDivElement | null>(null)
   const currentYear = new Date().getFullYear()
 
   useEffect(() => {
@@ -29,10 +32,51 @@ export function Footer({ settings }: FooterProps) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [disclaimerOpen])
 
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false)
+        floatingBtnRef.current?.focus()
+      }
+    }
+    const onMouseDown = (e: MouseEvent) => {
+      if (
+        menuCardRef.current &&
+        !menuCardRef.current.contains(e.target as Node) &&
+        floatingBtnRef.current &&
+        !floatingBtnRef.current.contains(e.target as Node)
+      ) {
+        setMenuOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    document.addEventListener('mousedown', onMouseDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('mousedown', onMouseDown)
+    }
+  }, [menuOpen])
+
   const floatingWaUrl = waLink(
     settings.whatsappNumber,
     `${settings.defaultWaMessage} (Sumber: Website Resmi ${OFFICIAL_FIRM_NAME})`,
   )
+
+  const handleScrollToAppointment = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    const target = document.getElementById('janji-temu')
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' })
+      const firstInput = target.querySelector<HTMLInputElement | HTMLSelectElement>(
+        'input:not([type="hidden"]), select, textarea',
+      )
+      firstInput?.focus()
+    } else {
+      window.location.href = '/#janji-temu'
+    }
+  }
 
   return (
     <>
@@ -76,26 +120,136 @@ export function Footer({ settings }: FooterProps) {
         </div>
       </footer>
 
-      {/* FR-8.1 - FR-8.4 & DESIGN.md 6.11: Floating WhatsApp Action Button */}
-      <a
-        href={floatingWaUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="wa-floating-trigger"
-        aria-label="Hubungi lewat WhatsApp"
-      >
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          aria-hidden="true"
+      {/* Smart Speed-Dial Floating Menu (Solusi 1: Terpadu WhatsApp & Form Janji Temu) */}
+      {menuOpen && (
+        <div
+          id="cta-speed-dial-panel"
+          ref={menuCardRef}
+          className="speed-dial-card"
+          role="dialog"
+          aria-label="Pilihan Jalur Konsultasi Hukum"
         >
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-        </svg>
-      </a>
+          <div className="speed-dial-header">
+            <div>
+              <div className="speed-dial-title">Konsultasi Hukum</div>
+              <div className="speed-dial-sub">{SHORT_BRAND_NAME} &middot; Respons Cepat</div>
+            </div>
+            <button
+              type="button"
+              className="speed-dial-close"
+              aria-label="Tutup menu konsultasi"
+              onClick={() => {
+                setMenuOpen(false)
+                floatingBtnRef.current?.focus()
+              }}
+            >
+              &times;
+            </button>
+          </div>
+
+          <div className="speed-dial-options">
+            {/* Opsi 1: WhatsApp Langsung */}
+            <a
+              href={floatingWaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="speed-dial-item speed-dial-item-wa"
+              onClick={() => setMenuOpen(false)}
+            >
+              <div className="speed-dial-icon-badge wa-badge" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+              </div>
+              <div className="speed-dial-item-content">
+                <div className="speed-dial-item-title">
+                  <span>Chat WhatsApp Resmi</span>
+                  <span className="speed-dial-badge-tag">Langsung ↗</span>
+                </div>
+                <div className="speed-dial-item-desc">
+                  Hotline respon cepat untuk perkara dan kebutuhan mendesak
+                </div>
+              </div>
+            </a>
+
+            {/* Opsi 2: Formulir Janji Temu */}
+            <a
+              href="#janji-temu"
+              className="speed-dial-item speed-dial-item-form"
+              onClick={handleScrollToAppointment}
+            >
+              <div className="speed-dial-icon-badge form-badge" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </div>
+              <div className="speed-dial-item-content">
+                <div className="speed-dial-item-title">
+                  <span>Formulir Janji Temu</span>
+                  <span className="speed-dial-badge-tag gold-tag">Di Web ↓</span>
+                </div>
+                <div className="speed-dial-item-desc">
+                  Pilih tanggal, sesi waktu, dan konsultasi tatap muka/daring
+                </div>
+              </div>
+            </a>
+          </div>
+
+          <div className="speed-dial-footer-note">
+            Kerahasiaan komunikasi terjamin sesuai UU PDP &amp; Kode Etik Advokat.
+          </div>
+        </div>
+      )}
+
+      {/* Floating Trigger Button: single clean button */}
+      <button
+        ref={floatingBtnRef}
+        type="button"
+        className={`wa-floating-trigger ${menuOpen ? 'is-active-trigger' : ''}`}
+        aria-label={
+          menuOpen
+            ? 'Tutup Pilihan Konsultasi'
+            : 'Buka Pilihan Konsultasi (WhatsApp atau Formulir Janji Temu)'
+        }
+        aria-expanded={menuOpen}
+        aria-controls="cta-speed-dial-panel"
+        onClick={() => setMenuOpen((prev) => !prev)}
+      >
+        {menuOpen ? (
+          <span style={{ fontSize: '24px', lineHeight: 1, fontWeight: 300 }} aria-hidden="true">
+            &times;
+          </span>
+        ) : (
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+        )}
+      </button>
 
       {/* DESIGN.md Section 6.10: Accessible Disclaimer Modal */}
       {disclaimerOpen ? (

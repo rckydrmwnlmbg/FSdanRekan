@@ -291,11 +291,67 @@ def render_shell(title: str, description: str, body_html: str) -> str:
     </div>
   </footer>
 
-  <a href="{floating_wa}" target="_blank" rel="noopener noreferrer" class="wa-floating-trigger" aria-label="Hubungi lewat WhatsApp">
+  <!-- Smart Single Floating Speed-Dial CTA (Solusi 1: Terpadu WhatsApp & Form Janji Temu) -->
+  <div id="ctaSpeedDialPanel" class="speed-dial-card" style="display:none;" role="dialog" aria-label="Pilihan Jalur Konsultasi Hukum">
+    <div class="speed-dial-header">
+      <div>
+        <div class="speed-dial-title">Konsultasi Hukum</div>
+        <div class="speed-dial-sub">{SHORT_BRAND_NAME} &middot; Respons Cepat</div>
+      </div>
+      <button type="button" class="speed-dial-close" aria-label="Tutup menu konsultasi" onclick="toggleSpeedDial()">&times;</button>
+    </div>
+
+    <div class="speed-dial-options">
+      <!-- Opsi 1: WhatsApp Langsung -->
+      <a href="{floating_wa}" target="_blank" rel="noopener noreferrer" class="speed-dial-item speed-dial-item-wa" onclick="toggleSpeedDial()">
+        <div class="speed-dial-icon-badge wa-badge" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+        </div>
+        <div class="speed-dial-item-content">
+          <div class="speed-dial-item-title">
+            <span>Chat WhatsApp Resmi</span>
+            <span class="speed-dial-badge-tag">Langsung ↗</span>
+          </div>
+          <div class="speed-dial-item-desc">
+            Hotline respon cepat untuk perkara dan kebutuhan mendesak
+          </div>
+        </div>
+      </a>
+
+      <!-- Opsi 2: Formulir Janji Temu -->
+      <a href="#janji-temu" class="speed-dial-item speed-dial-item-form" onclick="toggleSpeedDial(); var f = document.getElementById('janji-temu'); if(f) f.scrollIntoView({{behavior:'smooth'}});">
+        <div class="speed-dial-icon-badge form-badge" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
+        <div class="speed-dial-item-content">
+          <div class="speed-dial-item-title">
+            <span>Formulir Janji Temu</span>
+            <span class="speed-dial-badge-tag gold-tag">Di Web ↓</span>
+          </div>
+          <div class="speed-dial-item-desc">
+            Pilih tanggal, sesi waktu, dan konsultasi tatap muka/daring
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="speed-dial-footer-note">
+      Kerahasiaan komunikasi terjamin sesuai UU PDP &amp; Kode Etik Advokat.
+    </div>
+  </div>
+
+  <button type="button" id="speedDialTriggerBtn" class="wa-floating-trigger" aria-label="Buka Pilihan Konsultasi (WhatsApp atau Formulir Janji Temu)" aria-expanded="false" aria-controls="ctaSpeedDialPanel" onclick="toggleSpeedDial()">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
     </svg>
-  </a>
+  </button>
 
   <div id="disclaimerModal" class="modal-overlay" onclick="if(event.target===this)closeDisclaimerModal()">
     <div class="modal-dialog-box" role="dialog" aria-modal="true" aria-labelledby="disclaimer-modal-title">
@@ -320,6 +376,39 @@ def render_shell(title: str, description: str, body_html: str) -> str:
       document.getElementById('disclaimerModal').classList.remove('is-active');
       document.body.style.overflow = '';
     }}
+
+    function toggleSpeedDial() {{
+      const p = document.getElementById('ctaSpeedDialPanel');
+      const b = document.getElementById('speedDialTriggerBtn');
+      if (!p || !b) return;
+      const isOpen = p.style.display !== 'none';
+      if (isOpen) {{
+        closeSpeedDial();
+      }} else {{
+        p.style.display = 'block';
+        b.setAttribute('aria-expanded', 'true');
+        b.classList.add('is-active-trigger');
+        b.innerHTML = '<span style="font-size:24px;line-height:1;font-weight:300;" aria-hidden="true">&times;</span>';
+      }}
+    }}
+
+    function closeSpeedDial() {{
+      const p = document.getElementById('ctaSpeedDialPanel');
+      const b = document.getElementById('speedDialTriggerBtn');
+      if (!p || !b) return;
+      p.style.display = 'none';
+      b.setAttribute('aria-expanded', 'false');
+      b.classList.remove('is-active-trigger');
+      b.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>';
+    }}
+
+    document.addEventListener('mousedown', function(e) {{
+      const p = document.getElementById('ctaSpeedDialPanel');
+      const b = document.getElementById('speedDialTriggerBtn');
+      if (p && p.style.display !== 'none' && !p.contains(e.target) && b && !b.contains(e.target)) {{
+        closeSpeedDial();
+      }}
+    }});
 
     // Scroll-Reveal IntersectionObserver + Scroll Progress + Header Elevation + Hero Background Crossfade
     (function initAnimations() {{
@@ -1180,6 +1269,7 @@ def render_home_page() -> str:
           closeTeamModal();
           closeDisclaimerModal();
           closeSuccessModal();
+          closeSpeedDial();
         }}
       }});
     </script>

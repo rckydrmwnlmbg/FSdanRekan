@@ -12,9 +12,19 @@ test.describe('Ferdinan Silalahi dan Rekan Law Firm — E2E & Accessibility Suit
     await expect(page.locator('body')).not.toContainText('TODO(client)')
     await expect(page.locator('body')).not.toContainText('3 Bahasa')
 
-    // Exactly one floating action button (WhatsApp); guided chat trigger removed (owner decision, Option A)
-    await expect(page.locator('.wa-floating-trigger')).toHaveCount(1)
+    // Exactly one floating action button (Smart Speed-Dial); guided chat trigger removed
+    const floatingBtn = page.locator('.wa-floating-trigger')
+    await expect(floatingBtn).toHaveCount(1)
     await expect(page.locator('.guided-chat-trigger')).toHaveCount(0)
+
+    // Toggle speed dial menu: displays WhatsApp & Janji Temu options
+    await floatingBtn.click()
+    const speedDialCard = page.locator('.speed-dial-card')
+    await expect(speedDialCard).toBeVisible()
+    await expect(speedDialCard).toContainText('Chat WhatsApp Resmi')
+    await expect(speedDialCard).toContainText('Formulir Janji Temu')
+    await page.keyboard.press('Escape')
+    await expect(speedDialCard).toBeHidden()
 
     // 4 associate/admin team cards rendered in #tim-advokat (Ferdinan is shown once in #tentang)
     const teamButtons = page.locator('#tim-advokat').getByRole('button', { name: /Selengkapnya/i })

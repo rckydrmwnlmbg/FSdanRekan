@@ -427,7 +427,7 @@ def render_home_page() -> str:
 
     first_area = practice_areas[0]
 
-    embed_shortcodes = ["DVkSuErCZ_W", "DdGbn5YyKb_", "DZBZ72DPwgp"]
+    embed_shortcodes = ["DbTC57rEjrA", "DdGbn5YyKb_", "Dbp3d5PEuLe", "Dc3H8MaGM_D", "DawrpvRxxY7"]
     ig_embeds_html = ""
     for idx, sc in enumerate(embed_shortcodes):
         delay = f"{idx * 0.1:.2f}s"
@@ -688,8 +688,8 @@ def render_home_page() -> str:
         <div class="section-header-row" data-reveal="up">
           <div>
             <div class="eyebrow-tag">PUBLIKASI &amp; MEDIA SOSIAL RESMI — {SHORT_BRAND_NAME}</div>
-            <h2 id="instagram-heading">Sorotan &amp; Edukasi Instagram</h2>
-            <p class="section-subtitle">Ikuti pembaruan informasi, kajian regulasi, dan dokumentasi advokasi resmi dari akun Instagram @fhspartners.</p>
+            <h2 id="instagram-heading">Publikasi &amp; Dokumentasi Media Sosial</h2>
+            <p class="section-subtitle">Sematkan langsung publikasi resmi, wawasan yuridis, dan dokumentasi advokasi dari akun Instagram @fhspartners.</p>
           </div>
           <a href="{html.escape(cms_settings.get('instagramUrl', 'https://instagram.com/fhspartners'))}" target="_blank" rel="noopener noreferrer" class="btn-outline">
             Ikuti @fhspartners di Instagram &nearr;

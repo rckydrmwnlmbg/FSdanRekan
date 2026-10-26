@@ -10,8 +10,8 @@ interface InstagramGallerySectionProps {
 const OFFICIAL_EMBED_POSTS = [
   {
     id: 'embed-1',
-    shortcode: 'DVkSuErCZ_W',
-    url: 'https://www.instagram.com/p/DVkSuErCZ_W/',
+    shortcode: 'DbTC57rEjrA',
+    url: 'https://www.instagram.com/p/DbTC57rEjrA/',
   },
   {
     id: 'embed-2',
@@ -20,8 +20,18 @@ const OFFICIAL_EMBED_POSTS = [
   },
   {
     id: 'embed-3',
-    shortcode: 'DZBZ72DPwgp',
-    url: 'https://www.instagram.com/p/DZBZ72DPwgp/',
+    shortcode: 'Dbp3d5PEuLe',
+    url: 'https://www.instagram.com/p/Dbp3d5PEuLe/',
+  },
+  {
+    id: 'embed-4',
+    shortcode: 'Dc3H8MaGM_D',
+    url: 'https://www.instagram.com/p/Dc3H8MaGM_D/',
+  },
+  {
+    id: 'embed-5',
+    shortcode: 'DawrpvRxxY7',
+    url: 'https://www.instagram.com/p/DawrpvRxxY7/',
   },
 ]
 
@@ -44,7 +54,7 @@ export function InstagramGallerySection({
         const m = it.permalink?.match(/\/p\/([^/?#]+)/)
         return {
           id: it.id,
-          shortcode: m && m[1] ? m[1] : 'DVkSuErCZ_W',
+          shortcode: m && m[1] ? m[1] : 'DbTC57rEjrA',
           url: it.permalink || cleanUrl,
         }
       })
@@ -60,7 +70,7 @@ export function InstagramGallerySection({
         <div className="section-header-row">
           <div>
             <div className="eyebrow-tag">PUBLIKASI &amp; MEDIA SOSIAL RESMI — {SHORT_BRAND_NAME}</div>
-            <h2 id="instagram-gallery-heading">Feed Resmi Instagram {igHandle}</h2>
+            <h2 id="instagram-gallery-heading">Publikasi &amp; Dokumentasi Media Sosial</h2>
             <p className="section-subtitle">
               Sematkan langsung publikasi resmi, wawasan yuridis, dan dokumentasi advokasi dari akun Instagram {igHandle}.
             </p>

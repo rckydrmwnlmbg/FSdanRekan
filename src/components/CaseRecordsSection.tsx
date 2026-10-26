@@ -22,8 +22,8 @@ export function CaseRecordsSection({ records }: CaseRecordsSectionProps) {
         <div>
           <h2 id="case-records-heading">Pengalaman Penanganan Perkara</h2>
           <p className="section-subtitle">
-            Ringkasan bidang perkara dan wilayah yurisdiksi penanganan. Demi menjaga kewajiban
-            kerahasiaan advokat, identitas pihak disajikan secara anonim.
+            Ringkasan bidang perkara dan wilayah yurisdiksi penanganan untuk menjaga kewajiban
+            kerahasiaan advokat serta kepentingan hukum para pihak.
           </p>
         </div>
 

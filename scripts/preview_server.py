@@ -625,13 +625,13 @@ def render_home_page() -> str:
       </div>
     </section>
 
-    <!-- 5. Case Records Section (7 Perkara Anonim — SK-14) -->
+    <!-- 5. Case Records Section -->
     <section id="rekam-jejak" class="section-gap" aria-labelledby="case-records-heading">
       <div class="container">
         <div data-reveal="up">
           <div class="eyebrow-tag">PORTOFOLIO PENANGANAN PERKARA</div>
           <h2 id="case-records-heading">Pengalaman Penanganan Perkara</h2>
-          <p class="section-subtitle">Ringkasan bidang perkara dan wilayah yurisdiksi penanganan. Demi menjaga kewajiban kerahasiaan advokat, identitas pihak disajikan secara anonim.</p>
+          <p class="section-subtitle">Ringkasan bidang perkara dan wilayah yurisdiksi penanganan untuk menjaga kewajiban kerahasiaan advokat serta kepentingan hukum para pihak.</p>
         </div>
         <div class="case-records-grid">
           {case_cards_html}
@@ -891,7 +891,7 @@ def render_home_page() -> str:
               Selamat datang di sarana konsultasi awal terpandu <strong>{OFFICIAL_FIRM_NAME}</strong>.
             </p>
             <div class="confidential-warning-banner" style="font-size:11.5px;padding:8px 10px;margin-bottom:14px;">
-              <strong>SEC-015:</strong> Layanan ini adalah sarana konsultasi awal terpandu dan bukan merupakan nasihat hukum formal (legal opinion).
+              <strong>Pemberitahuan Penting:</strong> Layanan ini adalah sarana konsultasi awal terpandu dan bukan merupakan nasihat hukum formal (legal opinion).
             </div>
             <label class="consent-checkbox-label" style="font-size:12px;margin-bottom:16px;">
               <input type="checkbox" id="chatConsentCheck" onchange="document.getElementById('chatBtnStep1').disabled = !this.checked">

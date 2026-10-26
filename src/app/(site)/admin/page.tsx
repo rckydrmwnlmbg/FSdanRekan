@@ -22,7 +22,7 @@ export default function AdminPortalPage() {
         <p className="section-subtitle">
           Pengelolaan terpadu 10 modul: Ringkasan Eksekutif, Artikel &amp; Wawasan, Kategori,
           Permohonan Janji Temu (Inquiry), Tim &amp; Advokat (5 Profil), 10 Bidang Praktik, Rekam
-          Jejak Perkara (Anonim SK-14), Pustaka Media (WebP/PNG), Pengaturan Situs, serta Pengguna
+          Jejak Perkara, Pustaka Media (WebP/PNG), Pengaturan Situs, serta Pengguna
           &amp; Audit Keamanan.
         </p>
         <div className="hero-actions-row" style={{ marginTop: '24px' }}>

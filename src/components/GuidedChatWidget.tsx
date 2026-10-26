@@ -145,9 +145,9 @@ export function GuidedChatWidget({ settings, practiceAreas }: GuidedChatWidgetPr
             </button>
           </div>
 
-          {/* SEC-015 Mandatory AI/Bot Disclaimer */}
+          {/* Mandatory AI/Bot Disclaimer */}
           <div className="guided-chat-disclaimer" role="note">
-            <strong>Pemberitahuan (SEC-015):</strong> Asisten ini hanya membantu penjadwalan dan
+            <strong>Pemberitahuan Penting:</strong> Asisten ini hanya membantu penjadwalan dan
             tidak memberikan nasihat hukum. Jangan mengirimkan informasi rahasia perkara di sini.
           </div>
 

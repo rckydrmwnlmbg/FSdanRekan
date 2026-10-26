@@ -1736,8 +1736,9 @@ p {
   overflow: hidden;
 }
 
-/* Guided Chat Widget (SK-11 / SEC-015) */
+/* Guided Chat Widget (SK-11 / SEC-015) — Opsi A: dinonaktifkan agar tidak ada tombol duplikat */
 .guided-chat-root {
+  display: none !important;
   position: fixed;
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   right: 92px;

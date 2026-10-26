@@ -868,8 +868,8 @@ def render_home_page() -> str:
       </div>
     </div>
 
-    <!-- Guided Consultation Chat Widget (SK-11 / PRD Phase 2) -->
-    <div id="guidedChatWidgetRoot" class="guided-chat-root">
+    <!-- Guided Consultation Chat Widget (SK-11 / PRD Phase 2) — Opsi A: dinonaktifkan agar tidak ada tombol duplikat -->
+    <div id="guidedChatWidgetRoot" class="guided-chat-root" style="display:none;">
       <button type="button" id="guidedChatTrigger" class="guided-chat-trigger" aria-label="Buka Chat Pemandu Konsultasi" onclick="toggleGuidedChat()">
         <span class="chat-trigger-icon">💬</span>
         <span class="chat-trigger-label">Konsultasi Pemandu</span>

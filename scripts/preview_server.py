@@ -66,7 +66,7 @@ PRACTICE_PRESENTATION_BY_SLUG: dict[str, dict] = {
     },
     "hukum-perdata-dan-perlindungan-aset": {
         "image": "/images/lady-justice.webp",
-        "summary": "Advokasi gugatan wanprestasi, perbuatan melawan hukum (PMH), serta penyusunan instrumen hukum untuk pelindungan aset individu maupun badan hukum.",
+        "summary": "Advokasi gugatan wanprestasi, perbuatan melawan hukum (PMH), serta penyusunan instrumen hukum untuk perlindungan aset individu maupun badan hukum.",
         "description": "Penanganan Gugatan Perdata & Pengamanan Aset",
         "advocacyScope": [
             "Gugatan wanprestasi dan Perbuatan Melawan Hukum (PMH)",
@@ -86,8 +86,8 @@ PRACTICE_PRESENTATION_BY_SLUG: dict[str, dict] = {
     },
     "hak-kekayaan-intelektual-hki": {
         "image": "/images/practice-ip.webp",
-        "summary": "Pelindungan hukum atas merek, hak cipta, paten, desain industri, rahasia dagang, serta penyelesaian sengketa kekayaan intelektual.",
-        "description": "Pelindungan Kekayaan Intelektual & Perjanjian Lisensi",
+        "summary": "Perlindungan hukum atas merek, hak cipta, paten, desain industri, rahasia dagang, serta penyelesaian sengketa kekayaan intelektual.",
+        "description": "Perlindungan Kekayaan Intelektual & Perjanjian Lisensi",
         "advocacyScope": [
             "Konsultasi pendaftaran dan pengelolaan portofolio HKI",
             "Penyusunan perjanjian lisensi, waralaba, dan kerahasiaan (NDA)",
@@ -1149,7 +1149,7 @@ def render_home_page() -> str:
           return;
         }}
         if (!payload.consent) {{
-          errBox.textContent = 'Anda wajib menyetujui kebijakan pelindungan data pribadi.';
+          errBox.textContent = 'Anda wajib menyetujui kebijakan perlindungan data pribadi.';
           errBox.style.display = 'block';
           return;
         }}

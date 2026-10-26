@@ -7,7 +7,7 @@ test.describe('Ferdinan Silalahi dan Rekan Law Firm — E2E & Accessibility Suit
   }) => {
     await page.goto('/')
 
-    await expect(page.locator('h1')).toContainText('Pendampingan Hukum Tepercaya')
+    await expect(page.locator('h1')).toContainText('Pendampingan Hukum Terpercaya')
     await expect(page.locator('body')).not.toContainText('FHSP')
     await expect(page.locator('body')).not.toContainText('TODO(client)')
     await expect(page.locator('body')).not.toContainText('3 Bahasa')

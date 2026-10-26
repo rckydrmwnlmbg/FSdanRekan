@@ -40,17 +40,17 @@
 - **tags:** *(tidak disebut di sumber; jangan diisi)*
 
 **shortBio (≤ 200 karakter):**
-> Pendiri dan Managing Partner. Berpegang pada motto "Life must have meaning", beliau mendirikan firma ini untuk menghadirkan pendampingan hukum yang tepercaya dan mudah diakses.
+> Pendiri dan Managing Partner. Berpegang pada motto "Life must have meaning", beliau mendirikan firma ini untuk menghadirkan pendampingan hukum yang terpercaya dan mudah diakses.
 
 **fullBio:**
 
-Ferdinan Hasiholan Silalahi, S.H. merupakan Pendiri sekaligus Managing Partner di Ferdinan Silalahi dan Rekan Law Firm. Lahir di Jakarta dan memiliki kebanggaan terhadap warisan budaya Batak yang dimilikinya, beliau menyelesaikan pendidikan Sarjana Hukum di Fakultas Hukum Universitas Tanjungpura.
+Ferdinan Hasiholan Silalahi, S.H. merupakan Pendiri sekaligus Managing Partner di Ferdinan Silalahi dan Rekan Law Firm. Lahir di Jakarta dan memiliki kebanggaan terhadap warisan budaya Batak, beliau menyelesaikan pendidikan Sarjana Hukum di Fakultas Hukum Universitas Tanjungpura.
 
 Berpegang pada motto hidup "Life must have meaning", Ferdinan meyakini bahwa profesi hukum bukan sekadar pekerjaan, melainkan sebuah panggilan untuk memberikan manfaat dan menciptakan dampak positif bagi masyarakat. Filosofi tersebut menjadi landasan dalam perjalanan kariernya sekaligus dasar berdirinya firma hukum ini.
 
-Berangkat dari kepeduliannya terhadap masih terbatasnya akses masyarakat Indonesia terhadap layanan hukum yang berkualitas, beliau mendirikan firma ini dengan visi untuk menghadirkan pendampingan hukum yang tepercaya, mudah diakses, dan profesional bagi individu, pelaku usaha, maupun masyarakat yang membutuhkan.
+Berangkat dari kepeduliannya terhadap masih terbatasnya akses masyarakat Indonesia terhadap layanan hukum yang berkualitas, beliau mendirikan firma ini dengan visi untuk menghadirkan pendampingan hukum yang terpercaya, mudah diakses, dan profesional bagi individu, pelaku usaha, maupun masyarakat yang membutuhkan.
 
-Dengan menjunjung tinggi nilai integritas, profesionalisme, dan keadilan, Ferdinan berkomitmen memberikan solusi hukum yang efektif dan berorientasi pada kebutuhan klien. Ia juga meyakini bahwa setiap klien tidak hanya berhak memperoleh pendampingan hukum yang kompeten, tetapi juga dedikasi, kepedulian, dan penghormatan dalam setiap tahapan proses hukum.
+Dengan menjunjung tinggi nilai integritas, profesionalisme, dan keadilan, Ferdinan berkomitmen memberikan solusi hukum yang efektif dan berorientasi pada kebutuhan klien. Beliau juga meyakini bahwa setiap klien tidak hanya berhak memperoleh pendampingan hukum yang kompeten, tetapi juga dedikasi, kepedulian, dan penghormatan dalam setiap tahapan proses hukum.
 
 ---
 
@@ -68,7 +68,7 @@ Dengan menjunjung tinggi nilai integritas, profesionalisme, dan keadilan, Ferdin
 
 **fullBio:**
 
-Adina Ilmania Ayu merupakan seorang advokat yang memiliki pengalaman di bidang hukum korporasi, komersial, dan perbankan, khususnya dalam penanganan kredit bermasalah (Non-Performing Loan/NPL), kepailitan, serta Penundaan Kewajiban Pembayaran Utang (PKPU). Ia memiliki kompetensi dalam riset hukum, analisis hukum, penyusunan dokumen hukum, penyelesaian sengketa, serta penanganan perkara dari tahap awal hingga penyelesaian.
+Adina Ilmania Ayu merupakan seorang advokat yang memiliki pengalaman di bidang hukum korporasi, komersial, dan perbankan, khususnya dalam penanganan kredit bermasalah (*Non-Performing Loan*/NPL), kepailitan, serta Penundaan Kewajiban Pembayaran Utang (PKPU). Ia memiliki kompetensi dalam riset hukum, analisis hukum, penyusunan dokumen hukum, penyelesaian sengketa, serta penanganan perkara dari tahap awal hingga penyelesaian.
 
 Dalam pengalaman profesionalnya, Adina terlibat dalam penanganan perkara PKPU dan kepailitan, termasuk melakukan riset hukum, menyusun dokumen persidangan seperti gugatan, permohonan, dan dokumen hukum lainnya, mengelola berkas perkara, serta berkoordinasi dengan klien, saksi, dan profesional hukum. Ia juga memiliki pengalaman dalam menghadiri persidangan dan mendukung proses penanganan perkara hingga memperoleh putusan pengadilan.
 
@@ -95,7 +95,7 @@ Sebagai Associate di Ferdinan Silalahi dan Rekan Law Firm, Adina mengintegrasika
 
 Basit Rezki, S.H. adalah Associate di Ferdinan Silalahi dan Rekan Law Firm yang merupakan advokat berlisensi dan telah terakreditasi oleh Perhimpunan Advokat Indonesia. Basit menempuh pendidikan hukum di Fakultas Hukum Universitas Dirgantara Marsekal Suryadarma dan memiliki dedikasi tinggi terhadap penegakan supremasi hukum, didukung kemampuan analisis hukum dan riset yang mumpuni.
 
-Sebelum bergabung, Basit mengembangkan keahliannya melalui pengalaman magang di beberapa kantor hukum, di mana beliau terlibat dalam pendampingan klien pada proses pelaporan tindak pidana, penyusunan berbagai dokumen hukum seperti kontrak, gugatan, pledoi, hingga memori kasasi, serta aktif menghadiri dan mendokumentasikan jalannya persidangan. Pengalamannya turut mencakup pendampingan klien dalam kasus tindak pidana kekerasan terhadap anak, penelaahan kontrak, hingga peran sebagai negosiator dalam perjanjian penerbitan buku bagi kliennya. Dengan kemampuan komunikasi yang baik, kerja sama tim yang kuat, serta penguasaan bahasa Inggris dan Jepang (bersertifikat JFT A2), Basit siap memberikan layanan hukum yang profesional dan berkualitas bagi klien.
+Sebelum bergabung, Basit mengembangkan keahliannya melalui pengalaman magang di beberapa kantor hukum, tempat beliau terlibat dalam pendampingan klien pada proses pelaporan tindak pidana, penyusunan berbagai dokumen hukum seperti kontrak, gugatan, *pledoi*, hingga memori kasasi, serta aktif menghadiri dan mendokumentasikan jalannya persidangan. Pengalamannya turut mencakup pendampingan klien dalam kasus tindak pidana kekerasan terhadap anak, penelaahan kontrak, hingga peran sebagai negosiator dalam perjanjian penerbitan buku bagi kliennya. Dengan kemampuan komunikasi yang baik, kerja sama tim yang kuat, serta penguasaan bahasa Inggris dan Jepang (bersertifikat JFT A2), Basit siap memberikan layanan hukum yang profesional dan berkualitas bagi klien.
 
 > **Catatan sensitivitas:** bio ini menyebut "kasus tindak pidana kekerasan terhadap anak". Konfirmasi ke client bahwa penyebutan ini aman secara kerahasiaan dan tidak mengidentifikasi klien.
 
@@ -107,17 +107,17 @@ Sebelum bergabung, Basit mengembangkan keahliannya melalui pengalaman magang di 
 - **role:** Legal Administrator
 - **photo:** `TODO(client)`
 - **gelar:** S.H., M.H.
-- **pendidikan:** Magister Hukum, Universitas Gadjah Mada (Cumlaude); penerima Beasiswa LPDP RI
+- **pendidikan:** Magister Hukum, Universitas Gadjah Mada (*cumlaude*); penerima Beasiswa LPDP RI
 - **tags:** Litigasi Pajak dan Kepabeanan, Hukum Pidana, Administrasi Perkara, Legal Opinion
 
 **shortBio (≤ 200 karakter):**
-> Legal Administrator, lulusan Magister Hukum UGM (Cumlaude) dan penerima Beasiswa LPDP, berpengalaman dalam sengketa pajak dan kepabeanan serta administrasi perkara.
+> Legal Administrator, lulusan Magister Hukum UGM (*cumlaude*) dan penerima Beasiswa LPDP, berpengalaman dalam sengketa pajak dan kepabeanan serta administrasi perkara.
 
 **fullBio:**
 
-Delia Zaizafun merupakan lulusan Magister Hukum Universitas Gadjah Mada dengan predikat Cumlaude dan penerima Beasiswa LPDP RI. Ia memiliki latar belakang akademik di bidang hukum pidana serta pengalaman profesional dalam penanganan perkara litigasi, administrasi hukum, dan pengelolaan dokumen perkara.
+Delia Zaizafun merupakan lulusan Magister Hukum Universitas Gadjah Mada dengan predikat *cumlaude* dan penerima Beasiswa LPDP RI. Ia memiliki latar belakang akademik di bidang hukum pidana serta pengalaman profesional dalam penanganan perkara litigasi, administrasi hukum, dan pengelolaan dokumen perkara.
 
-Dalam pengalaman profesional sebelumnya sebagai Staf Litigasi, Delia terlibat langsung dalam penanganan 10 sengketa pajak dan kepabeanan, mulai dari pendaftaran gugatan, proses banding, peninjauan kembali, hingga persidangan dan upaya hukum lanjutan. Ia juga berpengalaman menyusun dan meninjau lebih dari 100 dokumen hukum dan dokumen persidangan, melakukan riset serta analisis terhadap lebih dari 50 peraturan perpajakan dan putusan pengadilan, serta menyusun legal opinion dan memorandum hukum untuk mendukung analisis dan penyelesaian sengketa.
+Dalam pengalaman profesional sebelumnya sebagai Staf Litigasi, Delia terlibat langsung dalam penanganan 10 sengketa pajak dan kepabeanan, mulai dari pendaftaran gugatan, proses banding, peninjauan kembali, hingga persidangan dan upaya hukum lanjutan. Ia juga berpengalaman menyusun dan meninjau lebih dari 100 dokumen hukum dan dokumen persidangan, melakukan riset serta analisis terhadap lebih dari 50 peraturan perpajakan dan putusan pengadilan, serta menyusun *legal opinion* dan memorandum hukum untuk mendukung analisis dan penyelesaian sengketa.
 
 Selain itu, Delia memiliki pengalaman dalam koordinasi administrasi perkara, pengelolaan basis data kasus, dan pengarsipan dokumen hukum secara sistematis. Pengalamannya di bidang administrasi kepaniteraan di Mahkamah Syar'iyah Kota Banda Aceh turut memperkuat kemampuannya dalam pengelolaan surat masuk dan keluar, pembaruan register perkara, serta penataan arsip perkara.
 
@@ -134,15 +134,15 @@ Di Ferdinan Silalahi dan Rekan Law Firm, Delia menjalankan peran sebagai Legal A
 - **tags:** Legal Drafting, Legal Research, Administrasi Hukum, Legal Opinion
 
 **shortBio (≤ 200 karakter):**
-> Legal Administrator lulusan UIN Syarif Hidayatullah Jakarta, berpengalaman dalam legal drafting, riset hukum, serta pengelolaan dan pengarsipan dokumen hukum.
+> Legal Administrator lulusan UIN Syarif Hidayatullah Jakarta, berpengalaman dalam *legal drafting*, riset hukum, serta pengelolaan dan pengarsipan dokumen hukum.
 
 **fullBio:**
 
-Farhah Tri Febriani, S.H. merupakan lulusan Sarjana Hukum dari Universitas Islam Negeri Syarif Hidayatullah Jakarta di mana ia mengembangkan pemahaman yang kokoh dan komprehensif mengenai hukum Indonesia maupun prinsip-prinsip hukum Islam.
+Farhah Tri Febriani, S.H. merupakan lulusan Sarjana Hukum dari Universitas Islam Negeri Syarif Hidayatullah Jakarta, tempat beliau mengembangkan pemahaman yang kokoh dan komprehensif mengenai hukum Indonesia maupun prinsip-prinsip hukum Islam.
 
-Selama masa studinya, Farhah secara aktif memperoleh pengalaman langsung dalam praktik hukum dan administrasi, meliputi penyusunan legal opinion, pengelolaan dan pengarsipan dokumen hukum, serta koordinasi yang efektif dengan berbagai pihak di beragam lingkungan institusional. Pengalaman-pengalaman tersebut telah mengasah kemampuannya untuk bekerja dengan akurasi, efisiensi, dan tingkat profesionalisme yang tinggi dalam lingkungan hukum yang dinamis.
+Selama masa studinya, Farhah secara aktif memperoleh pengalaman langsung dalam praktik hukum dan administrasi, meliputi penyusunan *legal opinion*, pengelolaan dan pengarsipan dokumen hukum, serta koordinasi yang efektif dengan berbagai pihak di beragam lingkungan institusional. Pengalaman-pengalaman tersebut telah mengasah kemampuannya untuk bekerja dengan akurasi, efisiensi, dan tingkat profesionalisme yang tinggi dalam lingkungan hukum yang dinamis.
 
-Dengan keahlian yang komprehensif dalam legal drafting, legal research, administrasi, dan komunikasi profesional, Farhah berkomitmen untuk mendukung kebutuhan operasional dan hukum kantor dengan integritas dan ketelitian, memastikan setiap tugas ditangani dengan perhatian dan kehati-hatian yang optimal.
+Dengan keahlian yang komprehensif dalam *legal drafting*, *legal research*, administrasi, dan komunikasi profesional, Farhah berkomitmen untuk mendukung kebutuhan operasional dan hukum kantor dengan integritas dan ketelitian, memastikan setiap tugas ditangani dengan perhatian dan kehati-hatian yang optimal.
 
 ---
 

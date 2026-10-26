@@ -43,7 +43,7 @@ export function HeroSection({ whatsappNumber, defaultWaMessage }: HeroSectionPro
           <div data-reveal="up">
             <div className="eyebrow-tag">KANTOR HUKUM &amp; ADVOKASI LITIGASI — JAKARTA PUSAT</div>
             <h1 id="hero-heading" className="hero-title">
-              Pendampingan Hukum Tepercaya.
+              Pendampingan Hukum Terpercaya.
               <br />
               <span className="gold-text gold-shimmer-text">Integritas Tanpa Kompromi.</span>
             </h1>

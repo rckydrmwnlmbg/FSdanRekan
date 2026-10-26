@@ -173,8 +173,8 @@ const PRACTICE_PRESENTATION_BY_SLUG: Record<
   'hak-kekayaan-intelektual-hki': {
     image: '/images/practice-ip.webp',
     summary:
-      'Pelindungan hukum atas merek, hak cipta, paten, desain industri, rahasia dagang, serta penyelesaian sengketa kekayaan intelektual.',
-    description: 'Pelindungan Kekayaan Intelektual & Perjanjian Lisensi',
+      'Perlindungan hukum atas merek, hak cipta, paten, desain industri, rahasia dagang, serta penyelesaian sengketa kekayaan intelektual.',
+    description: 'Perlindungan Kekayaan Intelektual & Perjanjian Lisensi',
     advocacyScope: [
       'Konsultasi pendaftaran dan pengelolaan portofolio HKI',
       'Penyusunan perjanjian lisensi, waralaba, dan kerahasiaan (NDA)',

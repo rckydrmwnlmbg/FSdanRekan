@@ -43,7 +43,7 @@ export function AboutSection({ founder, onOpenFounderProfile }: AboutSectionProp
             <p className="about-paragraph">
               Berangkat dari kepedulian terhadap akses masyarakat Indonesia terhadap layanan hukum
               yang berkualitas, <strong>{OFFICIAL_FIRM_NAME}</strong> didirikan dengan visi
-              menghadirkan pendampingan hukum yang tepercaya, mudah diakses, dan profesional bagi
+              menghadirkan pendampingan hukum yang terpercaya, mudah diakses, dan profesional bagi
               individu, pelaku usaha, maupun masyarakat yang membutuhkan.
             </p>
 
@@ -60,7 +60,7 @@ export function AboutSection({ founder, onOpenFounderProfile }: AboutSectionProp
                 <div className="cred-title">Komitmen Kerahasiaan Klien</div>
                 <div className="cred-desc">
                   Menghormati kerahasiaan informasi klien sesuai Kode Etik Advokat dan ketentuan
-                  pelindungan data pribadi yang berlaku.
+                  perlindungan data pribadi yang berlaku.
                 </div>
               </div>
             </div>

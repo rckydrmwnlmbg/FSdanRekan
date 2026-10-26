@@ -12,6 +12,10 @@ test.describe('Ferdinan Silalahi dan Rekan Law Firm — E2E & Accessibility Suit
     await expect(page.locator('body')).not.toContainText('TODO(client)')
     await expect(page.locator('body')).not.toContainText('3 Bahasa')
 
+    // Exactly one floating action button (WhatsApp); guided chat trigger removed (owner decision, Option A)
+    await expect(page.locator('.wa-floating-trigger')).toHaveCount(1)
+    await expect(page.locator('.guided-chat-trigger')).toHaveCount(0)
+
     // 4 associate/admin team cards rendered in #tim-advokat (Ferdinan is shown once in #tentang)
     const teamButtons = page.locator('#tim-advokat').getByRole('button', { name: /Selengkapnya/i })
     await expect(teamButtons).toHaveCount(4)

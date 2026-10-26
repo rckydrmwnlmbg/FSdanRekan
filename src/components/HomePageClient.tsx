@@ -17,7 +17,6 @@ import { CtaBanner } from '@/components/CtaBanner'
 import { LatestArticlesSection } from '@/components/LatestArticlesSection'
 import { InstagramGallerySection } from '@/components/InstagramGallerySection'
 import { InquirySection } from '@/components/InquirySection'
-import { GuidedChatWidget } from '@/components/GuidedChatWidget'
 
 interface HomePageClientProps {
   settings: SiteSettingsData
@@ -107,8 +106,6 @@ export function HomePageClient({
         practiceAreas={practiceAreas}
         selectedPracticeAreaName={selectedPracticeName}
       />
-
-      <GuidedChatWidget settings={settings} practiceAreas={practiceAreas} />
     </>
   )
 }

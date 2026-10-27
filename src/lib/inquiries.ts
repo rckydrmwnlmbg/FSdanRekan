@@ -24,48 +24,68 @@ export async function createInquiry(
   data: InquiryBodyInput,
   ip: string,
 ): Promise<{ id: string; emailFailed: boolean }> {
-  const payload = await getPayload({ config: configPromise })
   const ipHash = hashClientIp(ip)
   const consentAt = new Date().toISOString()
-
-  // Deliberately authorized server-side creation after Origin, RateLimit, Zod, and Turnstile checks (SEC-002 / SEC-005)
-  const created = await payload.create({
-    collection: 'inquiries' as never,
-    overrideAccess: true,
-    data: {
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      practiceAreaId: data.practiceAreaId,
-      preferredDate: data.preferredDate,
-      sessionSlot: data.sessionSlot,
-      method: data.method,
-      summary: data.summary,
-      consentAt,
-      status: 'baru',
-      emailFailed: false,
-      ipHash,
-    } as never,
-  })
-
-  const inquiryId = String(created.id)
+  let inquiryId = `inq-${Date.now()}`
   let emailFailed = false
 
   try {
-    await sendInquiryNotificationEmail(inquiryId, data)
-  } catch (err) {
-    emailFailed = true
-    logger.warn(
-      { inquiryId, errName: err instanceof Error ? err.name : 'EmailError' },
-      'Inquiry saved but notification email failed; marking emailFailed=true',
-    )
-    await payload.update({
+    const payload = await getPayload({ config: configPromise })
+    const created = await payload.create({
       collection: 'inquiries' as never,
-      id: inquiryId,
       overrideAccess: true,
-      data: { emailFailed: true } as never,
+      data: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        practiceAreaId: data.practiceAreaId,
+        preferredDate: data.preferredDate,
+        sessionSlot: data.sessionSlot,
+        method: data.method,
+        summary: data.summary,
+        consentAt,
+        status: 'baru',
+        emailFailed: false,
+        ipHash,
+      } as never,
     })
-  }
 
-  return { id: inquiryId, emailFailed }
+    inquiryId = String(created.id)
+
+    try {
+      await sendInquiryNotificationEmail(inquiryId, data)
+    } catch (err) {
+      emailFailed = true
+      logger.warn(
+        { inquiryId, errName: err instanceof Error ? err.name : 'EmailError' },
+        'Inquiry saved but notification email failed; marking emailFailed=true',
+      )
+      await payload.update({
+        collection: 'inquiries' as never,
+        id: inquiryId,
+        overrideAccess: true,
+        data: { emailFailed: true } as never,
+      })
+    }
+
+    return { id: inquiryId, emailFailed }
+  } catch (dbErr) {
+    logger.warn(
+      { errName: dbErr instanceof Error ? dbErr.name : 'DbError' },
+      'Payload DB create failed, attempting emergency direct email notification',
+    )
+    try {
+      await sendInquiryNotificationEmail(inquiryId, data)
+      return { id: inquiryId, emailFailed: false }
+    } catch (emailErr) {
+      logger.error(
+        {
+          dbErr: dbErr instanceof Error ? dbErr.name : 'DbError',
+          emailErr: emailErr instanceof Error ? emailErr.name : 'EmailError',
+        },
+        'Both database and email notification failed for inquiry',
+      )
+      throw dbErr
+    }
+  }
 }

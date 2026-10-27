@@ -32,7 +32,7 @@ export function InquirySection({
   const [websiteHoneypot, setWebsiteHoneypot] = useState('')
   const [turnstileToken, setTurnstileToken] = useState('turnstile-client-token')
 
-  const [mapLoaded, setMapLoaded] = useState(false)
+  const [mapLoaded, setMapLoaded] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState<string | null>(null)
@@ -141,7 +141,7 @@ export function InquirySection({
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
+                  referrerPolicy="strict-origin-when-cross-origin"
                 />
               ) : (
                 <div className="map-lazy-placeholder">

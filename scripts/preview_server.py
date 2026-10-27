@@ -482,6 +482,7 @@ def render_home_page() -> str:
     )
 
     cms_settings = load_cms_state()["siteSettings"]
+    map_embed_url = cms_settings.get("mapEmbedUrl", "")
     team = get_merged_team_members(clean_ui_team_member, include_unpublished=False)
     practice_areas = get_merged_practice_areas(PRACTICE_PRESENTATION_BY_SLUG, include_unpublished=False)
     case_records = get_merged_case_records(include_unpublished=False)
@@ -831,13 +832,7 @@ def render_home_page() -> str:
             <p class="office-address-text">{OFFICIAL_ADDRESS}</p>
 
             <div class="map-frame-box" id="mapContainer">
-              <div class="map-lazy-placeholder">
-                <p>Peta lokasi Gedung Mandira, Menteng, Jakarta Pusat</p>
-                <div class="map-lazy-actions">
-                  <button type="button" class="btn-outline" onclick="loadInteractiveMap()">Muat Peta Interaktif</button>
-                  <a href="https://www.google.com/maps/search/?api=1&query=Gedung+Mandira+Jl.+RP+Soeroso+No.+33+Menteng+Jakarta+Pusat" target="_blank" rel="noopener noreferrer" class="link-gold">Buka di Maps &rarr;</a>
-                </div>
-              </div>
+              <iframe title="Peta Lokasi Resmi {OFFICIAL_FIRM_NAME}" src="{map_embed_url}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
             </div>
 
             <div class="hotline-box">
@@ -1140,7 +1135,7 @@ def render_home_page() -> str:
       }}
 
       function loadInteractiveMap() {{
-        document.getElementById('mapContainer').innerHTML = '<iframe title="Peta Lokasi Resmi {OFFICIAL_FIRM_NAME}" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5292868019124!2d106.83606777579133!3d-6.193674693793977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43b67eb123b%3A0x6b4fbfe311e92067!2sGedung%20Mandira!5e0!3m2!1sid!2sid!4v1715000000000!5m2!1sid!2sid" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+        document.getElementById('mapContainer').innerHTML = '<iframe title="Peta Lokasi Resmi {OFFICIAL_FIRM_NAME}" src="{map_embed_url}" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>';
       }}
 
       function toggleGuidedChat() {{

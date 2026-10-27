@@ -248,7 +248,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
   inquiryRecipientEmail: 'kontak@fsdanrekan.id',
   instagramUrl: 'https://instagram.com/fhspartners',
   mapEmbedUrl:
-    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5292868019124!2d106.83606777579133!3d-6.193674693793977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43b67eb123b%3A0x6b4fbfe311e92067!2sGedung%20Mandira!5e0!3m2!1sid!2sid!4v1715000000000!5m2!1sid!2sid',
+    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5357334624136!2d106.83636290000001!3d-6.192815!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43e979ba7b9%3A0x367501a082936e59!2sJl.%20RP.%20Soeroso%20No.33%2C%20RT.2%2FRW.2%2C%20Cikini%2C%20Kec.%20Menteng%2C%20Kota%20Jakarta%20Pusat%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2010350!5e0!3m2!1sen!2sid!4v1793080293609!5m2!1sen!2sid',
   mapsDirectUrl:
     'https://www.google.com/maps/search/?api=1&query=Gedung+Mandira+Jl.+RP+Soeroso+No.+33+Menteng+Jakarta+Pusat',
   officeHours: {

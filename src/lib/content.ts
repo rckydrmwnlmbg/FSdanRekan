@@ -528,47 +528,59 @@ export const INITIAL_ARTICLES: ArticlePublicData[] = [
   },
 ]
 
-export function getAllNormalizedArticles(): ArticlePublicData[] {
-  const seedList =
-    Array.isArray(articlesSeed) && articlesSeed.length > 0
-      ? (articlesSeed as Array<{
-          id: string
-          slug: string
-          title: string
-          excerpt?: string
-          bodyHtml?: string
-          coverUrl?: string
-          coverAlt?: string
-          coverImage?: { url: string; alt: string }
-          category?: { slug: string; name: string }
-          authorName?: string
-          status?: 'draft' | 'published'
-          publishedAt?: string
-          seoTitle?: string
-          seoDescription?: string
-        }>)
-      : INITIAL_ARTICLES
+interface RawArticleSeedItem {
+  id: string
+  slug: string
+  title: string
+  excerpt?: string
+  bodyHtml?: string
+  coverUrl?: string
+  coverAlt?: string
+  coverImage?: {
+    url: string
+    alt: string
+  }
+  category?: {
+    slug: string
+    name: string
+  }
+  authorName?: string
+  status?: 'draft' | 'published'
+  publishedAt?: string
+  seoTitle?: string
+  seoDescription?: string
+}
 
-  return seedList.map((a) => ({
-    id: a.id,
-    slug: a.slug,
-    title: a.title,
-    excerpt: a.excerpt ?? '',
-    bodyHtml: a.bodyHtml ?? '',
-    coverImage: {
-      url: a.coverUrl || a.coverImage?.url || '/images/practice-corporate.webp',
-      alt: a.coverAlt || a.coverImage?.alt || `Ilustrasi ${a.title}`,
-    },
-    category: {
-      slug: a.category?.slug || 'kajian-hukum',
-      name: a.category?.name || 'Hukum Korporasi & Bisnis',
-    },
-    authorName: a.authorName || 'Tim Redaksi FS dan Rekan',
-    status: (a.status as 'draft' | 'published') || 'published',
-    publishedAt: a.publishedAt || new Date().toISOString(),
-    seoTitle: a.seoTitle || a.title,
-    seoDescription: a.seoDescription || a.excerpt || '',
-  }))
+export function getAllNormalizedArticles(): ArticlePublicData[] {
+  const seedList: RawArticleSeedItem[] =
+    Array.isArray(articlesSeed) && articlesSeed.length > 0
+      ? (articlesSeed as RawArticleSeedItem[])
+      : (INITIAL_ARTICLES as unknown as RawArticleSeedItem[])
+
+  return seedList.map((a: RawArticleSeedItem): ArticlePublicData => {
+    const coverUrl = a.coverUrl || a.coverImage?.url || '/images/practice-corporate.webp'
+    const coverAlt = a.coverAlt || a.coverImage?.alt || `Ilustrasi ${a.title}`
+    return {
+      id: a.id,
+      slug: a.slug,
+      title: a.title,
+      excerpt: a.excerpt ?? '',
+      bodyHtml: a.bodyHtml ?? '',
+      coverImage: {
+        url: coverUrl,
+        alt: coverAlt,
+      },
+      category: {
+        slug: a.category?.slug || 'kajian-hukum',
+        name: a.category?.name || 'Hukum Korporasi & Bisnis',
+      },
+      authorName: a.authorName || 'Tim Redaksi FS dan Rekan',
+      status: a.status === 'draft' ? 'draft' : 'published',
+      publishedAt: a.publishedAt || new Date().toISOString(),
+      seoTitle: a.seoTitle || a.title,
+      seoDescription: a.seoDescription || a.excerpt || '',
+    }
+  })
 }
 
 export function getPublishedArticles(

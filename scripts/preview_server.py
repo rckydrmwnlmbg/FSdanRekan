@@ -163,6 +163,19 @@ def save_articles(articles: list[dict]) -> None:
     )
 
 
+def resolve_article_category(cat_name: str) -> dict:
+    from scripts.admin_cms import DEFAULT_CATEGORIES, load_cms_state
+
+    state = load_cms_state()
+    cats = state.get("categories") or DEFAULT_CATEGORIES
+    target = (cat_name or "").strip()
+    for c in cats:
+        if c.get("name", "").strip().lower() == target.lower() or c.get("slug", "").strip().lower() == target.lower():
+            return {"slug": c.get("slug"), "name": c.get("name")}
+    slug = "-".join("".join(ch.lower() if ch.isalnum() else " " for ch in target).split()) or "hukum-korporasi"
+    return {"slug": slug, "name": target or "Hukum Korporasi & Bisnis"}
+
+
 def load_inquiries() -> list[dict]:
     inq_file = CONTENT_DIR / "inquiries.json"
     if not inq_file.exists():
@@ -210,10 +223,75 @@ def load_combined_css() -> str:
     return tokens + "\n" + cleaned_globals
 
 
-def render_shell(title: str, description: str, body_html: str) -> str:
+def render_shell(title: str, description: str, body_html: str, path: str = "/") -> str:
     css = load_combined_css()
     header_wa = wa_link(WHATSAPP_NUMBER, f"{DEFAULT_WA_MESSAGE} (Sumber: Header {SHORT_BRAND_NAME})")
     floating_wa = wa_link(WHATSAPP_NUMBER, f"{DEFAULT_WA_MESSAGE} (Sumber: Website Resmi {OFFICIAL_FIRM_NAME})")
+    canonical_url = f"https://fsdanrekan.id{path}"
+    og_image_url = "https://fsdanrekan.id/og-default.webp"
+
+    legal_schema = json.dumps(
+        {
+            "@context": "https://schema.org",
+            "@type": "LegalService",
+            "@id": "https://fsdanrekan.id/#legal-service",
+            "name": OFFICIAL_FIRM_NAME,
+            "alternateName": SHORT_BRAND_NAME,
+            "url": "https://fsdanrekan.id",
+            "telephone": "+62811830991",
+            "email": "konsultasi@fsdanrekan.id",
+            "priceRange": "$$$",
+            "logo": "https://fsdanrekan.id/logo-seal-transparent.png",
+            "image": og_image_url,
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Gedung Mandira Lt. 4, Jl. RP Soeroso No. 33, RT 002 RW 002, Gondangdia, Menteng",
+                "addressLocality": "Jakarta Pusat",
+                "addressRegion": "DKI Jakarta",
+                "postalCode": "10350",
+                "addressCountry": "ID",
+            },
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": -6.192815,
+                "longitude": 106.8363629,
+            },
+            "hasMap": "https://www.google.com/maps/search/?api=1&query=Gedung+Mandira+Jl.+RP+Soeroso+No.+33+Menteng+Jakarta+Pusat",
+            "openingHoursSpecification": [
+                {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": [
+                        "https://schema.org/Monday",
+                        "https://schema.org/Tuesday",
+                        "https://schema.org/Wednesday",
+                        "https://schema.org/Thursday",
+                        "https://schema.org/Friday",
+                    ],
+                    "opens": "09:30",
+                    "closes": "18:00",
+                }
+            ],
+            "sameAs": ["https://instagram.com/fhspartners"],
+            "areaServed": [
+                {"@type": "AdministrativeArea", "name": "Jakarta Pusat"},
+                {"@type": "AdministrativeArea", "name": "DKI Jakarta"},
+                {"@type": "Country", "name": "Indonesia"},
+            ],
+            "knowsAbout": [
+                "Litigasi Korporasi dan Komersial",
+                "Sengketa Pertanahan dan Agraria",
+                "Hukum Perdata dan Perlindungan Aset",
+                "Hukum Pidana Umum dan Tipikor",
+                "Hak Kekayaan Intelektual",
+                "Ketenagakerjaan dan Hubungan Industrial",
+                "Kepailitan dan PKPU",
+                "Arbitrase dan Mediasi Bisnis",
+                "Hukum Perbankan dan Pembiayaan",
+                "Hukum Keluarga dan Waris",
+            ],
+        },
+        ensure_ascii=False,
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="id">
@@ -222,10 +300,23 @@ def render_shell(title: str, description: str, body_html: str) -> str:
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{html.escape(title)}</title>
   <meta name="description" content="{html.escape(description)}">
+  <link rel="canonical" href="{canonical_url}">
   <link rel="icon" href="/favicon.ico">
+  <meta property="og:title" content="{html.escape(title)}">
+  <meta property="og:description" content="{html.escape(description)}">
+  <meta property="og:url" content="{canonical_url}">
+  <meta property="og:site_name" content="{OFFICIAL_FIRM_NAME}">
+  <meta property="og:locale" content="id_ID">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="{og_image_url}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{html.escape(title)}">
+  <meta name="twitter:description" content="{html.escape(description)}">
+  <meta name="twitter:image" content="{og_image_url}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script type="application/ld+json">{legal_schema}</script>
   <style>{css}</style>
 </head>
 <body>
@@ -1901,6 +1992,13 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
             action = body.get("action")
             if action == "create":
                 title = str(body.get("title", "")).strip()
+                if not title:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_security_headers()
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"Judul artikel wajib diisi."}')
+                    return
                 custom_slug = str(body.get("slug", "")).strip()
                 slug = (
                     "-".join("".join(ch.lower() if ch.isalnum() else " " for ch in (custom_slug or title)).split())
@@ -1914,6 +2012,7 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
                         f"<p>{html.escape(p.strip())}</p>" for p in raw_body.split("\n") if p.strip()
                     )
                 new_id = f"article-{int(time.time())}"
+                cat_dict = resolve_article_category(str(body.get("categoryName", "Hukum Korporasi & Bisnis")))
                 articles.insert(
                     0,
                     {
@@ -1921,10 +2020,7 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
                         "slug": slug,
                         "title": title,
                         "excerpt": str(body.get("excerpt", "")).strip(),
-                        "category": {
-                            "slug": "kajian-hukum",
-                            "name": str(body.get("categoryName", "Hukum Korporasi & Bisnis")),
-                        },
+                        "category": cat_dict,
                         "authorName": str(body.get("authorName", "Tim Redaksi FS dan Rekan")).strip() or "Tim Redaksi FS dan Rekan",
                         "status": "draft" if body.get("status") == "draft" else "published",
                         "publishedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -1942,16 +2038,17 @@ class PreviewRequestHandler(BaseHTTPRequestHandler):
                 aid = str(body.get("id", ""))
                 for a in articles:
                     if a.get("id") == aid:
-                        a["title"] = str(body.get("title", a["title"])).strip()
+                        new_title = str(body.get("title", a["title"])).strip()
+                        if new_title:
+                            a["title"] = new_title
+                            a["coverAlt"] = f"Ilustrasi {new_title}"
                         if body.get("slug"):
                             a["slug"] = "-".join(
                                 "".join(ch.lower() if ch.isalnum() else " " for ch in str(body["slug"])).split()
                             )
                         a["excerpt"] = str(body.get("excerpt", a.get("excerpt", ""))).strip()
-                        a["category"] = {
-                            "slug": "kajian-hukum",
-                            "name": str(body.get("categoryName", a.get("category", {}).get("name", "Umum"))),
-                        }
+                        cat_input = str(body.get("categoryName", a.get("category", {}).get("name", "Hukum Korporasi & Bisnis")))
+                        a["category"] = resolve_article_category(cat_input)
                         a["authorName"] = str(body.get("authorName", a.get("authorName", "Tim Redaksi FS dan Rekan"))).strip()
                         a["status"] = "draft" if body.get("status") == "draft" else "published"
                         a["coverUrl"] = str(body.get("coverUrl", a.get("coverUrl", "/images/practice-corporate.webp")))

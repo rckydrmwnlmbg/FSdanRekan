@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { DEFAULT_SITE_SETTINGS, getPublishedArticleBySlug } from '@/lib/content'
-import { buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
+import { buildArticleJsonLd, buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
 import { waLink } from '@/lib/whatsapp'
 import { ArticleBody } from '@/components/ArticleBody'
 
@@ -48,8 +48,21 @@ export default async function ArticleDetailPage({ params }: ArticleDetailProps) 
     `Halo FS dan Rekan, saya ingin berkonsultasi terkait topik artikel "${article.title}".`,
   )
 
+  const articleJsonLd = buildArticleJsonLd({
+    title: article.title,
+    description: article.excerpt,
+    slug: article.slug,
+    publishedAt: article.publishedAt,
+    coverUrl: article.coverImage.url,
+    authorName: article.authorName,
+  })
+
   return (
     <article className="section-gap">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <div className="container">
         <div className="article-category-badge">{article.category.name}</div>
         <h1>{article.title}</h1>

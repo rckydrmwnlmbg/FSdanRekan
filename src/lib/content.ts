@@ -1,6 +1,7 @@
 import teamSeed from '../../content/team.json'
 import practiceAreasSeed from '../../content/practice_areas.json'
 import caseRecordsSeed from '../../content/case_records.json'
+import articlesSeed from '../../content/articles.json'
 import { OFFICIAL_ADDRESS, OFFICIAL_FIRM_NAME, SHORT_BRAND_NAME } from '@/lib/seo'
 
 export interface TeamPhotoData {
@@ -527,26 +528,71 @@ export const INITIAL_ARTICLES: ArticlePublicData[] = [
   },
 ]
 
+export function getAllNormalizedArticles(): ArticlePublicData[] {
+  const seedList =
+    Array.isArray(articlesSeed) && articlesSeed.length > 0
+      ? (articlesSeed as Array<{
+          id: string
+          slug: string
+          title: string
+          excerpt?: string
+          bodyHtml?: string
+          coverUrl?: string
+          coverAlt?: string
+          coverImage?: { url: string; alt: string }
+          category?: { slug: string; name: string }
+          authorName?: string
+          status?: 'draft' | 'published'
+          publishedAt?: string
+          seoTitle?: string
+          seoDescription?: string
+        }>)
+      : INITIAL_ARTICLES
+
+  return seedList.map((a) => ({
+    id: a.id,
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.excerpt ?? '',
+    bodyHtml: a.bodyHtml ?? '',
+    coverImage: {
+      url: a.coverUrl || a.coverImage?.url || '/images/practice-corporate.webp',
+      alt: a.coverAlt || a.coverImage?.alt || `Ilustrasi ${a.title}`,
+    },
+    category: {
+      slug: a.category?.slug || 'kajian-hukum',
+      name: a.category?.name || 'Hukum Korporasi & Bisnis',
+    },
+    authorName: a.authorName || 'Tim Redaksi FS dan Rekan',
+    status: (a.status as 'draft' | 'published') || 'published',
+    publishedAt: a.publishedAt || new Date().toISOString(),
+    seoTitle: a.seoTitle || a.title,
+    seoDescription: a.seoDescription || a.excerpt || '',
+  }))
+}
+
 export function getPublishedArticles(
   categorySlug?: string,
   searchQuery?: string,
 ): ArticlePublicData[] {
   const nowIso = new Date().toISOString()
   const q = searchQuery?.trim().toLowerCase() ?? ''
-  return INITIAL_ARTICLES.filter((a) => {
-    if (a.status !== 'published' || a.publishedAt > nowIso) return false
-    if (categorySlug && a.category.slug !== categorySlug) return false
-    if (q) {
-      const haystack = `${a.title} ${a.excerpt} ${a.category.name} ${a.bodyHtml}`.toLowerCase()
-      if (!haystack.includes(q)) return false
-    }
-    return true
-  }).sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
+  return getAllNormalizedArticles()
+    .filter((a) => {
+      if (a.status !== 'published' || a.publishedAt > nowIso) return false
+      if (categorySlug && a.category.slug !== categorySlug) return false
+      if (q) {
+        const haystack = `${a.title} ${a.excerpt} ${a.category.name} ${a.bodyHtml}`.toLowerCase()
+        if (!haystack.includes(q)) return false
+      }
+      return true
+    })
+    .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
 }
 
 export function getPublishedArticleBySlug(slug: string): ArticlePublicData | null {
   const nowIso = new Date().toISOString()
-  const found = INITIAL_ARTICLES.find(
+  const found = getAllNormalizedArticles().find(
     (a) => a.slug === slug && a.status === 'published' && a.publishedAt <= nowIso,
   )
   return found ?? null

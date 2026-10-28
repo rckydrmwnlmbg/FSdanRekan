@@ -8,7 +8,12 @@ import {
   getPublishedPracticeAreas,
   getPublishedTeamMembers,
 } from '@/lib/content'
-import { buildPageMetadata, OFFICIAL_ADDRESS, OFFICIAL_FIRM_NAME } from '@/lib/seo'
+import {
+  buildBreadcrumbJsonLd,
+  buildPageMetadata,
+  OFFICIAL_ADDRESS,
+  OFFICIAL_FIRM_NAME,
+} from '@/lib/seo'
 import { waLink } from '@/lib/whatsapp'
 
 interface PracticeDetailProps {
@@ -53,8 +58,18 @@ export default async function PracticeAreaDetailPage({ params }: PracticeDetailP
     `Halo FS dan Rekan, saya ingin berkonsultasi mengenai bidang layanan "${area.name}".`,
   )
 
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: 'Beranda', url: '/' },
+    { name: 'Bidang Praktik', url: '/#keahlian' },
+    { name: area.name, url: `/layanan/${area.slug}` },
+  ])
+
   return (
     <section className="section-gap" aria-labelledby="practice-detail-heading">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <div className="container">
         <div className="eyebrow-tag">BIDANG PRAKTIK HUKUM — {area.label}</div>
         <h1 id="practice-detail-heading">{area.name}</h1>

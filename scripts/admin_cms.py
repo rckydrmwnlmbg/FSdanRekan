@@ -484,8 +484,25 @@ def handle_admin_api(path: str, body: dict, actor_email: str, clean_ui_fn, defau
             append_audit_log(actor_email, "UPDATE_CATEGORY", "categories", str(cid), "Memperbarui kategori artikel")
             return 200, {"ok": True}
         if action == "delete":
-            cid = body.get("id")
-            state["categories"] = [c for c in cats if c.get("id") != cid]
+            cid = str(body.get("id", ""))
+            target_cat = next((c for c in cats if str(c.get("id")) == cid), None)
+            if target_cat:
+                articles_file = CONTENT_DIR / "articles.json"
+                if articles_file.exists():
+                    try:
+                        arts = json.loads(articles_file.read_text(encoding="utf-8"))
+                        in_use = any(
+                            art.get("category", {}).get("name") == target_cat.get("name")
+                            or art.get("category", {}).get("slug") == target_cat.get("slug")
+                            for art in arts
+                        )
+                        if in_use:
+                            return 400, {
+                                "error": f"Kategori '{target_cat.get('name')}' tidak dapat dihapus karena masih digunakan oleh artikel aktif. Ubah kategori artikel terkait terlebih dahulu."
+                            }
+                    except Exception:
+                        pass
+            state["categories"] = [c for c in cats if str(c.get("id")) != cid]
             save_cms_state(state)
             append_audit_log(actor_email, "DELETE_CATEGORY", "categories", str(cid), "Menghapus kategori artikel")
             return 200, {"ok": True}
@@ -644,6 +661,13 @@ def handle_admin_api(path: str, body: dict, actor_email: str, clean_ui_fn, defau
             state.setdefault("customPracticeAreas", []).append(new_area)
             save_cms_state(state)
             append_audit_log(actor_email, "CREATE_PRACTICE_AREA", "practice-areas", slug, f"Menambah bidang praktik: {name}")
+            return 200, {"ok": True}
+
+        if action == "delete_custom":
+            slug = str(body.get("slug", "")).strip()
+            state["customPracticeAreas"] = [ca for ca in state.get("customPracticeAreas", []) if ca.get("slug") != slug]
+            save_cms_state(state)
+            append_audit_log(actor_email, "DELETE_PRACTICE_AREA", "practice-areas", slug, "Menghapus bidang praktik tambahan")
             return 200, {"ok": True}
 
     # 5. Manage Case Records (SK-14 Anonymity Guard enforced)

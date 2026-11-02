@@ -312,8 +312,6 @@ export function CaseRecordsSection({ records }: CaseRecordsSectionProps) {
                 </button>
               </div>
             </div>
-              </div>
-            </div>
           </div>
         </div>
       )}

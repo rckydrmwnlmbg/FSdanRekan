@@ -36,17 +36,17 @@
 - **role:** Pendiri dan Managing Partner
 - **photo:** `TODO(client)` — foto formal, rasio 4:5
 - **pendidikan:** S.H., Fakultas Hukum Universitas Tanjungpura
-- **motto:** "Life must have meaning"
+- **motto:** "Life has to be meaningful"
 - **tags:** *(tidak disebut di sumber; jangan diisi)*
 
 **shortBio (≤ 200 karakter):**
-> Pendiri dan Managing Partner. Berpegang pada motto "Life must have meaning", beliau mendirikan firma ini untuk menghadirkan pendampingan hukum yang terpercaya dan mudah diakses.
+> Pendiri dan Managing Partner. Berpegang pada motto "Life has to be meaningful", beliau mendirikan firma ini untuk menghadirkan pendampingan hukum yang terpercaya dan mudah diakses.
 
 **fullBio:**
 
 Ferdinan Hasiholan Silalahi, S.H. merupakan Pendiri sekaligus Managing Partner di Ferdinan Silalahi dan Rekan Law Firm. Lahir di Jakarta dan memiliki kebanggaan terhadap warisan budaya Batak, beliau menyelesaikan pendidikan Sarjana Hukum di Fakultas Hukum Universitas Tanjungpura.
 
-Berpegang pada motto hidup "Life must have meaning", Ferdinan meyakini bahwa profesi hukum bukan sekadar pekerjaan, melainkan sebuah panggilan untuk memberikan manfaat dan menciptakan dampak positif bagi masyarakat. Filosofi tersebut menjadi landasan dalam perjalanan kariernya sekaligus dasar berdirinya firma hukum ini.
+Berpegang pada motto hidup "Life has to be meaningful", Ferdinan meyakini bahwa profesi hukum bukan sekadar pekerjaan, melainkan sebuah panggilan untuk memberikan manfaat dan menciptakan dampak positif bagi masyarakat. Filosofi tersebut menjadi landasan dalam perjalanan kariernya sekaligus dasar berdirinya firma hukum ini.
 
 Berangkat dari kepeduliannya terhadap masih terbatasnya akses masyarakat Indonesia terhadap layanan hukum yang berkualitas, beliau mendirikan firma ini dengan visi untuk menghadirkan pendampingan hukum yang terpercaya, mudah diakses, dan profesional bagi individu, pelaku usaha, maupun masyarakat yang membutuhkan.
 

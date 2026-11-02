@@ -139,7 +139,7 @@ def build_team_seed() -> list[dict[str, object]]:
             "displayName": "Ferdinan Hasiholan Silalahi, S.H.",
             "roleTitle": "Pendiri dan Managing Partner",
             "group": "Pendiri dan Managing Partner",
-            "motto": "Life must have meaning",
+            "motto": "Life has to be meaningful",
             "education": ["S.H., Fakultas Hukum Universitas Tanjungpura"],
             "credentials": [],
             "languages": [],
@@ -306,12 +306,25 @@ def serialize_public_case_record(record: dict[str, object]) -> dict[str, object]
         and len(consent_ref.strip()) > 0
     )
 
+    photos = record.get("photos")
+    if not photos or not isinstance(photos, list):
+        photos = [
+            {
+                "url": record.get("imageUrl") or "/images/hero-slide-courtroom.webp",
+                "caption": f"Dokumentasi penanganan perkara {record.get('caseType', '')} di {record.get('region', '')}",
+                "alt": record.get("imageAlt") or f"Dokumentasi perkara {record.get('caseType', '')}",
+            }
+        ]
+
     public_record: dict[str, object] = {
         "id": record["id"],
         "caseType": record["caseType"],
         "region": record["region"],
         "displayMode": "named" if allow_named else "anonymous",
         "displayOrder": record["displayOrder"],
+        "imageUrl": record.get("imageUrl") or photos[0]["url"],
+        "imageAlt": record.get("imageAlt") or photos[0].get("alt") or f"Dokumentasi {record['caseType']}",
+        "photos": photos,
     }
     if allow_named and record.get("clientName"):
         public_record["clientName"] = record["clientName"]
@@ -323,23 +336,216 @@ def build_case_records_seed() -> list[dict[str, object]]:
     SK-14 seed for 7 case records from CONTENT_PROFILES.md Section 4.2.
     Default mode is 'anonymous' with clientName=None and consentRef=None so real client names
     are never exposed in public seed files.
+    Each case includes multi-photo documentation gallery for rich modal view.
     """
     cases = [
-        ("Perselisihan Hubungan Industrial", "Jakarta"),
-        ("Tindak Pidana Korupsi", "Semarang, Jawa Tengah"),
-        ("Tindak Pidana Korupsi", "Semarang, Jawa Tengah"),
-        ("Tindak pidana penggelapan terkait hubungan kerja", "Surabaya, Jawa Timur"),
-        ("Kecelakaan lalu lintas", "Bandung, Jawa Barat"),
-        ("Sengketa hak atas tanah", "Gunung Putri, Bogor, Jawa Barat"),
-        ("Sengketa hak atas tanah", "Manado, Sulawesi Utara"),
+        (
+            "Perselisihan Hubungan Industrial",
+            "Jakarta",
+            "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-1.webp",
+            "Dokumentasi persidangan sengketa hubungan industrial di Jakarta",
+            [
+                {
+                    "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-1.webp",
+                    "caption": "Pemeriksaan berkas dan penelaahan materi perkara perselisihan hubungan industrial",
+                    "alt": "Pemeriksaan berkas perkara perselisihan hubungan industrial di Jakarta",
+                },
+                {
+                    "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-2.webp",
+                    "caption": "Proses mediasi dan perundingan penyelesaian perselisihan hubungan industrial",
+                    "alt": "Mediasi perundingan sengketa hubungan industrial",
+                },
+                {
+                    "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-3.webp",
+                    "caption": "Persiapan dokumen administrasi dan pembuktian perkara ketenagakerjaan",
+                    "alt": "Penyiapan dokumen pembuktian hubungan kerja",
+                },
+                {
+                    "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-4.webp",
+                    "caption": "Pendampingan advokasi pada tahapan persidangan Pengadilan Hubungan Industrial (PHI)",
+                    "alt": "Pendampingan sidang perkara perselisihan hubungan industrial",
+                },
+                {
+                    "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-5.webp",
+                    "caption": "Pemeriksaan dan koordinasi dokumen pembelaan hak-hak ketenagakerjaan para pihak",
+                    "alt": "Koordinasi dokumen pembelaan hak ketenagakerjaan",
+                },
+                {
+                    "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-6.webp",
+                    "caption": "Tahapan tindak lanjut dan penutupan risalah perkara hubungan industrial",
+                    "alt": "Penutupan risalah penanganan perkara hubungan industrial",
+                },
+            ],
+        ),
+        (
+            "Tindak Pidana Korupsi",
+            "Semarang, Jawa Tengah",
+            "/images/hero-slide-courtroom.webp",
+            "Dokumentasi persidangan perkara tindak pidana korupsi di Semarang",
+            [
+                {
+                    "url": "/images/hero-slide-courtroom.webp",
+                    "caption": "Suasana persidangan pemeriksaan saksi dan pembuktian di Pengadilan Tipikor Semarang",
+                    "alt": "Ruang sidang Pengadilan Tindak Pidana Korupsi Semarang",
+                },
+                {
+                    "url": "/images/lady-justice.webp",
+                    "caption": "Telaah yuridis pembelaan dan penyusunan nota pembelaan (pledoi)",
+                    "alt": "Simbol integritas penegakan hukum dan keadilan",
+                },
+                {
+                    "url": "/images/gavel-banner.webp",
+                    "caption": "Pendampingan hukum pada sidang pembacaan putusan majelis hakim",
+                    "alt": "Palu sidang persidangan pidana khusus",
+                },
+            ],
+        ),
+        (
+            "Tindak Pidana Korupsi",
+            "Semarang, Jawa Tengah",
+            "/images/lady-justice.webp",
+            "Dokumentasi pendampingan hukum perkara pidana khusus di Semarang",
+            [
+                {
+                    "url": "/images/lady-justice.webp",
+                    "caption": "Pemeriksaan berkas dakwaan dan riset hukum pembuktian materiel",
+                    "alt": "Analisis yuridis dakwaan perkara pidana korupsi",
+                },
+                {
+                    "url": "/images/hero-slide-courtroom.webp",
+                    "caption": "Pendampingan pada tahapan persidangan Pengadilan Tindak Pidana Korupsi",
+                    "alt": "Persidangan pembuktian perkara pidana",
+                },
+                {
+                    "url": "/images/practice-corporate.webp",
+                    "caption": "Koordinasi tim advokat dalam perumusan eksepsi dan sanggahan yuridis",
+                    "alt": "Ruang diskusi telaah perkara hukum pidana",
+                },
+            ],
+        ),
+        (
+            "Tindak pidana penggelapan terkait hubungan kerja",
+            "Surabaya, Jawa Timur",
+            "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-1.webp",
+            "Dokumentasi penanganan perkara pidana penggelapan terkait hubungan kerja di Surabaya",
+            [
+                {
+                    "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-1.webp",
+                    "caption": "Pemeriksaan berkas bukti dan audit dokumen awal terkait tindak pidana penggelapan",
+                    "alt": "Pemeriksaan bukti perkara pidana penggelapan dalam jabatan",
+                },
+                {
+                    "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-2.webp",
+                    "caption": "Pendampingan hukum dalam proses klarifikasi dan pemeriksaan di tingkat penyidikan",
+                    "alt": "Pendampingan pemeriksaan klarifikasi di kepolisian",
+                },
+                {
+                    "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-3.webp",
+                    "caption": "Penyusunan telaah yuridis dan analisis unsur-unsur pasal penggelapan dalam hubungan kerja",
+                    "alt": "Penyusunan telaah yuridis perkara pidana penggelapan",
+                },
+                {
+                    "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-4.webp",
+                    "caption": "Koordinasi berkas administrasi perkara pidana di wilayah Jawa Timur",
+                    "alt": "Koordinasi berkas administrasi perkara pidana Surabaya",
+                },
+                {
+                    "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-5.webp",
+                    "caption": "Pendampingan pada tahapan pemeriksaan saksi dan verifikasi fakta hukum",
+                    "alt": "Verifikasi fakta dan bukti saksi perkara pidana",
+                },
+                {
+                    "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-6.webp",
+                    "caption": "Proses penyerahan berkas dan koordinasi penegakan hukum",
+                    "alt": "Penyerahan berkas perkara pidana",
+                },
+                {
+                    "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-7.webp",
+                    "caption": "Pendampingan advokasi persidangan perkara pidana khusus di pengadilan",
+                    "alt": "Pendampingan sidang advokasi perkara pidana",
+                },
+                {
+                    "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-8.webp",
+                    "caption": "Penyusunan risalah dan pengawalan proses hukum hingga penetapan akhir",
+                    "alt": "Pengawalan putusan dan penetapan akhir perkara pidana",
+                },
+            ],
+        ),
+        (
+            "Kecelakaan lalu lintas",
+            "Bandung, Jawa Barat",
+            "/images/cases/kecelakaan-lalu-lintas/kecelakaan-lalu-lintas-1.webp",
+            "Dokumentasi penanganan perkara kecelakaan lalu lintas di Bandung",
+            [
+                {
+                    "url": "/images/cases/kecelakaan-lalu-lintas/kecelakaan-lalu-lintas-1.webp",
+                    "caption": "Pemeriksaan berkas kronologi kejadian dan verifikasi dampak kecelakaan lalu lintas",
+                    "alt": "Pemeriksaan kronologi perkara kecelakaan lalu lintas di Bandung",
+                },
+                {
+                    "url": "/images/cases/kecelakaan-lalu-lintas/kecelakaan-lalu-lintas-2.webp",
+                    "caption": "Pendampingan proses mediasi ganti rugi dan penyelesaian hukum para pihak",
+                    "alt": "Mediasi penyelesaian ganti rugi perkara kecelakaan lalu lintas",
+                },
+            ],
+        ),
+        (
+            "Sengketa hak atas tanah",
+            "Gunung Putri, Bogor, Jawa Barat",
+            "/images/article-land.webp",
+            "Dokumentasi penanganan sengketa hak atas tanah di Gunung Putri",
+            [
+                {
+                    "url": "/images/article-land.webp",
+                    "caption": "Pemeriksaan fisik batas sempadan tanah dan verifikasi warkah sertifikat",
+                    "alt": "Pemeriksaan warkah tanah dan sertifikat hak milik",
+                },
+                {
+                    "url": "/images/practice-corporate.webp",
+                    "caption": "Uji tuntas dokumen legalitas kepemilikan dan riwayat alas hak tanah",
+                    "alt": "Uji tuntas hukum (legal due diligence) pertanahan",
+                },
+                {
+                    "url": "/images/hero-slide-courtroom.webp",
+                    "caption": "Persidangan sengketa kepemilikan hak atas tanah di pengadilan",
+                    "alt": "Sidang sengketa hak atas tanah di pengadilan",
+                },
+            ],
+        ),
+        (
+            "Sengketa hak atas tanah",
+            "Manado, Sulawesi Utara",
+            "/images/article-land.webp",
+            "Dokumentasi pemeriksaan dokumen sengketa hak atas tanah di Manado",
+            [
+                {
+                    "url": "/images/article-land.webp",
+                    "caption": "Verifikasi data yuridis sertifikat hak milik pada kantor pertanahan",
+                    "alt": "Verifikasi data yuridis dokumen kepemilikan lahan",
+                },
+                {
+                    "url": "/images/hero-slide-courtroom.webp",
+                    "caption": "Pendampingan proses pembuktian kepemilikan lahan di persidangan",
+                    "alt": "Sidang pembuktian sengketa tanah di Manado",
+                },
+                {
+                    "url": "/images/gavel-banner.webp",
+                    "caption": "Proses mediasi dan penyelesaian sengketa penguasaan fisik tanah",
+                    "alt": "Palu sidang penyelesaian sengketa pertanahan",
+                },
+            ],
+        ),
     ]
     records: list[dict[str, object]] = []
-    for idx, (case_type, region) in enumerate(cases, start=1):
+    for idx, (case_type, region, image_url, image_alt, photos) in enumerate(cases, start=1):
         records.append(
             {
                 "id": f"case-record-{idx}",
                 "caseType": case_type,
                 "region": region,
+                "imageUrl": image_url,
+                "imageAlt": image_alt,
+                "photos": photos,
                 "displayMode": "anonymous",
                 "clientName": None,
                 "consentRef": None,

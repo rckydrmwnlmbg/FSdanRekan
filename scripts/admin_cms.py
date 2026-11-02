@@ -53,7 +53,7 @@ DEFAULT_SITE_SETTINGS = {
     "heroLead": "Ferdinan Silalahi dan Rekan Law Firm mengombinasikan analisis yuridis mendalam dengan strategi persidangan dan pendampingan hukum yang presisi untuk melindungi kepentingan klien individu maupun korporasi.",
     "aboutEyebrow": "TENTANG FIRMA & PENDIRI",
     "aboutHeading": "Dedikasi Advokasi Berintegritas.",
-    "founderMotto": "Life must have meaning",
+    "founderMotto": "Life has to be meaningful",
     "aboutParagraph": "Berangkat dari kepedulian terhadap akses masyarakat Indonesia terhadap layanan hukum yang berkualitas, Ferdinan Silalahi dan Rekan Law Firm didirikan dengan visi menghadirkan pendampingan hukum yang terpercaya, mudah diakses, dan profesional bagi individu, pelaku usaha, maupun masyarakat yang membutuhkan.",
     "cred1Title": "Pendekatan Berorientasi Solusi",
     "cred1Desc": "Menjunjung tinggi nilai integritas, profesionalisme, dan keadilan dalam setiap tahapan pendampingan hukum.",
@@ -688,10 +688,22 @@ def handle_admin_api(path: str, body: dict, actor_email: str, clean_ui_fn, defau
                 consent_ref = None
 
             if action == "create":
+                photos = body.get("photos")
+                if not isinstance(photos, list) or not photos:
+                    photos = [
+                        {
+                            "url": str(body.get("imageUrl", "/images/hero-slide-courtroom.webp")).strip() or "/images/hero-slide-courtroom.webp",
+                            "caption": f"Dokumentasi penanganan perkara {body.get('caseType', '')} di wilayah {body.get('region', '')}",
+                            "alt": str(body.get("imageAlt", "")).strip() or f"Dokumentasi penanganan perkara {body.get('caseType', '')} di wilayah {body.get('region', '')}",
+                        }
+                    ]
                 new_rec = {
                     "id": f"case-record-{int(time.time() * 1000)}",
                     "caseType": str(body.get("caseType", "")).strip(),
                     "region": str(body.get("region", "")).strip(),
+                    "imageUrl": str(body.get("imageUrl", photos[0].get("url", "/images/hero-slide-courtroom.webp"))).strip() or "/images/hero-slide-courtroom.webp",
+                    "imageAlt": str(body.get("imageAlt", photos[0].get("alt", ""))).strip() or f"Dokumentasi penanganan perkara {body.get('caseType', '')} di wilayah {body.get('region', '')}",
+                    "photos": photos,
                     "displayMode": display_mode,
                     "clientName": client_name,
                     "consentRef": consent_ref,
@@ -710,6 +722,12 @@ def handle_admin_api(path: str, body: dict, actor_email: str, clean_ui_fn, defau
                     if r.get("id") == cid:
                         r["caseType"] = str(body.get("caseType", r["caseType"])).strip()
                         r["region"] = str(body.get("region", r["region"])).strip()
+                        if "photos" in body and isinstance(body.get("photos"), list) and body.get("photos"):
+                            r["photos"] = body["photos"]
+                        if "imageUrl" in body:
+                            r["imageUrl"] = str(body.get("imageUrl", "")).strip() or "/images/hero-slide-courtroom.webp"
+                        if "imageAlt" in body:
+                            r["imageAlt"] = str(body.get("imageAlt", "")).strip() or f"Dokumentasi penanganan perkara {r['caseType']} di wilayah {r['region']}"
                         r["displayMode"] = display_mode
                         r["clientName"] = client_name
                         r["consentRef"] = consent_ref
@@ -1107,14 +1125,18 @@ def render_enterprise_admin_dashboard(
     for r in cases:
         mode = r.get("displayMode", "anonymous")
         mode_badge = "ANONIM (SK-14)" if mode == "anonymous" else f"BERNAMA (Ref: {html.escape(str(r.get('consentRef', '')))})"
+        img_url = html.escape(r.get("imageUrl") or "/images/hero-slide-courtroom.webp")
         case_rows_html += f"""
         <div class="cms-item-card">
-          <div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-              <span class="cms-badge" style="background:rgba(197,168,128,0.18);color:var(--color-gold-strong);">#{r.get('displayOrder', 1)} &middot; {html.escape(r.get('region', ''))}</span>
-              <span class="cms-badge" style="background:rgba(52,211,153,0.14);color:#34d399;">{mode_badge}</span>
+          <div style="display:flex;gap:16px;align-items:center;">
+            <img src="{img_url}" alt="" width="88" height="52" style="object-fit:cover;border:1px solid var(--color-gold);flex-shrink:0;">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <span class="cms-badge" style="background:rgba(197,168,128,0.18);color:var(--color-gold-strong);">#{r.get('displayOrder', 1)} &middot; {html.escape(r.get('region', ''))}</span>
+                <span class="cms-badge" style="background:rgba(52,211,153,0.14);color:#34d399;">{mode_badge}</span>
+              </div>
+              <h4 style="font-size:1.05rem;">{html.escape(r.get('caseType', ''))}</h4>
             </div>
-            <h4 style="font-size:1.05rem;">{html.escape(r.get('caseType', ''))}</h4>
           </div>
           <div class="cms-item-actions">
             <button type="button" class="btn-outline cms-btn-sm" onclick="openEditCaseModal('{r['id']}')">Edit</button>
@@ -1708,6 +1730,16 @@ def render_enterprise_admin_dashboard(
                   <label class="form-label">Urutan Tampil</label>
                   <input id="caseOrderInput" type="number" class="form-input" value="{len(cases) + 1}" min="1">
                 </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Foto Dokumentasi Perkara (Pilih dari Media)</label>
+                <select id="caseImageUrlInput" class="form-select">
+                  {media_options_html}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Keterangan Aksesibilitas Foto (Alt Text)</label>
+                <input id="caseImageAltInput" type="text" class="form-input" placeholder="Contoh: Dokumentasi persidangan sengketa komersial di PN Jakarta Pusat">
               </div>
               <div class="form-group">
                 <label class="form-label">Mode Tampilan Publik (SK-14)</label>
@@ -2596,6 +2628,8 @@ def render_enterprise_admin_dashboard(
       document.getElementById('caseIdInput').value = c.id;
       document.getElementById('caseTypeInput').value = c.caseType || '';
       document.getElementById('caseRegionInput').value = c.region || '';
+      document.getElementById('caseImageUrlInput').value = c.imageUrl || '/images/hero-slide-courtroom.webp';
+      document.getElementById('caseImageAltInput').value = c.imageAlt || '';
       document.getElementById('caseOrderInput').value = c.displayOrder || 1;
       document.getElementById('caseModeInput').value = c.displayMode || 'anonymous';
       document.getElementById('caseClientInput').value = c.clientName || '';
@@ -2608,6 +2642,8 @@ def render_enterprise_admin_dashboard(
       document.getElementById('caseIdInput').value = '';
       document.getElementById('caseTypeInput').value = '';
       document.getElementById('caseRegionInput').value = '';
+      document.getElementById('caseImageUrlInput').value = '/images/hero-slide-courtroom.webp';
+      document.getElementById('caseImageAltInput').value = '';
       document.getElementById('caseModeInput').value = 'anonymous';
       document.getElementById('caseClientInput').value = '';
       document.getElementById('caseConsentRefInput').value = '';
@@ -2625,6 +2661,8 @@ def render_enterprise_admin_dashboard(
           id: id,
           caseType: document.getElementById('caseTypeInput').value.trim(),
           region: document.getElementById('caseRegionInput').value.trim(),
+          imageUrl: document.getElementById('caseImageUrlInput').value,
+          imageAlt: document.getElementById('caseImageAltInput').value.trim(),
           displayOrder: parseInt(document.getElementById('caseOrderInput').value || '1', 10),
           displayMode: document.getElementById('caseModeInput').value,
           clientName: document.getElementById('caseClientInput').value.trim(),

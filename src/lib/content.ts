@@ -57,6 +57,12 @@ export interface PracticeAreaData {
   isPublished: boolean
 }
 
+export interface CaseDocumentationPhoto {
+  url: string
+  caption?: string
+  alt?: string
+}
+
 export interface CaseRecordInternal {
   id: string
   caseType: string
@@ -67,6 +73,9 @@ export interface CaseRecordInternal {
   scope?: string
   displayOrder: number
   isPublished: boolean
+  imageUrl?: string
+  imageAlt?: string
+  photos?: CaseDocumentationPhoto[]
 }
 
 export interface PublicCaseRecord {
@@ -76,6 +85,9 @@ export interface PublicCaseRecord {
   displayMode: 'anonymous' | 'named'
   clientName?: string
   displayOrder: number
+  imageUrl?: string
+  imageAlt?: string
+  photos?: CaseDocumentationPhoto[]
 }
 
 export interface ArticlePublicData {
@@ -401,12 +413,31 @@ export function serializePublicCaseRecord(record: CaseRecordInternal): PublicCas
     typeof record.consentRef === 'string' &&
     record.consentRef.trim().length > 0
 
+  const defaultPhotoUrl = record.imageUrl ?? '/images/hero-slide-courtroom.webp'
+  const defaultPhotoAlt =
+    record.imageAlt ??
+    `Dokumentasi penanganan perkara ${record.caseType} di wilayah ${record.region}`
+
+  const photos: CaseDocumentationPhoto[] =
+    Array.isArray(record.photos) && record.photos.length > 0
+      ? record.photos
+      : [
+          {
+            url: defaultPhotoUrl,
+            caption: `Dokumentasi penanganan perkara ${record.caseType} wilayah ${record.region}`,
+            alt: defaultPhotoAlt,
+          },
+        ]
+
   const pub: PublicCaseRecord = {
     id: record.id,
     caseType: record.caseType,
     region: record.region,
     displayMode: allowNamed ? 'named' : 'anonymous',
     displayOrder: record.displayOrder,
+    imageUrl: photos[0]?.url ?? defaultPhotoUrl,
+    imageAlt: photos[0]?.alt ?? defaultPhotoAlt,
+    photos,
   }
   if (allowNamed && record.clientName) {
     pub.clientName = record.clientName

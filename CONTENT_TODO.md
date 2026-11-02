@@ -54,7 +54,7 @@ Data 7 perkara telah di-seed ke `content/case_records.json` sesuai prosedur `SK-
 
 ## 4. Konten Situs Lainnya (`CONTENT_PROFILES.md`, `DESIGN.md`, `PRD.md`)
 
-- [ ] `TODO(client)`: Teks bagian **Tentang Kantor**, butir kredibilitas yang dapat diverifikasi, dan konfirmasi kutipan Managing Partner (menggunakan motto resmi `"Life must have meaning"` atau kutipan tertulis yang disetujui).
+- [ ] `TODO(client)`: Teks bagian **Tentang Kantor**, butir kredibilitas yang dapat diverifikasi, dan konfirmasi kutipan Managing Partner (menggunakan motto resmi `"Life has to be meaningful"` atau kutipan tertulis yang disetujui).
 - [ ] `TODO(client)`: Keputusan untuk pengganti **Kartu Fakta** di beranda (angka statistik demo dilarang tampil tanpa verifikasi tertulis dan tinjauan kode etik advokat; persentase keberhasilan dilarang mutlak).
 - [ ] `TODO(client)`: Berkas vektor (**SVG/PDF**) logo seal resmi **Ferdinan Silalahi dan Rekan Law Firm** (`DESIGN.md` Bagian 3A & 11).
 - [ ] `TODO(client)`: Konfirmasi nomor WhatsApp resmi lengkap (format internasional `62...`) dan alamat email resmi penerima form konsultasi (`INQUIRY_TO`).

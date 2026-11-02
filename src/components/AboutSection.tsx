@@ -37,7 +37,7 @@ export function AboutSection({ founder, onOpenFounderProfile }: AboutSectionProp
 
             {/* DESIGN.md Section 9 #4: Official motto from CONTENT_PROFILES.md instead of invented quote */}
             <blockquote className="quote-editorial-box">
-              &ldquo;{founder.motto ?? 'Life must have meaning'}&rdquo;
+              &ldquo;{founder.motto ?? 'Life has to be meaningful'}&rdquo;
             </blockquote>
 
             <p className="about-paragraph">

@@ -3,6 +3,40 @@
     "id": "case-record-1",
     "caseType": "Perselisihan Hubungan Industrial",
     "region": "Jakarta",
+    "imageUrl": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-1.webp",
+    "imageAlt": "Dokumentasi persidangan sengketa hubungan industrial di Jakarta",
+    "photos": [
+      {
+        "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-1.webp",
+        "caption": "Pemeriksaan berkas dan penelaahan materi perkara perselisihan hubungan industrial",
+        "alt": "Pemeriksaan berkas perkara perselisihan hubungan industrial di Jakarta"
+      },
+      {
+        "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-2.webp",
+        "caption": "Proses mediasi dan perundingan penyelesaian perselisihan hubungan industrial",
+        "alt": "Mediasi perundingan sengketa hubungan industrial"
+      },
+      {
+        "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-3.webp",
+        "caption": "Persiapan dokumen administrasi dan pembuktian perkara ketenagakerjaan",
+        "alt": "Penyiapan dokumen pembuktian hubungan kerja"
+      },
+      {
+        "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-4.webp",
+        "caption": "Pendampingan advokasi pada tahapan persidangan Pengadilan Hubungan Industrial (PHI)",
+        "alt": "Pendampingan sidang perkara perselisihan hubungan industrial"
+      },
+      {
+        "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-5.webp",
+        "caption": "Pemeriksaan dan koordinasi dokumen pembelaan hak-hak ketenagakerjaan para pihak",
+        "alt": "Koordinasi dokumen pembelaan hak ketenagakerjaan"
+      },
+      {
+        "url": "/images/cases/perselisihan-hubungan-industrial/perselisihan-hubungan-industrial-6.webp",
+        "caption": "Tahapan tindak lanjut dan penutupan risalah perkara hubungan industrial",
+        "alt": "Penutupan risalah penanganan perkara hubungan industrial"
+      }
+    ],
     "displayMode": "anonymous",
     "clientName": null,
     "consentRef": null,
@@ -14,6 +48,25 @@
     "id": "case-record-2",
     "caseType": "Tindak Pidana Korupsi",
     "region": "Semarang, Jawa Tengah",
+    "imageUrl": "/images/hero-slide-courtroom.webp",
+    "imageAlt": "Dokumentasi persidangan perkara tindak pidana korupsi di Semarang",
+    "photos": [
+      {
+        "url": "/images/hero-slide-courtroom.webp",
+        "caption": "Suasana persidangan pemeriksaan saksi dan pembuktian di Pengadilan Tipikor Semarang",
+        "alt": "Ruang sidang Pengadilan Tindak Pidana Korupsi Semarang"
+      },
+      {
+        "url": "/images/lady-justice.webp",
+        "caption": "Telaah yuridis pembelaan dan penyusunan nota pembelaan (pledoi)",
+        "alt": "Simbol integritas penegakan hukum dan keadilan"
+      },
+      {
+        "url": "/images/gavel-banner.webp",
+        "caption": "Pendampingan hukum pada sidang pembacaan putusan majelis hakim",
+        "alt": "Palu sidang persidangan pidana khusus"
+      }
+    ],
     "displayMode": "anonymous",
     "clientName": null,
     "consentRef": null,
@@ -25,6 +78,25 @@
     "id": "case-record-3",
     "caseType": "Tindak Pidana Korupsi",
     "region": "Semarang, Jawa Tengah",
+    "imageUrl": "/images/lady-justice.webp",
+    "imageAlt": "Dokumentasi pendampingan hukum perkara pidana khusus di Semarang",
+    "photos": [
+      {
+        "url": "/images/lady-justice.webp",
+        "caption": "Pemeriksaan berkas dakwaan dan riset hukum pembuktian materiel",
+        "alt": "Analisis yuridis dakwaan perkara pidana korupsi"
+      },
+      {
+        "url": "/images/hero-slide-courtroom.webp",
+        "caption": "Pendampingan pada tahapan persidangan Pengadilan Tindak Pidana Korupsi",
+        "alt": "Persidangan pembuktian perkara pidana"
+      },
+      {
+        "url": "/images/practice-corporate.webp",
+        "caption": "Koordinasi tim advokat dalam perumusan eksepsi dan sanggahan yuridis",
+        "alt": "Ruang diskusi telaah perkara hukum pidana"
+      }
+    ],
     "displayMode": "anonymous",
     "clientName": null,
     "consentRef": null,
@@ -36,6 +108,50 @@
     "id": "case-record-4",
     "caseType": "Tindak pidana penggelapan terkait hubungan kerja",
     "region": "Surabaya, Jawa Timur",
+    "imageUrl": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-1.webp",
+    "imageAlt": "Dokumentasi penanganan perkara pidana penggelapan terkait hubungan kerja di Surabaya",
+    "photos": [
+      {
+        "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-1.webp",
+        "caption": "Pemeriksaan berkas bukti dan audit dokumen awal terkait tindak pidana penggelapan",
+        "alt": "Pemeriksaan bukti perkara pidana penggelapan dalam jabatan"
+      },
+      {
+        "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-2.webp",
+        "caption": "Pendampingan hukum dalam proses klarifikasi dan pemeriksaan di tingkat penyidikan",
+        "alt": "Pendampingan pemeriksaan klarifikasi di kepolisian"
+      },
+      {
+        "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-3.webp",
+        "caption": "Penyusunan telaah yuridis dan analisis unsur-unsur pasal penggelapan dalam hubungan kerja",
+        "alt": "Penyusunan telaah yuridis perkara pidana penggelapan"
+      },
+      {
+        "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-4.webp",
+        "caption": "Koordinasi berkas administrasi perkara pidana di wilayah Jawa Timur",
+        "alt": "Koordinasi berkas administrasi perkara pidana Surabaya"
+      },
+      {
+        "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-5.webp",
+        "caption": "Pendampingan pada tahapan pemeriksaan saksi dan verifikasi fakta hukum",
+        "alt": "Verifikasi fakta dan bukti saksi perkara pidana"
+      },
+      {
+        "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-6.webp",
+        "caption": "Proses penyerahan berkas dan koordinasi penegakan hukum",
+        "alt": "Penyerahan berkas perkara pidana"
+      },
+      {
+        "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-7.webp",
+        "caption": "Pendampingan advokasi persidangan perkara pidana khusus di pengadilan",
+        "alt": "Pendampingan sidang advokasi perkara pidana"
+      },
+      {
+        "url": "/images/cases/tindak-pidana-penggelapan/tindak-pidana-penggelapan-8.webp",
+        "caption": "Penyusunan risalah dan pengawalan proses hukum hingga penetapan akhir",
+        "alt": "Pengawalan putusan dan penetapan akhir perkara pidana"
+      }
+    ],
     "displayMode": "anonymous",
     "clientName": null,
     "consentRef": null,
@@ -47,6 +163,20 @@
     "id": "case-record-5",
     "caseType": "Kecelakaan lalu lintas",
     "region": "Bandung, Jawa Barat",
+    "imageUrl": "/images/cases/kecelakaan-lalu-lintas/kecelakaan-lalu-lintas-1.webp",
+    "imageAlt": "Dokumentasi penanganan perkara kecelakaan lalu lintas di Bandung",
+    "photos": [
+      {
+        "url": "/images/cases/kecelakaan-lalu-lintas/kecelakaan-lalu-lintas-1.webp",
+        "caption": "Pemeriksaan berkas kronologi kejadian dan verifikasi dampak kecelakaan lalu lintas",
+        "alt": "Pemeriksaan kronologi perkara kecelakaan lalu lintas di Bandung"
+      },
+      {
+        "url": "/images/cases/kecelakaan-lalu-lintas/kecelakaan-lalu-lintas-2.webp",
+        "caption": "Pendampingan proses mediasi ganti rugi dan penyelesaian hukum para pihak",
+        "alt": "Mediasi penyelesaian ganti rugi perkara kecelakaan lalu lintas"
+      }
+    ],
     "displayMode": "anonymous",
     "clientName": null,
     "consentRef": null,
@@ -58,6 +188,25 @@
     "id": "case-record-6",
     "caseType": "Sengketa hak atas tanah",
     "region": "Gunung Putri, Bogor, Jawa Barat",
+    "imageUrl": "/images/article-land.webp",
+    "imageAlt": "Dokumentasi penanganan sengketa hak atas tanah di Gunung Putri",
+    "photos": [
+      {
+        "url": "/images/article-land.webp",
+        "caption": "Pemeriksaan fisik batas sempadan tanah dan verifikasi warkah sertifikat",
+        "alt": "Pemeriksaan warkah tanah dan sertifikat hak milik"
+      },
+      {
+        "url": "/images/practice-corporate.webp",
+        "caption": "Uji tuntas dokumen legalitas kepemilikan dan riwayat alas hak tanah",
+        "alt": "Uji tuntas hukum (legal due diligence) pertanahan"
+      },
+      {
+        "url": "/images/hero-slide-courtroom.webp",
+        "caption": "Persidangan sengketa kepemilikan hak atas tanah di pengadilan",
+        "alt": "Sidang sengketa hak atas tanah di pengadilan"
+      }
+    ],
     "displayMode": "anonymous",
     "clientName": null,
     "consentRef": null,
@@ -69,6 +218,25 @@
     "id": "case-record-7",
     "caseType": "Sengketa hak atas tanah",
     "region": "Manado, Sulawesi Utara",
+    "imageUrl": "/images/article-land.webp",
+    "imageAlt": "Dokumentasi pemeriksaan dokumen sengketa hak atas tanah di Manado",
+    "photos": [
+      {
+        "url": "/images/article-land.webp",
+        "caption": "Verifikasi data yuridis sertifikat hak milik pada kantor pertanahan",
+        "alt": "Verifikasi data yuridis dokumen kepemilikan lahan"
+      },
+      {
+        "url": "/images/hero-slide-courtroom.webp",
+        "caption": "Pendampingan proses pembuktian kepemilikan lahan di persidangan",
+        "alt": "Sidang pembuktian sengketa tanah di Manado"
+      },
+      {
+        "url": "/images/gavel-banner.webp",
+        "caption": "Proses mediasi dan penyelesaian sengketa penguasaan fisik tanah",
+        "alt": "Palu sidang penyelesaian sengketa pertanahan"
+      }
+    ],
     "displayMode": "anonymous",
     "clientName": null,
     "consentRef": null,

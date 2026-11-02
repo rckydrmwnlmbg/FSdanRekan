@@ -645,10 +645,32 @@ def render_home_page() -> str:
     case_cards_html = ""
     for idx, rec in enumerate(case_records):
         delay = f"{idx * 0.07:.2f}s"
+        rec_photos = rec.get("photos") or []
+        img_url = (rec_photos[0].get("url") if rec_photos else rec.get("imageUrl")) or "/images/hero-slide-courtroom.webp"
+        img_alt = (rec_photos[0].get("alt") if rec_photos else rec.get("imageAlt")) or f"Dokumentasi penanganan perkara {rec.get('caseType', '')} di wilayah {rec.get('region', '')}"
+        photo_count = len(rec_photos) if rec_photos else 1
+        client_html = ""
+        if rec.get("displayMode") == "named" and rec.get("clientName"):
+            client_html = f'<div class="case-record-client">{html.escape(rec["clientName"])}</div>'
         case_cards_html += f"""
-        <div class="case-record-card" data-reveal="up" style="--reveal-delay:{delay}">
-          <div class="case-record-region">{html.escape(rec['region'])}</div>
-          <div class="case-record-type">{html.escape(rec['caseType'])}</div>
+        <div class="case-record-card" data-reveal="up" style="--reveal-delay:{delay}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Lihat galeri foto dokumentasi perkara {html.escape(rec.get('caseType', ''))} ({photo_count} foto)" onclick="openCaseModal('{rec.get('id', '')}', this)" onkeydown="if(event.key==='Enter'||event.key===' '){{event.preventDefault();openCaseModal('{rec.get('id', '')}', this);}}">
+          <div class="case-record-thumb-wrap">
+            <img src="{html.escape(img_url)}" alt="{html.escape(img_alt)}" class="case-record-thumb-img" width="400" height="225" loading="lazy">
+            <div class="case-record-thumb-overlay" aria-hidden="true"></div>
+            <span class="case-record-region-badge">{html.escape(rec.get('region', ''))}</span>
+            <span class="case-record-photo-badge" aria-label="{photo_count} foto dokumentasi">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              <span>{photo_count} Foto</span>
+            </span>
+          </div>
+          <div class="case-record-content">
+            <div class="case-record-type">{html.escape(rec.get('caseType', ''))}</div>
+            {client_html}
+            <div class="case-record-hint">Buka Galeri Foto ({photo_count} foto) &rarr;</div>
+          </div>
         </div>"""
 
     featured = published_articles[0] if published_articles else {
@@ -769,7 +791,7 @@ def render_home_page() -> str:
           <div data-reveal="right" style="--reveal-delay:0.12s">
             <div class="eyebrow-tag">{html.escape(cms_settings['aboutEyebrow'])}</div>
             <h2 id="about-heading">{html.escape(cms_settings['aboutHeading'])}</h2>
-            <blockquote class="quote-editorial-box">&ldquo;{html.escape(cms_settings['founderMotto'] or founder['motto'] or 'Life must have meaning')}&rdquo;</blockquote>
+            <blockquote class="quote-editorial-box">&ldquo;{html.escape(cms_settings['founderMotto'] or founder['motto'] or 'Life has to be meaningful')}&rdquo;</blockquote>
             <p class="about-paragraph">
               {html.escape(cms_settings['aboutParagraph'])}
             </p>
@@ -1028,6 +1050,53 @@ def render_home_page() -> str:
       </div>
     </div>
 
+    <!-- Case Gallery Modal (Interactive Multi-Photo Documentation) -->
+    <div id="caseModal" class="modal-overlay case-modal-overlay" onclick="if(event.target===this)closeCaseModal()">
+      <div class="modal-dialog-box case-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="caseModalTitle">
+        <div class="case-modal-header">
+          <div>
+            <span class="case-modal-eyebrow">PORTOFOLIO DOKUMENTASI</span>
+            <h3 id="caseModalTitle" class="case-modal-title"></h3>
+            <span id="caseModalRegion" class="case-modal-region-tag"></span>
+          </div>
+          <button type="button" id="caseModalCloseBtn" class="case-modal-close-btn" aria-label="Tutup Galeri Dokumentasi Perkara" onclick="closeCaseModal()">&times;</button>
+        </div>
+        <div class="case-modal-viewer">
+          <img id="caseModalMainImg" src="" alt="" class="case-modal-main-img">
+          <button type="button" id="caseModalPrevBtn" class="case-modal-nav-btn prev" aria-label="Foto Sebelumnya" onclick="navigateCasePhoto(-1)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button type="button" id="caseModalNextBtn" class="case-modal-nav-btn next" aria-label="Foto Berikutnya" onclick="navigateCasePhoto(1)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+          <div id="caseModalCounter" class="case-modal-counter-pill" aria-live="polite"></div>
+        </div>
+        <div id="caseModalCaptionBar" class="case-modal-caption-bar">
+          <div class="case-modal-caption-label">TAHAPAN PENANGANAN &middot; DOKUMENTASI</div>
+          <p id="caseModalCaptionText" class="case-modal-caption-text"></p>
+        </div>
+        <div id="caseModalThumbsStrip" class="case-modal-thumbs-strip" role="tablist" aria-label="Daftar Foto Dokumentasi"></div>
+        <div class="case-modal-footer">
+          <div class="case-modal-ethical-note">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-gold);flex-shrink:0;margin-top:2px;" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <div>
+              <strong>Kerahasiaan Advokat (SK-14):</strong> Dokumentasi ditampilkan semata untuk keperluan informasi bidang penanganan perkara. Identitas para pihak, nomor register perkara, dan berkas pembuktian dirahasiakan sepenuhnya.
+            </div>
+          </div>
+          <div class="case-modal-actions-row">
+            <a href="#janji-temu" class="btn-gold case-modal-cta-btn" onclick="closeCaseModal()">Konsultasikan Perkara Serupa &rarr;</a>
+            <button type="button" class="btn-outline case-modal-cta-btn" onclick="closeCaseModal()">Tutup Galeri</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Form Success Modal -->
     <div id="successModal" class="modal-overlay" onclick="if(event.target===this)closeSuccessModal()">
       <div class="modal-dialog-box" role="dialog" aria-modal="true" aria-labelledby="successModalTitle" style="max-width:540px;text-align:center;">
@@ -1132,8 +1201,12 @@ def render_home_page() -> str:
     <script>
       const TEAM_DATA = {json.dumps({m["slug"]: m for m in team}, ensure_ascii=False)};
       const PRACTICE_DATA = {json.dumps({a["slug"]: a for a in practice_areas}, ensure_ascii=False)};
+      const CASE_DATA = {json.dumps({c["id"]: c for c in case_records}, ensure_ascii=False)};
       let currentPracticeName = {json.dumps(first_area["name"], ensure_ascii=False)};
       let lastTriggerBtn = null;
+      let currentCaseRecord = null;
+      let currentCasePhotoIdx = 0;
+      let lastCaseTriggerBtn = null;
 
       function selectPracticeArea(slug) {{
         const area = PRACTICE_DATA[slug];
@@ -1219,6 +1292,119 @@ def render_home_page() -> str:
         document.body.style.overflow = '';
         if (lastTriggerBtn) lastTriggerBtn.focus();
       }}
+
+      function openCaseModal(caseId, triggerEl) {{
+        const rec = CASE_DATA[caseId];
+        if (!rec) return;
+        currentCaseRecord = rec;
+        currentCasePhotoIdx = 0;
+        lastCaseTriggerBtn = triggerEl || null;
+
+        document.getElementById('caseModalTitle').textContent = rec.caseType || 'Penanganan Perkara';
+        document.getElementById('caseModalRegion').textContent = '📍 Wilayah Yurisdiksi: ' + (rec.region || 'Indonesia');
+
+        renderCasePhoto();
+
+        document.getElementById('caseModal').classList.add('is-active');
+        document.body.style.overflow = 'hidden';
+        const closeBtn = document.getElementById('caseModalCloseBtn');
+        if (closeBtn) closeBtn.focus();
+      }}
+
+      function renderCasePhoto() {{
+        if (!currentCaseRecord) return;
+        const photos = (currentCaseRecord.photos && currentCaseRecord.photos.length > 0)
+          ? currentCaseRecord.photos
+          : [{{
+              url: currentCaseRecord.imageUrl || '/images/hero-slide-courtroom.webp',
+              caption: 'Dokumentasi penanganan perkara ' + (currentCaseRecord.caseType || ''),
+              alt: currentCaseRecord.imageAlt || ''
+            }}];
+
+        const current = photos[currentCasePhotoIdx] || photos[0];
+        const mainImg = document.getElementById('caseModalMainImg');
+        if (mainImg) {{
+          mainImg.src = current.url;
+          mainImg.alt = current.alt || ('Dokumentasi perkara ' + (currentCaseRecord.caseType || ''));
+        }}
+
+        const counter = document.getElementById('caseModalCounter');
+        const prevBtn = document.getElementById('caseModalPrevBtn');
+        const nextBtn = document.getElementById('caseModalNextBtn');
+        if (photos.length > 1) {{
+          if (counter) {{
+            counter.style.display = 'inline-flex';
+            counter.innerHTML = '<span>Dokumentasi ' + (currentCasePhotoIdx + 1) + ' dari ' + photos.length + '</span>';
+          }}
+          if (prevBtn) prevBtn.style.display = 'flex';
+          if (nextBtn) nextBtn.style.display = 'flex';
+        }} else {{
+          if (counter) counter.style.display = 'none';
+          if (prevBtn) prevBtn.style.display = 'none';
+          if (nextBtn) nextBtn.style.display = 'none';
+        }}
+
+        const captionBar = document.getElementById('caseModalCaptionBar');
+        const captionText = document.getElementById('caseModalCaptionText');
+        if (current.caption) {{
+          captionBar.style.display = 'block';
+          captionText.textContent = current.caption;
+        }} else {{
+          captionBar.style.display = 'none';
+        }}
+
+        const thumbsStrip = document.getElementById('caseModalThumbsStrip');
+        if (photos.length > 1) {{
+          thumbsStrip.style.display = 'flex';
+          thumbsStrip.innerHTML = photos.map((p, idx) => {{
+            const activeCls = idx === currentCasePhotoIdx ? 'is-active' : '';
+            return '<button type="button" class="case-modal-thumb-btn ' + activeCls + '" onclick="setCasePhotoIndex(' + idx + ')" aria-label="Pilih foto ' + (idx + 1) + '"><img src="' + p.url + '" alt="" width="96" height="60" class="case-modal-thumb-img"><span class="case-modal-thumb-badge">' + (idx + 1) + '</span></button>';
+          }}).join('');
+        }} else {{
+          thumbsStrip.style.display = 'none';
+          thumbsStrip.innerHTML = '';
+        }}
+      }}
+
+      function setCasePhotoIndex(idx) {{
+        currentCasePhotoIdx = idx;
+        renderCasePhoto();
+      }}
+
+      function navigateCasePhoto(dir) {{
+        if (!currentCaseRecord) return;
+        const photos = (currentCaseRecord.photos && currentCaseRecord.photos.length > 0)
+          ? currentCaseRecord.photos
+          : [{{}}];
+        currentCasePhotoIdx = (currentCasePhotoIdx + dir + photos.length) % photos.length;
+        renderCasePhoto();
+      }}
+
+      function closeCaseModal() {{
+        const modal = document.getElementById('caseModal');
+        if (modal) modal.classList.remove('is-active');
+        document.body.style.overflow = '';
+        if (lastCaseTriggerBtn) {{
+          lastCaseTriggerBtn.focus();
+          lastCaseTriggerBtn = null;
+        }}
+      }}
+
+      window.addEventListener('keydown', function(e) {{
+        const caseModal = document.getElementById('caseModal');
+        if (caseModal && caseModal.classList.contains('is-active')) {{
+          if (e.key === 'Escape') {{
+            e.preventDefault();
+            closeCaseModal();
+          }} else if (e.key === 'ArrowRight') {{
+            e.preventDefault();
+            navigateCasePhoto(1);
+          }} else if (e.key === 'ArrowLeft') {{
+            e.preventDefault();
+            navigateCasePhoto(-1);
+          }}
+        }}
+      }});
 
       function closeSuccessModal() {{
         document.getElementById('successModal').classList.remove('is-active');

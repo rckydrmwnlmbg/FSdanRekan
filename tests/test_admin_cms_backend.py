@@ -327,6 +327,8 @@ class TestAdminCMSBackend(unittest.TestCase):
                 "action": "create",
                 "caseType": "Sengketa Pemegang Saham Sektor Logistik",
                 "region": "Pengadilan Negeri Jakarta Pusat",
+                "imageUrl": "/images/practice-corporate.webp",
+                "imageAlt": "Dokumentasi sengketa logistik",
                 "displayMode": "anonymous",
             },
         )
@@ -335,6 +337,43 @@ class TestAdminCMSBackend(unittest.TestCase):
         cases = get_merged_case_records(include_unpublished=True)
         anon_case = next(c for c in cases if c["caseType"] == "Sengketa Pemegang Saham Sektor Logistik")
         self.assertIsNone(anon_case.get("clientName"))
+        self.assertEqual(anon_case.get("imageUrl"), "/images/practice-corporate.webp")
+        self.assertEqual(anon_case.get("imageAlt"), "Dokumentasi sengketa logistik")
+        self.assertTrue(len(anon_case.get("photos", [])) >= 1)
+
+        # 1b. Create case record with multiple documentation photos
+        status, res = self.call_admin_api(
+            "/api/admin/cases",
+            {
+                "action": "create",
+                "caseType": "Sengketa Kontrak Multinasional",
+                "region": "BANI Arbitration Center, Jakarta",
+                "displayMode": "anonymous",
+                "photos": [
+                    {
+                        "url": "/images/practice-corporate.webp",
+                        "caption": "Sidang mediasi arbitrase",
+                        "alt": "Mediasi arbitrase komersial",
+                    },
+                    {
+                        "url": "/images/hero-slide-courtroom.webp",
+                        "caption": "Pemeriksaan saksi ahli kontrak",
+                        "alt": "Saksi ahli kontrak",
+                    },
+                    {
+                        "url": "/images/gavel-banner.webp",
+                        "caption": "Penyerahan berkas putusan final",
+                        "alt": "Putusan final arbitrase",
+                    },
+                ],
+            },
+        )
+        self.assertEqual(status, 200)
+
+        cases = get_merged_case_records(include_unpublished=True)
+        multi_case = next(c for c in cases if c["caseType"] == "Sengketa Kontrak Multinasional")
+        self.assertEqual(len(multi_case.get("photos", [])), 3)
+        self.assertEqual(multi_case["photos"][0]["url"], "/images/practice-corporate.webp")
 
         # 2. Named case record WITHOUT consentRef MUST FAIL (SK-14 Violation)
         status, res = self.call_admin_api(
@@ -368,7 +407,7 @@ class TestAdminCMSBackend(unittest.TestCase):
         # 4. Clean up
         cases = get_merged_case_records(include_unpublished=True)
         for c in cases:
-            if c["caseType"] in ("Sengketa Pemegang Saham Sektor Logistik", "Perkara Perdata Komersial"):
+            if c["caseType"] in ("Sengketa Pemegang Saham Sektor Logistik", "Perkara Perdata Komersial", "Sengketa Kontrak Multinasional"):
                 self.call_admin_api("/api/admin/cases", {"action": "delete", "id": c["id"]})
 
     # =========================================================================

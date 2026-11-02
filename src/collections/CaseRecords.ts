@@ -57,6 +57,24 @@ export const CaseRecords: CollectionConfig = {
       },
     },
     { name: 'displayOrder', type: 'number', required: true, defaultValue: 1 },
+    {
+      name: 'imageUrl',
+      type: 'text',
+      defaultValue: '/images/hero-slide-courtroom.webp',
+    },
+    {
+      name: 'imageAlt',
+      type: 'text',
+    },
+    {
+      name: 'photos',
+      type: 'array',
+      fields: [
+        { name: 'url', type: 'text', required: true },
+        { name: 'caption', type: 'text' },
+        { name: 'alt', type: 'text' },
+      ],
+    },
     { name: 'isPublished', type: 'checkbox', required: true, defaultValue: true },
   ],
 }

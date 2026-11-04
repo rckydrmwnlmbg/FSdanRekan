@@ -48,7 +48,7 @@ Data 7 perkara telah di-seed ke `content/case_records.json` sesuai prosedur `SK-
 | 4 | `case-record-4` | Tindak pidana penggelapan terkait hubungan kerja | Surabaya, Jawa Timur | `anonymous` | `TODO(client)`: Risiko tinggi (perkara pidana). Wajib tetap `anonymous` kecuali ada `consentRef` tertulis sah dari pihak terkait. |
 | 5 | `case-record-5` | Kecelakaan lalu lintas | Bandung, Jawa Barat | `anonymous` | `TODO(client)`: Konfirmasi deskripsi jenis perkara dan wilayah. |
 | 6 | `case-record-6` | Sengketa hak atas tanah | Gunung Putri, Bogor, Jawa Barat | `anonymous` | `TODO(client)`: Konfirmasi ejaan baku "Gunung Putri" (pada sumber awal tertulis "Gunung Puteri"). |
-| 7 | `case-record-7` | Sengketa hak atas tanah | Manado, Sulawesi Utara | `anonymous` | `TODO(client)`: Konfirmasi deskripsi jenis perkara dan wilayah. |
+| 7 | `case-record-7` | Tindak Pidana Asuransi | Jakarta | `anonymous` | `TODO(client)`: Konfirmasi dokumentasi foto perkara tindak pidana asuransi (saat ini menggunakan gambar placeholder). |
 
 ---
 

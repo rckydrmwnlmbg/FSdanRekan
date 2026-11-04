@@ -160,7 +160,7 @@ Dengan keahlian yang komprehensif dalam *legal drafting*, *legal research*, admi
 | 4 | Tindak pidana penggelapan terkait hubungan kerja | PT Inti Darma Globalindo | Surabaya, Jawa Timur |
 | 5 | Kecelakaan lalu lintas | — | Bandung, Jawa Barat |
 | 6 | Sengketa hak atas tanah | — | Gunung Putri, Bogor, Jawa Barat |
-| 7 | Sengketa hak atas tanah | — | Manado, Sulawesi Utara |
+| 7 | Tindak Pidana Asuransi | — | Jakarta |
 
 ### 4.2 Tampilan Publik yang Disarankan (anonim)
 
@@ -172,7 +172,7 @@ Dengan keahlian yang komprehensif dalam *legal drafting*, *legal research*, admi
 | Tindak pidana penggelapan terkait hubungan kerja | Surabaya, Jawa Timur | `anonymous` | **Tinggi** |
 | Kecelakaan lalu lintas | Bandung, Jawa Barat | `anonymous` | Sedang |
 | Sengketa hak atas tanah | Gunung Putri, Bogor, Jawa Barat | `anonymous` | Sedang |
-| Sengketa hak atas tanah | Manado, Sulawesi Utara | `anonymous` | Sedang |
+| Tindak Pidana Asuransi | Jakarta | `anonymous` | **Tinggi** |
 
 Catatan:
 - Ejaan "Gunung Puteri" pada data sumber diubah menjadi "Gunung Putri" (ejaan baku). Konfirmasi.

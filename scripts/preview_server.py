@@ -653,12 +653,12 @@ def render_home_page() -> str:
         if rec.get("displayMode") == "named" and rec.get("clientName"):
             client_html = f'<div class="case-record-client">{html.escape(rec["clientName"])}</div>'
         case_cards_html += f"""
-        <div class="case-record-card" data-reveal="up" style="--reveal-delay:{delay}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Lihat galeri foto dokumentasi perkara {html.escape(rec.get('caseType', ''))} ({photo_count} foto)" onclick="openCaseModal('{rec.get('id', '')}', this)" onkeydown="if(event.key==='Enter'||event.key===' '){{event.preventDefault();openCaseModal('{rec.get('id', '')}', this);}}">
+        <article class="case-record-card" data-reveal="up" style="--reveal-delay:{delay}" onclick="openCaseModal('{rec.get('id', '')}', this)">
           <div class="case-record-thumb-wrap">
             <img src="{html.escape(img_url)}" alt="{html.escape(img_alt)}" class="case-record-thumb-img" width="400" height="225" loading="lazy">
             <div class="case-record-thumb-overlay" aria-hidden="true"></div>
             <span class="case-record-region-badge">{html.escape(rec.get('region', ''))}</span>
-            <span class="case-record-photo-badge" aria-label="{photo_count} foto dokumentasi">
+            <span class="case-record-photo-badge">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                 <circle cx="12" cy="13" r="4"></circle>
@@ -669,9 +669,11 @@ def render_home_page() -> str:
           <div class="case-record-content">
             <div class="case-record-type">{html.escape(rec.get('caseType', ''))}</div>
             {client_html}
-            <div class="case-record-hint">Buka Galeri Foto ({photo_count} foto) &rarr;</div>
+            <button type="button" class="case-record-hint link-gold" aria-haspopup="dialog" onclick="event.stopPropagation();openCaseModal('{rec.get('id', '')}', this)">
+              Buka Dokumentasi ({photo_count} foto) &rarr;
+            </button>
           </div>
-        </div>"""
+        </article>"""
 
     featured = published_articles[0] if published_articles else {
         "slug": "strategi-mitigasi-risiko-litigasi-perjanjian-bisnis",

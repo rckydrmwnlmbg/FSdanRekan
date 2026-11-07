@@ -832,7 +832,19 @@ p {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
   transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.case-record-hint:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
 .case-record-card:hover {

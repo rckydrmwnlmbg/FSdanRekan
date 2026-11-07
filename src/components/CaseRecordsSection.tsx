@@ -120,20 +120,10 @@ export function CaseRecordsSection({ records }: CaseRecordsSectionProps) {
             const photoCount = photoList.length
 
             return (
-              <div
+              <article
                 key={rec.id}
                 className="case-record-card"
-                role="button"
-                tabIndex={0}
-                aria-haspopup="dialog"
-                aria-label={`Lihat galeri foto dokumentasi perkara ${rec.caseType} wilayah ${rec.region} (${photoCount} foto)`}
                 onClick={(e) => openGallery(rec, e.currentTarget)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    openGallery(rec, e.currentTarget)
-                  }
-                }}
               >
                 <div className="case-record-thumb-wrap">
                   <img
@@ -151,7 +141,7 @@ export function CaseRecordsSection({ records }: CaseRecordsSectionProps) {
                   <div className="case-record-thumb-overlay" aria-hidden="true" />
                   <span className="case-record-region-badge">{rec.region}</span>
 
-                  <span className="case-record-photo-badge" aria-label={`${photoCount} foto dokumentasi`}>
+                  <span className="case-record-photo-badge">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                       <circle cx="12" cy="13" r="4"></circle>
@@ -164,11 +154,19 @@ export function CaseRecordsSection({ records }: CaseRecordsSectionProps) {
                   {rec.displayMode === 'named' && rec.clientName ? (
                     <div className="case-record-client">{rec.clientName}</div>
                   ) : null}
-                  <div className="case-record-hint">
+                  <button
+                    type="button"
+                    className="case-record-hint link-gold"
+                    aria-haspopup="dialog"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      openGallery(rec, e.currentTarget)
+                    }}
+                  >
                     Buka Dokumentasi ({photoCount} foto) &rarr;
-                  </div>
+                  </button>
                 </div>
-              </div>
+              </article>
             )
           })}
         </div>

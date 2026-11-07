@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
 test.describe('Ferdinan Silalahi dan Rekan Law Firm — E2E & Accessibility Suite', () => {
-  test('renders home page with official branding, 5 team profiles, 10 practice areas, and 0 serious axe violations', async ({
+  test('renders home page with official branding, 7 team profiles, 10 practice areas, and 0 serious axe violations', async ({
     page,
   }) => {
     await page.goto('/')
@@ -26,9 +26,9 @@ test.describe('Ferdinan Silalahi dan Rekan Law Firm — E2E & Accessibility Suit
     await page.keyboard.press('Escape')
     await expect(speedDialCard).toBeHidden()
 
-    // 4 associate/admin team cards rendered in #tim-advokat (Ferdinan is shown once in #tentang)
+    // 6 associate/admin team cards rendered in #tim-advokat (Ferdinan is shown once in #tentang)
     const teamButtons = page.locator('#tim-advokat').getByRole('button', { name: /Selengkapnya/i })
-    await expect(teamButtons).toHaveCount(4)
+    await expect(teamButtons).toHaveCount(6)
 
     // Open team dialog with keyboard and close with Escape, verifying focus returns to trigger (FR-3.3)
     const firstTeamBtn = teamButtons.nth(0)

@@ -21,12 +21,14 @@
 | Urutan | Slug | Kelompok |
 |---|---|---|
 | 1 | `ferdinan-hasiholan-silalahi` | Pendiri dan Managing Partner |
-| 2 | `adina-ilmania-ayu` | Associate |
-| 3 | `basit-rezki` | Associate |
-| 4 | `delia-zaizafun` | Legal Administrator |
-| 5 | `farhah-tri-febriani` | Legal Administrator |
+| 2 | `basit-rezki` | Associate |
+| 3 | `haddy-siswanto` | Associate |
+| 4 | `benny` | Associate |
+| 5 | `delia-zaizafun` | Legal Administrator |
+| 6 | `farhah-tri-febriani` | Legal Administrator |
+| 7 | `kahlil-mawardi-savana` | Legal Administrator |
 
-> Urutan adalah usulan. Konfirmasi dengan client.
+> Total 7 profil tim: 1 Pendiri dan Managing Partner serta 6 anggota tim (3 Associate dan 3 Legal Administrator).
 
 ## 3. Data Profil
 
@@ -54,35 +56,11 @@ Dengan menjunjung tinggi nilai integritas, profesionalisme, dan keadilan, Ferdin
 
 ---
 
-### 3.2 Adina Ilmania Ayu, S.H.
-
-- **slug:** `adina-ilmania-ayu`
-- **role:** Associate
-- **photo:** `TODO(client)`
-- **gelar:** S.H.
-- **bahasa:** Indonesia, Inggris, Jepang (penyusunan, peninjauan, dan penerjemahan perjanjian)
-- **tags:** Hukum Korporasi, Komersial, Perbankan, Kredit Bermasalah (NPL), Kepailitan dan PKPU, Penyelesaian Sengketa
-
-**shortBio (≤ 200 karakter):**
-> Associate dengan pengalaman di hukum korporasi, komersial, dan perbankan, termasuk penanganan kredit bermasalah (NPL), kepailitan, dan PKPU.
-
-**fullBio:**
-
-Adina Ilmania Ayu merupakan seorang advokat yang memiliki pengalaman di bidang hukum korporasi, komersial, dan perbankan, khususnya dalam penanganan kredit bermasalah (*Non-Performing Loan*/NPL), kepailitan, serta Penundaan Kewajiban Pembayaran Utang (PKPU). Ia memiliki kompetensi dalam riset hukum, analisis hukum, penyusunan dokumen hukum, penyelesaian sengketa, serta penanganan perkara dari tahap awal hingga penyelesaian.
-
-Dalam pengalaman profesionalnya, Adina terlibat dalam penanganan perkara PKPU dan kepailitan, termasuk melakukan riset hukum, menyusun dokumen persidangan seperti gugatan, permohonan, dan dokumen hukum lainnya, mengelola berkas perkara, serta berkoordinasi dengan klien, saksi, dan profesional hukum. Ia juga memiliki pengalaman dalam menghadiri persidangan dan mendukung proses penanganan perkara hingga memperoleh putusan pengadilan.
-
-Selain itu, Adina berpengalaman memberikan konsultasi hukum dan layanan mediasi untuk kebutuhan korporasi dan komersial. Keahliannya mencakup penyusunan, peninjauan, dan penerjemahan perjanjian dalam bahasa Indonesia, Inggris, dan Jepang; analisis kepatuhan terhadap peraturan perundang-undangan; serta pendampingan negosiasi dan penyelesaian sengketa. Ia juga memiliki pengalaman dalam pengurusan registrasi dan perizinan perusahaan pertambangan milik investor asing serta penanganan pemulihan kredit bermasalah, termasuk koordinasi dengan tim hukum dan debitur, pengelolaan dokumen restrukturisasi, dan proses eksekusi agunan.
-
-Sebagai Associate di Ferdinan Silalahi dan Rekan Law Firm, Adina mengintegrasikan pengalaman dan keahliannya untuk mendukung penanganan berbagai kebutuhan hukum klien. Dengan pendekatan analitis, terstruktur, dan berorientasi pada solusi, ia berkomitmen untuk memberikan dukungan hukum yang profesional dalam bidang litigasi, hukum korporasi, perbankan, serta penyelesaian sengketa.
-
----
-
-### 3.3 Basit Rezki, S.H.
+### 3.2 Basit Rezki, S.H.
 
 - **slug:** `basit-rezki`
 - **role:** Associate
-- **photo:** `TODO(client)`
+- **photo:** `Basit.png`
 - **pendidikan:** S.H., Fakultas Hukum Universitas Dirgantara Marsekal Suryadarma
 - **kredensial:** Advokat berlisensi, terakreditasi Perhimpunan Advokat Indonesia (PERADI)
 - **bahasa:** Indonesia, Inggris, Jepang (JFT A2)
@@ -101,11 +79,60 @@ Sebelum bergabung, Basit mengembangkan keahliannya melalui pengalaman magang di 
 
 ---
 
-### 3.4 Delia Zaizafun, S.H., M.H.
+### 3.3 Haddy Siswanto, S.H., CLCP
+
+- **slug:** `haddy-siswanto`
+- **role:** Associate
+- **photo:** `Haddy.png`
+- **gelar:** S.H., CLCP
+- **pendidikan:** S.H., Fakultas Hukum Universitas Airlangga (Konsentrasi Hukum Peradilan)
+- **kredensial:** Advokat, Certified Legal Compliance Professional (CLCP)
+- **tags:** Hukum Perdata, Pertanahan, Perjanjian, Hak Kekayaan Intelektual, Legal Compliance
+
+**shortBio (≤ 200 karakter):**
+> Associate dan advokat bersertifikasi CLCP, berpengalaman dalam hukum perdata, sengketa pertanahan, perjanjian, hak kekayaan intelektual, serta kepatuhan hukum.
+
+**fullBio:**
+
+Haddy Siswanto merupakan lulusan Fakultas Hukum Universitas Airlangga dengan konsentrasi Hukum Peradilan. Ia merupakan seorang advokat yang memiliki pengalaman dalam penanganan berbagai permasalahan hukum, khususnya di bidang hukum perdata, pertanahan, perjanjian, dan hak kekayaan intelektual. Ia memiliki kompetensi dalam analisis hukum, penyusunan dokumen hukum, pendampingan klien, serta penyelesaian sengketa melalui jalur litigasi maupun nonlitigasi.
+
+Dalam perjalanan profesionalnya, Haddy memiliki pengalaman menangani berbagai permasalahan hukum terkait jual beli tanah, sengketa pertanahan, dan perjanjian antarpihak. Pengalamannya mencakup analisis dan investigasi permasalahan hukum, penyusunan somasi dan draf gugatan, klarifikasi kepada instansi terkait, serta pendampingan dan perwakilan klien dalam proses penyelesaian sengketa.
+
+Selain itu, Haddy juga berpengalaman dalam penanganan perkara hak kekayaan intelektual, khususnya sengketa hak cipta dan perkara perdata umum. Ia terlibat dalam penyusunan dan peninjauan dokumen gugatan, analisis permasalahan hukum, pemberian konsultasi hukum, serta perumusan alternatif penyelesaian yang sesuai dengan kebutuhan klien.
+
+Haddy juga memiliki sertifikasi Certified Legal Compliance Professional (CLCP) yang memperkuat kompetensinya dalam bidang kepatuhan hukum (legal compliance), meliputi kepatuhan di bidang bisnis, perizinan usaha, perpajakan, ketenagakerjaan, pengadaan barang dan jasa, serta penyusunan standar operasional prosedur berbasis kepatuhan hukum.
+
+Sebagai Associate di Ferdinan Silalahi dan Rekan Law Firm, Haddy mengandalkan pengalaman dan pemahaman hukumnya untuk mendukung penanganan berbagai kebutuhan hukum klien. Dengan kemampuan analitis, komunikasi, dan penyelesaian masalah, ia berkomitmen untuk memberikan pendampingan serta solusi hukum yang profesional, efektif, dan berorientasi pada kepentingan klien.
+
+---
+
+### 3.4 Benny, S.H., M.H.
+
+- **slug:** `benny`
+- **role:** Associate
+- **photo:** `Benny.png`
+- **gelar:** S.H., M.H.
+- **pendidikan:** Sarjana Hukum, Universitas Kristen Indonesia; Magister Hukum Bisnis, Universitas Pelita Harapan
+- **tags:** Hukum Litigasi, Manajemen Litigasi, Penyelesaian Sengketa, Hukum Bisnis
+
+**shortBio (≤ 200 karakter):**
+> Associate lulusan Magister Hukum Bisnis UPH dengan pengalaman di bidang hukum litigasi, manajemen perkara, konsultasi hukum, dan penyelesaian sengketa.
+
+**fullBio:**
+
+Benny merupakan lulusan Sarjana Hukum dari Universitas Kristen Indonesia dan Magister Hukum Bisnis dari Universitas Pelita Harapan. Ia memiliki pengalaman profesional di bidang hukum litigasi, khususnya dalam pengelolaan perkara, konsultasi hukum, manajemen litigasi, serta penyelesaian sengketa. Latar belakang pendidikannya di bidang hukum bisnis turut memperkuat pemahamannya terhadap aspek hukum dan kebutuhan dunia usaha.
+
+Dalam perjalanan profesionalnya, Benny memiliki pengalaman menangani dan mengelola berbagai proses litigasi, termasuk melakukan konsultasi hukum, memberikan pendampingan dan nasihat hukum, serta mengoordinasikan penanganan perkara dengan advokat eksternal. Ia juga berpengalaman dalam pengelolaan administrasi perkara, penyusunan laporan, dan dokumentasi hukum untuk memastikan setiap proses penanganan perkara berjalan secara terstruktur.
+
+Selain itu, Benny memiliki pengalaman dalam manajemen tim litigasi dan pengawasan penanganan perkara, termasuk mengoordinasikan strategi.
+
+---
+
+### 3.5 Delia Zaizafun, S.H., M.H.
 
 - **slug:** `delia-zaizafun`
 - **role:** Legal Administrator
-- **photo:** `TODO(client)`
+- **photo:** `Delia.png`
 - **gelar:** S.H., M.H.
 - **pendidikan:** Magister Hukum, Universitas Gadjah Mada (*cumlaude*); penerima Beasiswa LPDP RI
 - **tags:** Litigasi Pajak dan Kepabeanan, Hukum Pidana, Administrasi Perkara, Legal Opinion
@@ -125,11 +152,11 @@ Di Ferdinan Silalahi dan Rekan Law Firm, Delia menjalankan peran sebagai Legal A
 
 ---
 
-### 3.5 Farhah Tri Febriani, S.H.
+### 3.6 Farhah Tri Febriani, S.H.
 
 - **slug:** `farhah-tri-febriani`
 - **role:** Legal Administrator
-- **photo:** `TODO(client)`
+- **photo:** `Farhah.png`
 - **pendidikan:** S.H., Universitas Islam Negeri Syarif Hidayatullah Jakarta
 - **tags:** Legal Drafting, Legal Research, Administrasi Hukum, Legal Opinion
 
@@ -143,6 +170,31 @@ Farhah Tri Febriani, S.H. merupakan lulusan Sarjana Hukum dari Universitas Islam
 Selama masa studinya, Farhah secara aktif memperoleh pengalaman langsung dalam praktik hukum dan administrasi, meliputi penyusunan *legal opinion*, pengelolaan dan pengarsipan dokumen hukum, serta koordinasi yang efektif dengan berbagai pihak di beragam lingkungan institusional. Pengalaman-pengalaman tersebut telah mengasah kemampuannya untuk bekerja dengan akurasi, efisiensi, dan tingkat profesionalisme yang tinggi dalam lingkungan hukum yang dinamis.
 
 Dengan keahlian yang komprehensif dalam *legal drafting*, *legal research*, administrasi, dan komunikasi profesional, Farhah berkomitmen untuk mendukung kebutuhan operasional dan hukum kantor dengan integritas dan ketelitian, memastikan setiap tugas ditangani dengan perhatian dan kehati-hatian yang optimal.
+
+---
+
+### 3.7 Kahlil Mawardi Savana, S.H.
+
+- **slug:** `kahlil-mawardi-savana`
+- **role:** Legal Administrator
+- **photo:** `Kahlil.png`
+- **gelar:** S.H.
+- **pendidikan:** S.H., Fakultas Hukum Universitas Jenderal Soedirman (Konsentrasi Hukum Internasional)
+- **bahasa:** Indonesia, Inggris
+- **tags:** Hukum Korporasi, Ketenagakerjaan, Hubungan Industrial, Administrasi Hukum
+
+**shortBio (≤ 200 karakter):**
+> Legal Administrator dengan pengalaman di bidang hukum korporasi, ketenagakerjaan, hubungan industrial, serta penyusunan dan administrasi dokumen hukum.
+
+**fullBio:**
+
+Kahlil Mawardi Savana merupakan lulusan Sarjana Hukum Universitas Jenderal Soedirman dengan konsentrasi Hukum Internasional. Ia memiliki pengalaman profesional di bidang hukum korporasi, ketenagakerjaan, hubungan industrial, serta administrasi dan dokumentasi hukum. Dengan pemahaman mengenai regulasi ketenagakerjaan dan kepatuhan hukum perusahaan, ia memiliki kompetensi dalam penyusunan dokumen hukum, pengelolaan administrasi perkara, serta koordinasi dengan klien dan instansi terkait.
+
+Dalam pengalaman profesionalnya, Kahlil terlibat dalam pengelolaan berbagai kebutuhan administrasi dan dokumentasi hukum perusahaan, termasuk penyusunan dan peninjauan perjanjian kerja waktu tertentu (PKWT) dan perjanjian kerja waktu tidak tertentu (PKWTT), peraturan perusahaan, risalah rapat, surat kuasa, serta dokumen hukum korporasi lainnya. Ia juga berpengalaman dalam meninjau lebih dari 60 perjanjian komersial, termasuk kontrak vendor, perjanjian jasa, dan perjanjian kerja sama dalam bahasa Indonesia maupun Inggris.
+
+Selain itu, Kahlil memiliki pengalaman dalam mendukung penanganan perselisihan hubungan industrial melalui persiapan dokumen mediasi bipartit dan tripartit, penyusunan somasi, serta koordinasi penyelesaian permasalahan hukum sebelum memasuki proses litigasi. Pengalamannya juga mencakup pengelolaan arsip lebih dari 30 berkas transaksi dan administrasi perkara, pengurusan perizinan usaha melalui sistem OSS RBA dan AHU Online, serta pendampingan administrasi penerbitan Nomor Induk Berusaha (NIB) bagi pelaku UMKM.
+
+Sebagai Legal Administrator di Ferdinan Silalahi dan Rekan Law Firm, Kahlil berperan dalam mendukung pengelolaan administrasi hukum, dokumentasi perkara, penyusunan dan pengarsipan dokumen, serta koordinasi kebutuhan administratif firma. Dengan ketelitian, kemampuan analitis, dan pemahaman di bidang hukum korporasi serta ketenagakerjaan, ia berkomitmen untuk menunjang kelancaran operasional firma secara sistematis dan profesional.
 
 ---
 
@@ -190,8 +242,8 @@ Catatan:
 
 ## 6. Daftar TODO Konten (Menunggu Client)
 
-- [ ] Foto formal kelima anggota tim dengan gaya seragam (latar, pencahayaan, rasio).
-- [ ] Gelar resmi Delia Zaizafun dan Adina Ilmania Ayu.
+- [ ] Foto formal seluruh anggota tim dengan gaya seragam (latar, pencahayaan, rasio).
+- [ ] Gelar resmi Delia Zaizafun.
 - [ ] Jabatan resmi Farhah Tri Febriani.
 - [ ] Konfirmasi urutan tampil.
 - [ ] Persetujuan penyebutan "kekerasan terhadap anak" pada bio Basit.

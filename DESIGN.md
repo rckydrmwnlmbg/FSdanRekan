@@ -209,7 +209,7 @@ Agent menjalankan prosedur ini **sebelum** membangun UI. Kode demo milik pemilik
 | 3 | "firma hukum boutique terkemuka di Jakarta" | Hapus kata "terkemuka" dan klaim superlatif lain | `AGENTS.md` aturan 3 |
 | 4 | Kutipan atas nama Ferdinan: "Integritas bukan sekadar slogan..." | Ganti dengan motto resmi "Life has to be meaningful" **atau** minta persetujuan tertulis Ferdinan untuk kutipan | Kutipan tidak ada di data profil dan tidak boleh dikarang |
 | 5 | "Berita Acara Sumpah ... hak beracara di seluruh peradilan Indonesia" dan "standar enkripsi kerahasiaan" | Verifikasi dengan client; tulis hanya yang benar dan dapat dibuktikan. Jangan mengklaim enkripsi yang tidak diterapkan | Klaim hukum dan keamanan harus akurat |
-| 6 | Tim: Basit, Farhoh, Jessica (tiga orang) | Lima profil sesuai `CONTENT_PROFILES.md`: Ferdinan, Adina, Basit, Delia, Farhah (nama "Farhah", bukan "Farhoh"). Jessica **dihapus** | Data client terbaru |
+| 6 | Tim: Basit, Farhoh, Jessica (tiga orang) | Tujuh profil sesuai `CONTENT_PROFILES.md`: Ferdinan (pendiri), Basit, Haddy, Benny (Associate), Delia, Farhah, Kahlil (Legal Administrator). Jessica dan Adina **dihapus** | Data client terbaru |
 | 7 | Deskripsi bidang dan Ferdinan (mis. "gugatan derivative shareholder", "lintas yurisdiksi") | Konfirmasi ke client atau gunakan deskripsi yang disetujui | Klaim lingkup praktik |
 | 8 | Alamat "RT 002/RW 02" | "RT 002 RW 002" sesuai pesan client; kode pos 10350 dikonfirmasi | Konsistensi data |
 | 9 | Nomor WhatsApp +62 811-830-991 | Konfirmasi nomor lengkap (terlihat pendek) sebelum tayang | Pastikan tautan wa.me benar |

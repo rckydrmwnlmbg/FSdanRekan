@@ -614,10 +614,10 @@ p {
   color: var(--color-text-muted);
 }
 
-/* Team Section (4 Associates & Legal Administrators in grid; Founder is in About section) */
+/* Team Section (6 Associates & Legal Administrators in grid; Founder is in About section) */
 .team-grid-5 {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-7);
   margin-top: var(--space-12);
 }

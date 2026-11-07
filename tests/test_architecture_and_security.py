@@ -197,7 +197,7 @@ class TestArchitectureAndSecurity(unittest.TestCase):
         self.assertNotIn("TODO(client)", html)
         self.assertNotIn("3 Bahasa", html)
         self.assertNotIn("2 Metode", html)
-        self.assertEqual(html.count('class="team-card"'), 4)
+        self.assertEqual(html.count('class="team-card"'), 6)
         self.assertIn("Ferdinan Hasiholan Silalahi, S.H.", html)
         # Verify scroll-reveal & luxury motion classes
         self.assertIn('data-reveal="up"', html)

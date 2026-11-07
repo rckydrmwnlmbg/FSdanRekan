@@ -8,12 +8,11 @@ Dokumen ini mencatat seluruh item `TODO(client)` yang membutuhkan konfirmasi ata
 
 | No | Slug / Anggota Tim | Field | Status Saat Ini | Tindakan yang Dibutuhkan (`TODO(client)`) |
 |---|---|---|---|---|
-| 1 | `adina-ilmania-ayu` (Adina Ilmania Ayu) | `honorific` (Gelar) | Placeholder `TODO(client): Gelar resmi belum tercantum di sumber` | `TODO(client)`: Konfirmasi penulisan gelar akademik/profesi resmi Adina Ilmania Ayu (tidak tercantum pada sumber draf). |
-| 2 | `delia-zaizafun` (Delia Zaizafun) | `honorific` (Gelar) | Placeholder `TODO(client): Gelar resmi belum tercantum di sumber` | `TODO(client)`: Konfirmasi penulisan gelar resmi Delia Zaizafun (bio menyebut lulusan Magister Hukum UGM, namun singkatan gelar seperti S.H., M.H. belum tertulis di sumber). |
-| 3 | `farhah-tri-febriani` (Farhah Tri Febriani, S.H.) | `roleTitle` (Jabatan) | Placeholder `TODO(client): Legal Administrator (asumsi dari demo; konfirmasi jabatan resmi ke client)` | `TODO(client)`: Konfirmasi jabatan resmi Farhah Tri Febriani, S.H. (pada bio tidak tertulis jabatan secara eksplisit; di demo tertulis Legal Administrator). |
-| 4 | Seluruh 5 anggota tim | `photo` | Foto dari `/images/*.png` telah dipetakan ke `/public/team/<slug>.webp` (rasio 4:5, tanpa EXIF) | `TODO(client)`: Konfirmasi akhir keseragaman foto formal kelima anggota tim (pencahayaan, latar, dan framing 4:5) serta apakah diperlukan foto khusus Managing Partner untuk bagian Tentang (`DESIGN.md` Bagian 11). |
-| 5 | Seluruh 5 anggota tim | `displayOrder` | `1` Ferdinan, `2` Adina, `3` Basit, `4` Delia, `5` Farhah | `TODO(client)`: Konfirmasi urutan tampil kelima profil tim dan persetujuan tertulis penambahan profil kelima (Delia) terhadap ruang lingkup SPK (`PRD.md` Bagian 5 & 10). |
-| 6 | `basit-rezki` (Basit Rezki, S.H.) | `fullBio` | Teks salinan persis dari `CONTENT_PROFILES.md` | `TODO(client)`: Konfirmasi kerahasiaan dan kepatuhan kode etik terkait penyebutan "kasus tindak pidana kekerasan terhadap anak" pada `fullBio` Basit Rezki, S.H. |
+| 1 | `delia-zaizafun` (Delia Zaizafun) | `honorific` (Gelar) | `S.H., M.H.` | `TODO(client)`: Konfirmasi penulisan gelar resmi Delia Zaizafun (bio menyebut lulusan Magister Hukum UGM). |
+| 2 | `farhah-tri-febriani` (Farhah Tri Febriani, S.H.) | `roleTitle` (Jabatan) | `Legal Administrator` | `TODO(client)`: Konfirmasi jabatan resmi Farhah Tri Febriani, S.H. |
+| 3 | Seluruh 7 anggota tim | `photo` | Foto dari `/Images/*.png` telah dipetakan ke `/public/team/<slug>.webp` (rasio 4:5, tanpa EXIF) | `TODO(client)`: Konfirmasi akhir keseragaman foto formal seluruh 7 anggota tim (pencahayaan, latar, dan framing 4:5). |
+| 4 | Seluruh 7 anggota tim | `displayOrder` | `1` Ferdinan, `2` Basit, `3` Haddy, `4` Benny, `5` Delia, `6` Farhah, `7` Kahlil | `TODO(client)`: Konfirmasi urutan tampil seluruh 7 profil tim (Ferdinan sang pendiri dan 6 anggota tim). |
+| 5 | `basit-rezki` (Basit Rezki, S.H.) | `fullBio` | Teks salinan persis dari `CONTENT_PROFILES.md` | `TODO(client)`: Konfirmasi kerahasiaan dan kepatuhan kode etik terkait penyebutan "kasus tindak pidana kekerasan terhadap anak" pada `fullBio` Basit Rezki, S.H. |
 
 ---
 

@@ -53,14 +53,16 @@ const casesRaw = readFileSync(join(rootDir, 'content', 'case_records.json'), 'ut
 const caseRecords = JSON.parse(casesRaw)
 
 describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)', () => {
-  it('contains exactly 5 team profiles in the required order', () => {
-    expect(team).toHaveLength(5)
+  it('contains exactly 7 team profiles in the required order', () => {
+    expect(team).toHaveLength(7)
     expect(team.map((p) => [p.displayOrder, p.slug])).toEqual([
       [1, 'ferdinan-hasiholan-silalahi'],
-      [2, 'adina-ilmania-ayu'],
-      [3, 'basit-rezki'],
-      [4, 'delia-zaizafun'],
-      [5, 'farhah-tri-febriani'],
+      [2, 'basit-rezki'],
+      [3, 'haddy-siswanto'],
+      [4, 'benny'],
+      [5, 'delia-zaizafun'],
+      [6, 'farhah-tri-febriani'],
+      [7, 'kahlil-mawardi-savana'],
     ])
   })
 
@@ -84,7 +86,7 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
     }
   })
 
-  it('maps all 5 photos to public/team/<slug>.webp with 4:5 aspect ratio and required alt text', () => {
+  it('maps all 7 photos to public/team/<slug>.webp with 4:5 aspect ratio and required alt text', () => {
     for (const profile of team) {
       expect(profile.photo.url).toBe(`/team/${profile.slug}.webp`)
       expect(profile.photo.aspectRatio).toBe('4:5')

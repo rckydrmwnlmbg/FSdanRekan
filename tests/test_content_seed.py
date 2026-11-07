@@ -44,16 +44,18 @@ class TestContentSeed(unittest.TestCase):
         cls.case_records = json.loads(cls.cases_raw)
         cls.md_text = CONTENT_PROFILES_MD.read_text(encoding="utf-8")
 
-    def test_profile_count_is_five(self) -> None:
-        self.assertEqual(len(self.team), 5)
+    def test_profile_count_is_seven(self) -> None:
+        self.assertEqual(len(self.team), 7)
 
     def test_profile_order_and_slugs(self) -> None:
         expected_order = [
             (1, "ferdinan-hasiholan-silalahi"),
-            (2, "adina-ilmania-ayu"),
-            (3, "basit-rezki"),
-            (4, "delia-zaizafun"),
-            (5, "farhah-tri-febriani"),
+            (2, "basit-rezki"),
+            (3, "haddy-siswanto"),
+            (4, "benny"),
+            (5, "delia-zaizafun"),
+            (6, "farhah-tri-febriani"),
+            (7, "kahlil-mawardi-savana"),
         ]
         actual_order = [(p["displayOrder"], p["slug"]) for p in self.team]
         self.assertEqual(actual_order, expected_order)
@@ -107,14 +109,17 @@ class TestContentSeed(unittest.TestCase):
     def test_todo_placeholders_and_no_invented_titles(self) -> None:
         by_slug = {p["slug"]: p for p in self.team}
         self.assertEqual(by_slug["ferdinan-hasiholan-silalahi"]["honorific"], "S.H.")
-        self.assertEqual(by_slug["adina-ilmania-ayu"]["honorific"], "S.H.")
         self.assertEqual(by_slug["basit-rezki"]["honorific"], "S.H.")
+        self.assertEqual(by_slug["haddy-siswanto"]["honorific"], "S.H., CLCP")
+        self.assertEqual(by_slug["benny"]["honorific"], "S.H., M.H.")
         self.assertEqual(by_slug["delia-zaizafun"]["honorific"], "S.H., M.H.")
         self.assertEqual(by_slug["farhah-tri-febriani"]["honorific"], "S.H.")
         self.assertEqual(by_slug["farhah-tri-febriani"]["roleTitle"], "Legal Administrator")
+        self.assertEqual(by_slug["kahlil-mawardi-savana"]["honorific"], "S.H.")
+        self.assertEqual(by_slug["kahlil-mawardi-savana"]["roleTitle"], "Legal Administrator")
 
     def test_all_photos_mapped_4_by_5_and_exif_stripped(self) -> None:
-        self.assertEqual(len(FILENAME_TO_SLUG), 5)
+        self.assertEqual(len(FILENAME_TO_SLUG), 7)
         for src_name in FILENAME_TO_SLUG:
             self.assertTrue(
                 (IMAGES_DIR / src_name).exists(),

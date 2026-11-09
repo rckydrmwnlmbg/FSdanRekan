@@ -2,6 +2,12 @@ import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+  fetchPublicCaseRecordsFromDb,
+  fetchPublishedArticleBySlugFromDb,
+  fetchPublishedArticlesFromDb,
+  fetchPublishedPracticeAreasFromDb,
+  fetchPublishedTeamMembersFromDb,
+  fetchSiteSettingsFromDb,
   getInstagramGalleryItems,
   getPracticeAreaBySlug,
   getTeamMemberBySlug,
@@ -186,5 +192,27 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
     const result = await fetchLiveInstagramMedia('mock-invalid-token')
     expect(result.source).toBe('curated')
     expect(result.items.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('Tahap (b): async DB content fetchers return published content and hide drafts when DB is unconfigured', async () => {
+    const settings = await fetchSiteSettingsFromDb()
+    expect(settings.firmName).toBe('Ferdinan Silalahi dan Rekan Law Firm')
+
+    const dbTeam = await fetchPublishedTeamMembersFromDb()
+    expect(dbTeam).toHaveLength(7)
+
+    const dbAreas = await fetchPublishedPracticeAreasFromDb()
+    expect(dbAreas).toHaveLength(10)
+
+    const dbCases = await fetchPublicCaseRecordsFromDb()
+    expect(dbCases).toHaveLength(7)
+    expect(dbCases.every((c) => c.displayMode === 'anonymous')).toBe(true)
+
+    const dbArticles = await fetchPublishedArticlesFromDb()
+    expect(dbArticles.length).toBeGreaterThanOrEqual(3)
+    expect(dbArticles.every((a) => a.status === 'published')).toBe(true)
+
+    const draft = await fetchPublishedArticleBySlugFromDb('draf-internal-belum-terbit')
+    expect(draft).toBeNull()
   })
 })

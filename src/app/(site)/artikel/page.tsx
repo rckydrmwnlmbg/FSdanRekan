@@ -1,8 +1,10 @@
 import React from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getPublishedArticles } from '@/lib/content'
+import { fetchPublishedArticlesFromDb } from '@/lib/content'
 import { buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = buildPageMetadata({
   title: `Artikel & Wawasan Hukum | ${OFFICIAL_FIRM_NAME}`,
@@ -27,12 +29,13 @@ export default async function ArtikelIndexPage({ searchParams }: ArtikelIndexPro
   const searchQuery = resolvedParams.q?.trim() ?? ''
   const currentPage = Math.max(1, Number.parseInt(resolvedParams.halaman ?? '1', 10) || 1)
 
-  const allPublished = getPublishedArticles()
+  const [allPublished, filtered] = await Promise.all([
+    fetchPublishedArticlesFromDb(),
+    fetchPublishedArticlesFromDb(categorySlug, searchQuery),
+  ])
   const categories = Array.from(
     new Map(allPublished.map((a) => [a.category.slug, a.category])).values(),
   )
-
-  const filtered = getPublishedArticles(categorySlug, searchQuery)
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 

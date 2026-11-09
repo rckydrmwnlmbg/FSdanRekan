@@ -2,10 +2,12 @@ import React from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { DEFAULT_SITE_SETTINGS, getPublishedArticleBySlug } from '@/lib/content'
+import { fetchPublishedArticleBySlugFromDb, fetchSiteSettingsFromDb } from '@/lib/content'
 import { buildArticleJsonLd, buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
 import { waLink } from '@/lib/whatsapp'
 import { ArticleBody } from '@/components/ArticleBody'
+
+export const dynamic = 'force-dynamic'
 
 interface ArticleDetailProps {
   params: Promise<{
@@ -15,7 +17,7 @@ interface ArticleDetailProps {
 
 export async function generateMetadata({ params }: ArticleDetailProps): Promise<Metadata> {
   const { slug } = await params
-  const article = getPublishedArticleBySlug(slug)
+  const article = await fetchPublishedArticleBySlugFromDb(slug)
   if (!article) {
     return {
       title: `Artikel Tidak Ditemukan | ${OFFICIAL_FIRM_NAME}`,
@@ -32,7 +34,10 @@ export async function generateMetadata({ params }: ArticleDetailProps): Promise<
 export default async function ArticleDetailPage({ params }: ArticleDetailProps) {
   const { slug } = await params
   // SEC-008 & FR-5.3: Only published articles with publishedAt <= now are returned; drafts return 404
-  const article = getPublishedArticleBySlug(slug)
+  const [article, settings] = await Promise.all([
+    fetchPublishedArticleBySlugFromDb(slug),
+    fetchSiteSettingsFromDb(),
+  ])
   if (!article) {
     notFound()
   }
@@ -44,7 +49,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailProps) 
   })
 
   const shareWaUrl = waLink(
-    DEFAULT_SITE_SETTINGS.whatsappNumber,
+    settings.whatsappNumber,
     `Halo FS dan Rekan, saya ingin berkonsultasi terkait topik artikel "${article.title}".`,
   )
 

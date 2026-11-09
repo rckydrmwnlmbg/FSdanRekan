@@ -1,16 +1,19 @@
 import React from 'react'
 import type { Metadata } from 'next'
 import {
-  DEFAULT_SITE_SETTINGS,
-  getPublicCaseRecords,
-  getPublishedArticles,
-  getPublishedPracticeAreas,
-  getPublishedTeamMembers,
+  fetchInstagramGalleryFromDb,
+  fetchPublicCaseRecordsFromDb,
+  fetchPublishedArticlesFromDb,
+  fetchPublishedPracticeAreasFromDb,
+  fetchPublishedTeamMembersFromDb,
+  fetchSiteSettingsFromDb,
 } from '@/lib/content'
 import { fetchLiveInstagramMedia } from '@/lib/instagram'
 import { buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
 import { HeroSection } from '@/components/HeroSection'
 import { HomePageClient } from '@/components/HomePageClient'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = buildPageMetadata({
   title: `${OFFICIAL_FIRM_NAME} | Kantor Hukum & Advokat Jakarta Pusat`,
@@ -20,15 +23,23 @@ export const metadata: Metadata = buildPageMetadata({
 })
 
 export default async function HomePage() {
-  const settings = DEFAULT_SITE_SETTINGS
-  const teamMembers = getPublishedTeamMembers()
-  const practiceAreas = getPublishedPracticeAreas()
-  const caseRecords = getPublicCaseRecords()
-  const latestArticles = getPublishedArticles().slice(0, 3)
+  const [settings, teamMembers, practiceAreas, caseRecords, allPublishedArticles, dbIgItems] =
+    await Promise.all([
+      fetchSiteSettingsFromDb(),
+      fetchPublishedTeamMembersFromDb(),
+      fetchPublishedPracticeAreasFromDb(),
+      fetchPublicCaseRecordsFromDb(),
+      fetchPublishedArticlesFromDb(),
+      fetchInstagramGalleryFromDb(),
+    ])
+  const latestArticles = allPublishedArticles.slice(0, 3)
 
-  // SK-13 / Phase 2: Live Instagram Graph API integration with graceful fallback
+  // SK-13 / Phase 2: Live Instagram Graph API integration with graceful fallback to DB curated gallery
   const instagramResult = await fetchLiveInstagramMedia()
-  const instagramItems = instagramResult.items
+  const instagramItems =
+    instagramResult.source === 'live' || instagramResult.source === 'cache'
+      ? instagramResult.items
+      : dbIgItems
 
   return (
     <>

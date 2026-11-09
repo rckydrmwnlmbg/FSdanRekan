@@ -3,10 +3,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
-  DEFAULT_SITE_SETTINGS,
-  getPracticeAreaBySlug,
+  fetchPracticeAreaBySlugFromDb,
+  fetchPublishedPracticeAreasFromDb,
+  fetchPublishedTeamMembersFromDb,
+  fetchSiteSettingsFromDb,
   getPublishedPracticeAreas,
-  getPublishedTeamMembers,
 } from '@/lib/content'
 import {
   buildBreadcrumbJsonLd,
@@ -15,6 +16,8 @@ import {
   OFFICIAL_FIRM_NAME,
 } from '@/lib/seo'
 import { waLink } from '@/lib/whatsapp'
+
+export const dynamic = 'force-dynamic'
 
 interface PracticeDetailProps {
   params: Promise<{
@@ -30,7 +33,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PracticeDetailProps): Promise<Metadata> {
   const { slug } = await params
-  const area = getPracticeAreaBySlug(slug)
+  const area = await fetchPracticeAreaBySlugFromDb(slug)
   if (!area) {
     return {
       title: `Bidang Layanan Tidak Ditemukan | ${OFFICIAL_FIRM_NAME}`,
@@ -46,15 +49,19 @@ export async function generateMetadata({ params }: PracticeDetailProps): Promise
 
 export default async function PracticeAreaDetailPage({ params }: PracticeDetailProps) {
   const { slug } = await params
-  const area = getPracticeAreaBySlug(slug)
+  const [area, allAreas, allTeamMembers, settings] = await Promise.all([
+    fetchPracticeAreaBySlugFromDb(slug),
+    fetchPublishedPracticeAreasFromDb(),
+    fetchPublishedTeamMembersFromDb(),
+    fetchSiteSettingsFromDb(),
+  ])
   if (!area) {
     notFound()
   }
 
-  const allAreas = getPublishedPracticeAreas()
-  const teamMembers = getPublishedTeamMembers().slice(0, 3)
+  const teamMembers = allTeamMembers.slice(0, 3)
   const consultWaUrl = waLink(
-    DEFAULT_SITE_SETTINGS.whatsappNumber,
+    settings.whatsappNumber,
     `Halo FS dan Rekan, saya ingin berkonsultasi mengenai bidang layanan "${area.name}".`,
   )
 

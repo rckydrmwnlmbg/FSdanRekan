@@ -1,7 +1,9 @@
+import type { RowDataPacket } from 'mysql2/promise'
 import teamSeed from '../../content/team.json'
 import practiceAreasSeed from '../../content/practice_areas.json'
 import caseRecordsSeed from '../../content/case_records.json'
 import articlesSeed from '../../content/articles.json'
+import { getDbPool } from '@/lib/db'
 import { OFFICIAL_ADDRESS, OFFICIAL_FIRM_NAME, SHORT_BRAND_NAME } from '@/lib/seo'
 
 export interface TeamPhotoData {
@@ -639,4 +641,386 @@ export function getPublishedArticleBySlug(slug: string): ArticlePublicData | nul
     (a) => a.slug === slug && a.status === 'published' && a.publishedAt <= nowIso,
   )
   return found ?? null
+}
+
+function safeParseJson<T>(raw: unknown, fallback: T): T {
+  if (raw === null || raw === undefined) return fallback
+  if (typeof raw === 'object') return raw as T
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw) as T
+    } catch {
+      return fallback
+    }
+  }
+  return fallback
+}
+
+/**
+ * Fetch global site settings from MySQL `site_settings` table with fallback to DEFAULT_SITE_SETTINGS.
+ */
+export async function fetchSiteSettingsFromDb(): Promise<SiteSettingsData> {
+  const pool = getDbPool()
+  if (!pool) {
+    return DEFAULT_SITE_SETTINGS
+  }
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      "SELECT `settings_json` FROM `site_settings` WHERE `setting_key` = 'global' LIMIT 1",
+    )
+    if (!rows[0]?.settings_json) {
+      return DEFAULT_SITE_SETTINGS
+    }
+    const raw = safeParseJson<Record<string, unknown>>(rows[0].settings_json, {})
+    return {
+      firmName: String(raw.officialFirmName || raw.firmName || DEFAULT_SITE_SETTINGS.firmName),
+      shortBrandName: String(raw.shortBrandName || DEFAULT_SITE_SETTINGS.shortBrandName),
+      address: String(raw.address || DEFAULT_SITE_SETTINGS.address),
+      whatsappNumber: String(raw.whatsappNumber || DEFAULT_SITE_SETTINGS.whatsappNumber),
+      whatsappDisplay: String(raw.whatsappDisplay || DEFAULT_SITE_SETTINGS.whatsappDisplay),
+      defaultWaMessage: String(raw.defaultWaMessage || DEFAULT_SITE_SETTINGS.defaultWaMessage),
+      inquiryRecipientEmail: String(
+        raw.inquiryRecipientEmail || DEFAULT_SITE_SETTINGS.inquiryRecipientEmail,
+      ),
+      instagramUrl: String(raw.instagramUrl || DEFAULT_SITE_SETTINGS.instagramUrl),
+      mapEmbedUrl: String(raw.mapEmbedUrl || DEFAULT_SITE_SETTINGS.mapEmbedUrl),
+      mapsDirectUrl: String(raw.mapsDirectUrl || DEFAULT_SITE_SETTINGS.mapsDirectUrl),
+      officeHours: {
+        pagi: String(raw.officeHoursPagi || DEFAULT_SITE_SETTINGS.officeHours.pagi),
+        siang: String(raw.officeHoursSiang || DEFAULT_SITE_SETTINGS.officeHours.siang),
+        sore: String(raw.officeHoursSore || DEFAULT_SITE_SETTINGS.officeHours.sore),
+      },
+    }
+  } catch {
+    return DEFAULT_SITE_SETTINGS
+  }
+}
+
+function mapRowToTeamMember(row: RowDataPacket): TeamMemberData {
+  const slug = String(row.slug || '')
+  const fullName = String(row.full_name || '')
+  const honorific = String(row.honorific || '')
+  const rawPhoto = safeParseJson<Partial<TeamPhotoData>>(row.photo_json, {})
+  const defaultUrl = rawPhoto.url || `/team/${slug}.webp`
+
+  const member: TeamMemberData = {
+    id: String(row.id || `team-${slug}`),
+    slug,
+    fullName,
+    honorific,
+    displayName: String(row.display_name || fullName),
+    roleTitle: String(row.role_title || 'Associate'),
+    group: String(row.group_name || 'Associate'),
+    motto: row.motto ? String(row.motto) : null,
+    shortBio: String(row.short_bio || ''),
+    fullBio: String(row.full_bio || ''),
+    education: safeParseJson<string[]>(row.education_json, []),
+    credentials: safeParseJson<string[]>(row.credentials_json, []),
+    languages: safeParseJson<string[]>(row.languages_json, []),
+    tags: safeParseJson<string[]>(row.tags_json, []),
+    photo: {
+      id: rawPhoto.id || `photo-${slug}`,
+      filename: rawPhoto.filename || `${slug}.webp`,
+      sourceFilename: rawPhoto.sourceFilename || `${slug}.png`,
+      mimeType: rawPhoto.mimeType || 'image/webp',
+      size: Number(rawPhoto.size) || 24000,
+      width: Number(rawPhoto.width) || 640,
+      height: Number(rawPhoto.height) || 800,
+      aspectRatio: rawPhoto.aspectRatio || '4:5',
+      url: defaultUrl,
+      sizes: rawPhoto.sizes || {
+        sm: defaultUrl,
+        md: defaultUrl,
+        lg: defaultUrl,
+      },
+      srcSet: rawPhoto.srcSet || `${defaultUrl} 640w`,
+      alt: rawPhoto.alt || `Foto ${fullName}`,
+    },
+    displayOrder: Number(row.display_order) || 1,
+    isPublished: Boolean(row.is_published),
+  }
+
+  return cleanUiTeamMember(member)
+}
+
+/**
+ * Fetch published team members from MySQL `team_members` table with fallback to JSON seed.
+ */
+export async function fetchPublishedTeamMembersFromDb(): Promise<TeamMemberData[]> {
+  const pool = getDbPool()
+  if (!pool) {
+    return getPublishedTeamMembers()
+  }
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM `team_members` WHERE `is_published` = 1 ORDER BY `display_order` ASC',
+    )
+    if (rows.length === 0) {
+      return getPublishedTeamMembers()
+    }
+    return rows.map(mapRowToTeamMember)
+  } catch {
+    return getPublishedTeamMembers()
+  }
+}
+
+export async function fetchTeamMemberBySlugFromDb(slug: string): Promise<TeamMemberData | null> {
+  const pool = getDbPool()
+  if (!pool) {
+    return getTeamMemberBySlug(slug)
+  }
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM `team_members` WHERE `slug` = ? AND `is_published` = 1 LIMIT 1',
+      [slug],
+    )
+    if (rows[0]) {
+      return mapRowToTeamMember(rows[0])
+    }
+    const [countRows] = await pool.query<RowDataPacket[]>(
+      'SELECT COUNT(*) AS cnt FROM `team_members`',
+    )
+    if (Number(countRows[0]?.cnt ?? 0) === 0) {
+      return getTeamMemberBySlug(slug)
+    }
+    return null
+  } catch {
+    return getTeamMemberBySlug(slug)
+  }
+}
+
+function mapRowToPracticeArea(row: RowDataPacket): PracticeAreaData {
+  const slug = String(row.slug || '')
+  const pres = PRACTICE_PRESENTATION_BY_SLUG[slug]
+  const rawSummary = String(row.summary || '')
+  const rawDesc = String(row.description || '')
+  const rawScope = safeParseJson<string[]>(row.advocacy_scope_json, [])
+  const rawIcon = String(row.icon || '')
+
+  return {
+    id: String(row.id || `pa-${slug}`),
+    slug,
+    name: String(row.name || ''),
+    label: String(row.label || 'LAYANAN'),
+    summary: rawSummary.startsWith('TODO(client)') && pres ? pres.summary : rawSummary,
+    description: rawDesc.startsWith('TODO(client)') && pres ? pres.description : rawDesc,
+    advocacyScope:
+      rawScope.some((s) => String(s).startsWith('TODO(client)')) && pres
+        ? pres.advocacyScope
+        : rawScope,
+    icon: rawIcon.startsWith('TODO(client)') ? '' : rawIcon,
+    image: String(row.image || pres?.image || '/images/practice-corporate.webp'),
+    displayOrder: Number(row.display_order) || 1,
+    isPublished: Boolean(row.is_published),
+  }
+}
+
+/**
+ * Fetch published practice areas from MySQL `practice_areas` table with fallback to JSON seed.
+ */
+export async function fetchPublishedPracticeAreasFromDb(): Promise<PracticeAreaData[]> {
+  const pool = getDbPool()
+  if (!pool) {
+    return getPublishedPracticeAreas()
+  }
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM `practice_areas` WHERE `is_published` = 1 ORDER BY `display_order` ASC',
+    )
+    if (rows.length === 0) {
+      return getPublishedPracticeAreas()
+    }
+    return rows.map(mapRowToPracticeArea)
+  } catch {
+    return getPublishedPracticeAreas()
+  }
+}
+
+export async function fetchPracticeAreaBySlugFromDb(
+  slug: string,
+): Promise<PracticeAreaData | null> {
+  const pool = getDbPool()
+  if (!pool) {
+    return getPracticeAreaBySlug(slug)
+  }
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM `practice_areas` WHERE `slug` = ? AND `is_published` = 1 LIMIT 1',
+      [slug],
+    )
+    if (rows[0]) {
+      return mapRowToPracticeArea(rows[0])
+    }
+    const [countRows] = await pool.query<RowDataPacket[]>(
+      'SELECT COUNT(*) AS cnt FROM `practice_areas`',
+    )
+    if (Number(countRows[0]?.cnt ?? 0) === 0) {
+      return getPracticeAreaBySlug(slug)
+    }
+    return null
+  } catch {
+    return getPracticeAreaBySlug(slug)
+  }
+}
+
+/**
+ * Fetch published case records from MySQL `case_records` table (enforcing SK-14 anonymity guard).
+ */
+export async function fetchPublicCaseRecordsFromDb(): Promise<PublicCaseRecord[]> {
+  const pool = getDbPool()
+  if (!pool) {
+    return getPublicCaseRecords()
+  }
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM `case_records` WHERE `is_published` = 1 ORDER BY `display_order` ASC',
+    )
+    if (rows.length === 0) {
+      return getPublicCaseRecords()
+    }
+    return rows.map((row) =>
+      serializePublicCaseRecord({
+        id: String(row.id),
+        caseType: String(row.case_type || ''),
+        region: String(row.region || ''),
+        displayMode: row.display_mode === 'named' ? 'named' : 'anonymous',
+        clientName: row.client_name ? String(row.client_name) : null,
+        consentRef: row.consent_ref ? String(row.consent_ref) : null,
+        scope: row.scope_text ? String(row.scope_text) : undefined,
+        displayOrder: Number(row.display_order) || 1,
+        isPublished: Boolean(row.is_published),
+        imageUrl: row.image_url ? String(row.image_url) : undefined,
+        imageAlt: row.image_alt ? String(row.image_alt) : undefined,
+        photos: safeParseJson<CaseDocumentationPhoto[]>(row.photos_json, []),
+      }),
+    )
+  } catch {
+    return getPublicCaseRecords()
+  }
+}
+
+function mapRowToArticle(row: RowDataPacket): ArticlePublicData {
+  const publishedAtDate =
+    row.published_at instanceof Date
+      ? row.published_at.toISOString()
+      : new Date(String(row.published_at || '')).toISOString()
+
+  return {
+    id: String(row.id),
+    slug: String(row.slug),
+    title: String(row.title),
+    excerpt: String(row.excerpt || ''),
+    bodyHtml: String(row.body_html || ''),
+    coverImage: {
+      url: String(row.cover_url || '/images/practice-corporate.webp'),
+      alt: String(row.cover_alt || `Ilustrasi ${String(row.title)}`),
+    },
+    category: {
+      slug: String(row.category_slug || 'hukum-korporasi'),
+      name: String(row.category_name || 'Hukum Korporasi & Bisnis'),
+    },
+    authorName: String(row.author_name || 'Tim Redaksi FS dan Rekan'),
+    status: row.status === 'published' ? 'published' : 'draft',
+    publishedAt: publishedAtDate,
+    seoTitle: String(row.seo_title || row.title || ''),
+    seoDescription: String(row.seo_description || row.excerpt || ''),
+  }
+}
+
+/**
+ * Fetch published articles (where status = 'published' AND published_at <= NOW()) from MySQL `articles` table.
+ * Strictly excludes drafts (SEC-008 / FR-5.3).
+ */
+export async function fetchPublishedArticlesFromDb(
+  categorySlug?: string,
+  searchQuery?: string,
+): Promise<ArticlePublicData[]> {
+  const pool = getDbPool()
+  if (!pool) {
+    return getPublishedArticles(categorySlug, searchQuery)
+  }
+  try {
+    const [countRows] = await pool.query<RowDataPacket[]>('SELECT COUNT(*) AS cnt FROM `articles`')
+    if (Number(countRows[0]?.cnt ?? 0) === 0) {
+      return getPublishedArticles(categorySlug, searchQuery)
+    }
+
+    const params: unknown[] = []
+    let sql =
+      "SELECT * FROM `articles` WHERE `status` = 'published' AND `published_at` <= UTC_TIMESTAMP()"
+
+    if (categorySlug) {
+      sql += ' AND `category_slug` = ?'
+      params.push(categorySlug)
+    }
+    if (searchQuery && searchQuery.trim().length > 0) {
+      const likeTerm = `%${searchQuery.trim()}%`
+      sql +=
+        ' AND (`title` LIKE ? OR `excerpt` LIKE ? OR `category_name` LIKE ? OR `body_html` LIKE ?)'
+      params.push(likeTerm, likeTerm, likeTerm, likeTerm)
+    }
+
+    sql += ' ORDER BY `published_at` DESC'
+
+    const [rows] = await pool.query<RowDataPacket[]>(sql, params)
+    return rows.map(mapRowToArticle)
+  } catch {
+    return getPublishedArticles(categorySlug, searchQuery)
+  }
+}
+
+export async function fetchPublishedArticleBySlugFromDb(
+  slug: string,
+): Promise<ArticlePublicData | null> {
+  const pool = getDbPool()
+  if (!pool) {
+    return getPublishedArticleBySlug(slug)
+  }
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      "SELECT * FROM `articles` WHERE `slug` = ? AND `status` = 'published' AND `published_at` <= UTC_TIMESTAMP() LIMIT 1",
+      [slug],
+    )
+    if (rows[0]) {
+      return mapRowToArticle(rows[0])
+    }
+    const [countRows] = await pool.query<RowDataPacket[]>('SELECT COUNT(*) AS cnt FROM `articles`')
+    if (Number(countRows[0]?.cnt ?? 0) === 0) {
+      return getPublishedArticleBySlug(slug)
+    }
+    return null
+  } catch {
+    return getPublishedArticleBySlug(slug)
+  }
+}
+
+/**
+ * Fetch curated Instagram items from MySQL `instagram_gallery` table with fallback to INITIAL_INSTAGRAM_GALLERY.
+ */
+export async function fetchInstagramGalleryFromDb(): Promise<InstagramGalleryItem[]> {
+  const pool = getDbPool()
+  if (!pool) {
+    return getInstagramGalleryItems()
+  }
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM `instagram_gallery` WHERE `is_published` = 1 ORDER BY `display_order` ASC',
+    )
+    if (rows.length === 0) {
+      return getInstagramGalleryItems()
+    }
+    return rows.map((r) => ({
+      id: String(r.id),
+      imageUrl: String(r.image_url || ''),
+      alt: String(r.alt_text || ''),
+      category: String(r.category || 'Publikasi Resmi'),
+      caption: String(r.caption || ''),
+      publishedDate: String(r.published_date || 'Instagram Live'),
+      permalink: String(r.permalink || ''),
+      displayOrder: Number(r.display_order) || 1,
+      isPublished: Boolean(r.is_published),
+    }))
+  } catch {
+    return getInstagramGalleryItems()
+  }
 }

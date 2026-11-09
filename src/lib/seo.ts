@@ -16,7 +16,7 @@ export function buildPageMetadata({
   path?: string
   ogImage?: string
 }): Metadata {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fsdanrekan.id'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fsdanrekan.com'
   const canonicalUrl = new URL(path, siteUrl).toString()
 
   return {
@@ -50,7 +50,7 @@ export function buildPageMetadata({
   }
 }
 
-export function buildLegalServiceJsonLd(siteUrl = 'https://fsdanrekan.id') {
+export function buildLegalServiceJsonLd(siteUrl = 'https://fsdanrekan.com') {
   return {
     '@context': 'https://schema.org',
     '@type': 'LegalService',
@@ -121,7 +121,7 @@ export function buildArticleJsonLd({
   publishedAt,
   coverUrl = '/images/practice-corporate.webp',
   authorName = 'Tim Redaksi FS dan Rekan',
-  siteUrl = 'https://fsdanrekan.id',
+  siteUrl = 'https://fsdanrekan.com',
 }: {
   title: string
   description: string
@@ -164,7 +164,7 @@ export function buildArticleJsonLd({
 
 export function buildBreadcrumbJsonLd(
   items: Array<{ name: string; url: string }>,
-  siteUrl = 'https://fsdanrekan.id',
+  siteUrl = 'https://fsdanrekan.com',
 ) {
   return {
     '@context': 'https://schema.org',

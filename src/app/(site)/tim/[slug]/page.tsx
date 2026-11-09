@@ -3,12 +3,15 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
-  DEFAULT_SITE_SETTINGS,
+  fetchPublishedTeamMembersFromDb,
+  fetchSiteSettingsFromDb,
+  fetchTeamMemberBySlugFromDb,
   getPublishedTeamMembers,
-  getTeamMemberBySlug,
 } from '@/lib/content'
 import { buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
 import { waLink } from '@/lib/whatsapp'
+
+export const dynamic = 'force-dynamic'
 
 interface TeamDetailProps {
   params: Promise<{
@@ -24,7 +27,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: TeamDetailProps): Promise<Metadata> {
   const { slug } = await params
-  const member = getTeamMemberBySlug(slug)
+  const member = await fetchTeamMemberBySlugFromDb(slug)
   if (!member) {
     return {
       title: `Profil Tim Tidak Ditemukan | ${OFFICIAL_FIRM_NAME}`,
@@ -40,14 +43,18 @@ export async function generateMetadata({ params }: TeamDetailProps): Promise<Met
 
 export default async function TeamMemberDetailPage({ params }: TeamDetailProps) {
   const { slug } = await params
-  const member = getTeamMemberBySlug(slug)
+  const [member, allTeamMembers, settings] = await Promise.all([
+    fetchTeamMemberBySlugFromDb(slug),
+    fetchPublishedTeamMembersFromDb(),
+    fetchSiteSettingsFromDb(),
+  ])
   if (!member) {
     notFound()
   }
 
-  const otherMembers = getPublishedTeamMembers().filter((m) => m.slug !== member.slug)
+  const otherMembers = allTeamMembers.filter((m) => m.slug !== member.slug)
   const consultWaUrl = waLink(
-    DEFAULT_SITE_SETTINGS.whatsappNumber,
+    settings.whatsappNumber,
     `Halo FS dan Rekan, saya ingin menjadwalkan konsultasi hukum bersama ${member.displayName}.`,
   )
 

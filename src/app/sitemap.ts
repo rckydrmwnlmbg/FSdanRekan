@@ -1,16 +1,20 @@
 import type { MetadataRoute } from 'next'
 import {
-  getPublishedArticles,
-  getPublishedPracticeAreas,
-  getPublishedTeamMembers,
+  fetchPublishedArticlesFromDb,
+  fetchPublishedPracticeAreasFromDb,
+  fetchPublishedTeamMembersFromDb,
 } from '@/lib/content'
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fsdanrekan.id'
+export const dynamic = 'force-dynamic'
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fsdanrekan.com'
   // SK-07 & FR-9.2: Only published articles are included in sitemap; drafts are strictly excluded
-  const publishedArticles = getPublishedArticles()
-  const practiceAreas = getPublishedPracticeAreas()
-  const teamMembers = getPublishedTeamMembers()
+  const [publishedArticles, practiceAreas, teamMembers] = await Promise.all([
+    fetchPublishedArticlesFromDb(),
+    fetchPublishedPracticeAreasFromDb(),
+    fetchPublishedTeamMembersFromDb(),
+  ])
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {

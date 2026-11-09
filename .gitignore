@@ -7,6 +7,10 @@
 /.next/
 /out/
 /build
+/dist-deploy/
+/fsdanrekan-deploy.zip
+/uploads/
+/public/uploads/
 next-env.d.ts
 *.tsbuildinfo
 

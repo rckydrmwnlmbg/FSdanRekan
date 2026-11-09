@@ -1,7 +1,20 @@
 import crypto from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { cleanHtml, escapeHtml } from '../src/lib/security/sanitize'
 import { verifyConstantTimeToken, verifyMetaSignature } from '../src/lib/security/signature'
+import {
+  hashPassword,
+  validatePasswordStrength,
+  verifyPassword,
+} from '../src/lib/security/password'
+import {
+  limitByIp,
+  limitLogin,
+  resetMemoryRateLimitsForTest,
+} from '../src/lib/security/ratelimit'
+import { splitSqlStatements } from '../src/lib/db'
 import { InquiryBodySchema } from '../src/lib/validation/inquiry'
 import { GuidedChatSchema } from '../src/lib/validation/chat'
 import { isValidIndonesianWaNumber, waLink } from '../src/lib/whatsapp'
@@ -124,5 +137,55 @@ describe('Security & Validation Unit Suite (SEC-004, SEC-005, SEC-006, SEC-008, 
 
     // Extra unknown field -> fails (.strict())
     expect(GuidedChatSchema.safeParse({ ...validChat, isAdmin: true }).success).toBe(false)
+  })
+
+  it('SEC-001: hashes and verifies passwords with native Node scrypt and enforces 12-char policy', () => {
+    const strongPass = 'AdminFSdanRekan2026!#'
+    expect(validatePasswordStrength(strongPass).valid).toBe(true)
+    expect(validatePasswordStrength('short123').valid).toBe(false)
+    expect(validatePasswordStrength('alllowercase12345').valid).toBe(false)
+
+    const hashed = hashPassword(strongPass)
+    expect(hashed.startsWith('scrypt$16384$8$1$')).toBe(true)
+    expect(verifyPassword(strongPass, hashed)).toBe(true)
+    expect(verifyPassword('WrongPassword2026!#', hashed)).toBe(false)
+    expect(verifyPassword(strongPass, 'invalid$hash')).toBe(false)
+  })
+
+  it('SEC-007: enforces inquiry (5/10m) and login (10/15m) rate limits', async () => {
+    resetMemoryRateLimitsForTest()
+    const testIp = '203.0.113.55'
+    for (let i = 1; i <= 5; i++) {
+      expect(await limitByIp(testIp)).toBe(true)
+    }
+    expect(await limitByIp(testIp)).toBe(false)
+
+    for (let i = 1; i <= 10; i++) {
+      expect(await limitLogin(testIp, 'admin@fsdanrekan.com')).toBe(true)
+    }
+    expect(await limitLogin(testIp, 'admin@fsdanrekan.com')).toBe(false)
+  })
+
+  it('Database Schema: database/schema.sql contains all required MySQL/MariaDB tables', () => {
+    const schemaText = readFileSync(join(process.cwd(), 'database', 'schema.sql'), 'utf8')
+    const stmts = splitSqlStatements(schemaText)
+    expect(stmts.length).toBeGreaterThanOrEqual(14)
+    const requiredTables = [
+      'CREATE TABLE IF NOT EXISTS `users`',
+      'CREATE TABLE IF NOT EXISTS `sessions`',
+      'CREATE TABLE IF NOT EXISTS `categories`',
+      'CREATE TABLE IF NOT EXISTS `articles`',
+      'CREATE TABLE IF NOT EXISTS `practice_areas`',
+      'CREATE TABLE IF NOT EXISTS `team_members`',
+      'CREATE TABLE IF NOT EXISTS `case_records`',
+      'CREATE TABLE IF NOT EXISTS `inquiries`',
+      'CREATE TABLE IF NOT EXISTS `site_settings`',
+      'CREATE TABLE IF NOT EXISTS `media_assets`',
+      'CREATE TABLE IF NOT EXISTS `audit_logs`',
+      'CREATE TABLE IF NOT EXISTS `rate_limits`',
+    ]
+    for (const tableClause of requiredTables) {
+      expect(schemaText).toContain(tableClause)
+    }
   })
 })

@@ -14,6 +14,7 @@
     "test:e2e": "playwright test",
     "seed": "python scripts/seed_team.py && python scripts/process_assets.py",
     "db:migrate": "node scripts/migrate_mysql.mjs",
+    "db:sql": "node scripts/generate_phpmyadmin_sql.mjs",
     "package:deploy": "node scripts/package_deploy.mjs"
   },
   "dependencies": {

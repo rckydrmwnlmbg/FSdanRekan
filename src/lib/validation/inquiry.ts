@@ -36,8 +36,9 @@ export const InquiryBodySchema = z
     website: z.string().max(0, 'Permintaan tidak valid.').optional(), // honeypot
     turnstileToken: z
       .string()
-      .min(1, 'Verifikasi keamanan wajib diselesaikan.')
-      .max(2048, 'Token verifikasi tidak valid.'),
+      .max(2048, 'Token verifikasi tidak valid.')
+      .optional()
+      .default(''),
   })
   .strict()
 

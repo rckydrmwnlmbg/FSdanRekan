@@ -125,13 +125,13 @@ async function bootstrapInitialUsersInDbIfNeeded(): Promise<void> {
   if (adminPass.length < 8) return
 
   try {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      'SELECT `id` FROM `users` WHERE `email` = ? LIMIT 1',
-      [adminEmail],
+    const [countRows] = await pool.query<RowDataPacket[]>(
+      'SELECT COUNT(*) AS `cnt` FROM `users`',
     )
-    if (rows.length === 0) {
+    const totalUsers = Number(countRows[0]?.cnt ?? 0)
+    if (totalUsers === 0) {
       await pool.query(
-        `INSERT INTO \`users\`
+        `INSERT IGNORE INTO \`users\`
           (\`id\`, \`name\`, \`email\`, \`password_hash\`, \`role\`, \`mfa_enabled\`, \`must_change_password\`)
          VALUES ('user-admin-1', 'Administrator Utama', ?, ?, 'admin', 1, 1)`,
         [adminEmail, hashPassword(adminPass)],

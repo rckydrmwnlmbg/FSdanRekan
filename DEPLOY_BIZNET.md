@@ -77,25 +77,37 @@ Sebelum mengunggah ke Biznet Gio, Anda dapat menguji seluruh fitur database dan 
 
 ---
 
-## B. Mengimpor Skema & Menjalankan Migrasi Data Awal
+## B. Mengimpor Skema & Seed Data Awal (Pilih Jalur Tanpa Terminal atau Dengan Terminal)
 
-Anda dapat membuat 14 tabel database menggunakan **phpMyAdmin** maupun **skrip migrasi otomatis**.
+Kami menyediakan **dua jalur migrasi** yang sama-sama **idempoten** (aman dijalankan berulang tanpa menggandakan data):
 
-### Langkah 1 — Impor `database/schema.sql` lewat phpMyAdmin (Opsional namun Direkomendasikan)
+### Jalur 1 — Tanpa Terminal / Tanpa SSH (Lewat phpMyAdmin — Paling Mudah)
+Gunakan jalur ini bila paket cPanel Anda tidak mengaktifkan menu Terminal/SSH. Seluruh skema 14 tabel **sekaligus seluruh data seed awal** dari `content/*.json` (pengaturan situs, kategori, 10 bidang layanan, 6 profil advokat, 4 artikel hukum, rekam jejak perkara, dan galeri Instagram) sudah digabungkan ke dalam satu file SQL siap impor: **`database/phpmyadmin_bootstrap.sql`**.
+
 1. Buka menu **phpMyAdmin** di cPanel.
 2. Klik nama database Anda (`cpaneluser_fsdanrekan`) di panel kiri.
 3. Klik tab **Import** di bagian atas.
-4. Klik **Choose File**, pilih file `database/schema.sql` dari proyek ini, lalu klik **Go / Import** di bagian bawah.
-5. Pastikan 14 tabel berhasil dibuat (`users`, `sessions`, `categories`, `articles`, `practice_areas`, `team_members`, `case_records`, `inquiries`, `site_settings`, `media_assets`, `audit_logs`, `instagram_gallery`, `chat_sessions`, `rate_limits`).
+4. Klik **Choose File**, pilih file **`database/phpmyadmin_bootstrap.sql`** (tersedia di folder proyek maupun di dalam `fsdanrekan-deploy.zip`), lalu klik **Go / Import** di bagian bawah.
+5. Pastikan muncul pesan hijau *Import has been successfully finished* dan 14 tabel telah terisi konten awal situs.
 
-### Langkah 2 — Menjalankan Migrasi & Seed Idempoten (`migrate_mysql.mjs`)
-Skrip `scripts/migrate_mysql.mjs` akan memastikan seluruh tabel ada, menyalin konten awal dari `content/*.json` (dan `cms_state.json` bila ada) tanpa menimpa data yang sudah ada (`INSERT IGNORE` / `ON DUPLICATE KEY UPDATE`), serta membuat akun Admin pertama dari environment variable `ADMIN_INITIAL_EMAIL` dan `ADMIN_INITIAL_PASSWORD`.
+#### Mekanisme Keamanan Akun Admin Pertama pada Jalur Tanpa Terminal
+- Demi keamanan (`SEC-001` & `SEC-003`), file `database/phpmyadmin_bootstrap.sql` **tidak menyimpan password atau hash password apa pun** di dalam repositori (tabel `users` sengaja dibiarkan kosong saat impor SQL).
+- Saat Anda mengisi `ADMIN_INITIAL_EMAIL` dan `ADMIN_INITIAL_PASSWORD` di **Setup Node.js App -> Environment variables** (Bagian D), lalu melakukan **login pertama kali** di `https://fsdanrekan.com/admin`:
+  1. Server mendeteksi bahwa tabel `users` masih kosong (`COUNT(*) = 0`).
+  2. Server memvalidasi kredensial Anda terhadap `ADMIN_INITIAL_EMAIL` dan `ADMIN_INITIAL_PASSWORD` dari environment variable, melakukan hashing `scrypt` (`N=16384, r=8, p=1`), dan menyimpan akun Admin pertama ke tabel `users` dengan penanda `must_change_password = 1`.
+  3. Begitu login berhasil, layar **Wajib Ganti Kata Sandi Awal** langsung muncul sehingga Anda segera mengganti kata sandi awal tersebut dengan kata sandi permanen.
+  4. Setelah tabel `users` memiliki minimal 1 akun (`COUNT(*) > 0`), mekanisme auto-bootstrap ini otomatis terkunci dan tidak akan pernah jalan lagi.
 
-Setelah aplikasi diunggah dan environment variable diatur di cPanel (lihat Bagian D & E), jalankan perintah berikut melalui **Terminal cPanel** (atau tombol **Run JS Script**):
+---
+
+### Jalur 2 — Menggunakan Terminal cPanel / SSH (`migrate_mysql.mjs`)
+Jika Anda memiliki akses **Terminal cPanel** atau **SSH**, Anda dapat menjalankan skrip migrasi otomatis setelah mengunggah aplikasi dan mengisi environment variable:
+
 ```bash
+source /home/<user_cpanel>/nodevenv/fsdanrekan_app/20/bin/activate && cd /home/<user_cpanel>/fsdanrekan_app
 node scripts/migrate_mysql.mjs
 ```
-> **Keamanan Akun Admin Awal:** Akun admin pertama dibuat dengan status `must_change_password = 1`. Saat Anda login pertama kali di `https://fsdanrekan.com/admin`, sistem akan **mewajibkan Anda mengganti kata sandi** sebelum dapat mengelola konten. Setelah migrasi pertama selesai, Anda disarankan menghapus variabel `ADMIN_INITIAL_PASSWORD` dari pengaturan cPanel.
+Skrip ini akan mengeksekusi `database/schema.sql`, menyalin seluruh data dari `content/*.json` dan `content/cms_state.json`, serta membuat akun admin awal dengan `must_change_password = 1`.
 
 ---
 
@@ -190,16 +202,32 @@ Pastikan isi `/home/<user_cpanel>/fsdanrekan_app` tampak seperti berikut:
     │   └── static/              <-- Aset CSS/JS hasil build
     ├── content/                 <-- Seed JSON resmi (team, practice_areas, articles, dll.)
     ├── database/
-    │   └── schema.sql           <-- Skema SQL 14 tabel MySQL/MariaDB
-    ├── node_modules/            <-- Hanya dependensi runtime produksi (standalone)
-    ├── public/                  <-- Aset statis bawaan (foto advokat, logo, favicon)
+    │   ├── schema.sql                   <-- Skema SQL 14 tabel MySQL/MariaDB
+    │   └── phpmyadmin_bootstrap.sql     <-- Skema + Seed lengkap siap impor lewat phpMyAdmin
+    ├── node_modules/                    <-- Dependensi runtime produksi (100% pure JS lintas-OS)
+    ├── public/                          <-- Aset statis bawaan (foto advokat, logo, favicon)
     ├── scripts/
-    │   └── migrate_mysql.mjs    <-- Skrip migrasi & seed database idempoten
+    │   └── migrate_mysql.mjs            <-- Skrip migrasi & seed database idempoten (opsional CLI)
     ├── package.json
-    ├── server.js                <-- Startup file untuk Phusion Passenger
-    └── standalone-server.js     <-- Server internal Next.js standalone
+    ├── server.js                        <-- Startup file untuk Phusion Passenger
+    └── standalone-server.js             <-- Server internal Next.js standalone
 ```
-> **Catatan Penting:** Karena `node_modules` produksi sudah disertakan di dalam paket standalone `fsdanrekan-deploy.zip`, Anda **tidak perlu** menekan tombol *Run NPM Install* di cPanel jika semua modul ter-bundle. Namun, jika cPanel mewajibkan inisialisasi virtual environment Node.js, masuk ke terminal virtual environment cPanel (`source /home/<user>/nodevenv/fsdanrekan_app/20/bin/activate && cd /home/<user>/fsdanrekan_app`), jalankan `node scripts/migrate_mysql.mjs`, lalu klik **Restart** pada halaman **Setup Node.js App**.
+
+### Aturan Penting: Kapan BOLEH dan TIDAK BOLEH Menekan "Run NPM Install" di cPanel
+- **JANGAN menekan tombol "Run NPM Install" saat menggunakan paket `fsdanrekan-deploy.zip` (Mode Standalone):**
+  1. Arsip `fsdanrekan-deploy.zip` sudah berisi folder `node_modules/` produksi yang di-*trace* secara khusus oleh Next.js Standalone dan telah dibersihkan dari binary spesifik-OS (`@img/sharp-*`), sehingga **100% pure JavaScript** dan langsung berjalan di Linux x64 tanpa kompilasi ulang.
+  2. Menekan tombol **Run NPM Install** di cPanel pada paket standalone berisiko menimpa struktur `node_modules/` standalone dan memicu proses instalasi `npm` yang menghabiskan batas **1 GB RAM** (`ENOMEM` / `Out of Memory`).
+  3. Cukup ekstrak `fsdanrekan-deploy.zip` ke `/home/<user_cpanel>/fsdanrekan_app`, lalu klik tombol **Restart** pada halaman **Setup Node.js App**.
+- **Kapan "Run NPM Install" Boleh Dijalankan?**  
+  Hanya jika di masa depan Anda memindahkan hosting ke VPS dengan RAM ≥ 4 GB dan memilih melakukan `git clone` kode mentah (tanpa memakai `fsdanrekan-deploy.zip`). Pada paket Biznet Gio Personal Large (1 GB RAM), **selalu gunakan `fsdanrekan-deploy.zip` dan jangan jalankan `Run NPM Install` di server**.
+
+### Cara Menghapus `ADMIN_INITIAL_PASSWORD` Setelah Login Pertama
+Setelah Anda login pertama kali di `https://fsdanrekan.com/admin` dan mengganti kata sandi awal menjadi kata sandi permanen:
+1. Buka **cPanel -> Software -> Setup Node.js App**.
+2. Klik ikon **Pensil (Edit)** pada baris aplikasi `fsdanrekan_app`.
+3. Gulir ke bagian **Environment variables**, cari variabel bernama `ADMIN_INITIAL_PASSWORD`.
+4. Klik ikon **Tempat Sampah (Delete)** di sebelah kanan variabel `ADMIN_INITIAL_PASSWORD`, lalu konfirmasi penghapusan.
+5. Klik tombol **Save** di kanan atas, kemudian klik tombol **Restart** agar proses Node.js memuat ulang konfigurasi tanpa menyimpan password awal di memori environment.
 
 ---
 
@@ -248,24 +276,61 @@ Jalankan pemeriksaan berikut satu per satu setelah website aktif di `https://fsd
 
 ---
 
-## H. Prosedur Backup & Restore Rutin
+## H. Jadwal Cron Retensi Data (UU PDP) & Prosedur Backup / Restore Rutin
 
-### 1. Backup Database MySQL/MariaDB
-- **Manual lewat phpMyAdmin (Mingguan):**  
-  Buka **phpMyAdmin** -> pilih database `cpaneluser_fsdanrekan` -> klik tab **Export** -> pilih metode **Quick** dengan format **SQL** -> klik **Go** dan simpan file `.sql` di komputer Anda.
-- **Otomatis lewat Cron Jobs cPanel (Harian):**  
-  Buka cPanel -> **Advanced** -> **Cron Jobs** -> atur jadwal harian (`0 2 * * *` / pukul 02.00 WIB) dengan perintah:
+### 1. Mendaftarkan Cron Retensi Data 12 Bulan di cPanel (`CRON_SECRET`)
+Sesuai Kebijakan Privasi & `SECURITY.md` (`SEC-014`), data permohonan janji temu (`inquiries`) dan sesi chat (`chat_sessions`) yang berusia lebih dari **12 bulan (365 hari)** serta sesi login/rate-limit yang sudah kedaluwarsa harus dibersihkan secara berkala melalui endpoint `/api/cron/retention`:
+
+1. Pastikan Anda sudah mengisi variabel `CRON_SECRET` di **Setup Node.js App -> Environment variables** (misalnya string acak 32 karakter).
+2. Buka **cPanel -> Advanced -> Cron Jobs**.
+3. Pada bagian **Add New Cron Job**:
+   - Pilih **Common Settings**: `Once Per Day (0 0 * * *)` lalu ubah jamnya menjadi pukul `03:00` dini hari (`Minute: 0`, `Hour: 3`, `Day: *`, `Month: *`, `Weekday: *`).
+   - Pada kolom **Command**, masukkan perintah berikut (ganti `<ISI_CRON_SECRET_ANDA>` dengan nilai `CRON_SECRET` Anda):
+     ```bash
+     curl -sS -X POST https://fsdanrekan.com/api/cron/retention -H "Authorization: Bearer <ISI_CRON_SECRET_ANDA>" >/dev/null 2>&1
+     ```
+4. Klik **Add New Cron Job**.
+
+---
+
+### 2. Backup Database MySQL/MariaDB Secara Rutin
+- **Metode A — Manual lewat phpMyAdmin (Mingguan & Sebelum Update Kode):**
+  1. Buka **cPanel -> Databases -> phpMyAdmin**.
+  2. Klik database `cpaneluser_fsdanrekan` di panel kiri, lalu klik tab **Export** di bagian atas.
+  3. Pilih **Custom — display all possible options**:
+     - Pastikan seluruh 14 tabel terpilih.
+     - Pada bagian *Object creation options*, centang **Add DROP TABLE / VIEW / PROCEDURE / FUNCTION / EVENT / TRIGGER statement**.
+  4. Klik **Go / Export** dan simpan file `cpaneluser_fsdanrekan_YYYY-MM-DD.sql` di penyimpanan lokal/cloud kantor.
+- **Metode B — Otomatis lewat Cron Jobs cPanel (Harian):**
+  1. Buat folder `/home/<user_cpanel>/backups` melalui **File Manager** (di luar `public_html` agar tidak dapat diakses publik).
+  2. Buka **cPanel -> Advanced -> Cron Jobs**, tambahkan jadwal harian (`0 2 * * *` — pukul 02.00 WIB) dengan perintah:
+     ```bash
+     mysqldump --single-transaction --routines --triggers -u cpaneluser_appuser -p'PASSWORD_DB_ANDA' cpaneluser_fsdanrekan | gzip > /home/<user_cpanel>/backups/db_$(date +\%F).sql.gz && find /home/<user_cpanel>/backups -name "db_*.sql.gz" -mtime +30 -delete
+     ```
+     *(Perintah di atas menyimpan backup harian terkompresi `.sql.gz` dan otomatis menghapus backup yang berusia lebih dari 30 hari agar SSD 60 GB tidak penuh).*
+
+---
+
+### 3. Backup Folder Gambar Persisten (`UPLOAD_DIR`)
+Seluruh gambar yang diunggah dari panel `/admin` berada di `/home/<user_cpanel>/fsdanrekan_uploads`:
+- **Manual lewat File Manager (Mingguan):**  
+  Buka **File Manager** -> masuk ke `/home/<user_cpanel>/` -> klik kanan pada folder `fsdanrekan_uploads` -> klik **Compress** -> pilih **Zip Archive** -> unduh file `fsdanrekan_uploads.zip` ke komputer Anda.
+- **Otomatis lewat Cron Jobs (Mingguan — Setiap Minggu Pukul 02.30 WIB `30 2 * * 0`):**
   ```bash
-  mysqldump -u cpaneluser_appuser -p'PASSWORD_DB_ANDA' cpaneluser_fsdanrekan | gzip > /home/<user_cpanel>/backups/db_$(date +\%F).sql.gz
+  tar -czf /home/<user_cpanel>/backups/uploads_$(date +\%F).tar.gz -C /home/<user_cpanel> fsdanrekan_uploads && find /home/<user_cpanel>/backups -name "uploads_*.tar.gz" -mtime +30 -delete
   ```
-  *(Pastikan folder `/home/<user_cpanel>/backups` sudah dibuat terlebih dahulu di luar `public_html`).*
 
-### 2. Backup Folder Gambar (`UPLOAD_DIR`)
-- Buka **File Manager** cPanel -> klik kanan pada folder `/home/<user_cpanel>/fsdanrekan_uploads` -> pilih **Compress** (`.tar.gz` atau `.zip`) -> unduh ke penyimpanan lokal atau cloud kantor minimal 1 kali seminggu.
+---
 
-### 3. Cara Restore (Pemulihan)
-1. **Restore Database:** Buka **phpMyAdmin** -> pilih database `cpaneluser_fsdanrekan` -> klik tab **Import** -> pilih file backup `.sql` atau `.sql.gz` -> klik **Go**.
-2. **Restore Gambar Upload:** Unggah arsip backup `fsdanrekan_uploads.zip` ke `/home/<user_cpanel>/` lalu ekstrak kembali ke `/home/<user_cpanel>/fsdanrekan_uploads`.
+### 4. Prosedur Restore (Pemulihan Saat Darurat)
+1. **Restore Database MySQL/MariaDB:**
+   - Buka **phpMyAdmin** -> pilih database `cpaneluser_fsdanrekan` -> klik tab **Import**.
+   - Klik **Choose File** dan pilih file backup `.sql` atau `.sql.gz` terbaru Anda -> klik **Go**.
+   - Buka `https://fsdanrekan.com/api/health` untuk memastikan koneksi database kembali `ok`.
+2. **Restore Folder Gambar (`UPLOAD_DIR`):**
+   - Buka **File Manager** -> masuk ke `/home/<user_cpanel>/`.
+   - Unggah file backup `fsdanrekan_uploads.zip` (atau `uploads_YYYY-MM-DD.tar.gz`), klik kanan -> **Extract** ke `/home/<user_cpanel>/` sehingga seluruh file kembali berada di `/home/<user_cpanel>/fsdanrekan_uploads/`.
+   - Buka salah satu gambar artikel/galeri di website untuk memastikan route `/uploads/[...path]` berhasil menyajikan gambar kembali.
 
 ---
 

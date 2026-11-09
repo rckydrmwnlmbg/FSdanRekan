@@ -1,0 +1,40 @@
+name: Build Linux x64 cPanel Deploy Bundle
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - deploy-biznet
+
+jobs:
+  build-linux-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS (Linux x64)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run typecheck, lint, and unit tests
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run test
+
+      - name: Build standalone package for Biznet Gio cPanel
+        run: npm run package:deploy
+
+      - name: Upload fsdanrekan-deploy.zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsdanrekan-deploy-linux-x64
+          path: fsdanrekan-deploy.zip
+          retention-days: 14
+

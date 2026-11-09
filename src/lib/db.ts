@@ -20,7 +20,22 @@ declare global {
   // eslint-disable-next-line no-var
   var __fsMysqlPool: Pool | undefined
   // eslint-disable-next-line no-var
+  var __fsMysqlPoolUrl: string | undefined
+  // eslint-disable-next-line no-var
   var __fsMysqlSchemaReady: boolean | undefined
+}
+
+export async function resetDbPoolForTest(): Promise<void> {
+  if (globalThis.__fsMysqlPool) {
+    try {
+      await globalThis.__fsMysqlPool.end()
+    } catch {
+      // Ignore close errors in test teardown
+    }
+  }
+  globalThis.__fsMysqlPool = undefined
+  globalThis.__fsMysqlPoolUrl = undefined
+  globalThis.__fsMysqlSchemaReady = undefined
 }
 
 /**
@@ -40,7 +55,9 @@ export function getDbPool(): Pool | null {
     return null
   }
 
-  if (!globalThis.__fsMysqlPool) {
+  if (!globalThis.__fsMysqlPool || globalThis.__fsMysqlPoolUrl !== dbUrl) {
+    globalThis.__fsMysqlPoolUrl = dbUrl
+    globalThis.__fsMysqlSchemaReady = undefined
     globalThis.__fsMysqlPool = mysql.createPool({
       uri: dbUrl,
       connectionLimit: 5,
@@ -59,18 +76,80 @@ export function getDbPool(): Pool | null {
 }
 
 /**
- * Split a SQL file into individual executable statements (stripping comments and empty lines).
+ * Split a SQL file into individual executable statements (quote-aware; ignores ';' inside string literals and '--' comments).
  */
 export function splitSqlStatements(sqlContent: string): string[] {
-  const withoutComments = sqlContent
-    .split(/\r?\n/)
-    .filter((line) => !line.trim().startsWith('--'))
-    .join('\n')
+  const statements: string[] = []
+  let current = ''
+  let inSingleQuote = false
+  let inBacktick = false
+  const len = sqlContent.length
 
-  return withoutComments
-    .split(';')
-    .map((stmt) => stmt.trim())
-    .filter((stmt) => stmt.length > 0)
+  for (let i = 0; i < len; i++) {
+    const ch = sqlContent[i]
+    const next = i + 1 < len ? sqlContent[i + 1] : ''
+
+    if (!inSingleQuote && !inBacktick && ch === '-' && next === '-') {
+      while (i < len && sqlContent[i] !== '\n') {
+        i++
+      }
+      continue
+    }
+
+    if (inSingleQuote) {
+      current += ch
+      if (ch === '\\' && i + 1 < len) {
+        current += sqlContent[++i]
+        continue
+      }
+      if (ch === "'" && next === "'") {
+        current += sqlContent[++i]
+        continue
+      }
+      if (ch === "'") {
+        inSingleQuote = false
+      }
+      continue
+    }
+
+    if (inBacktick) {
+      current += ch
+      if (ch === '`') {
+        inBacktick = false
+      }
+      continue
+    }
+
+    if (ch === "'") {
+      inSingleQuote = true
+      current += ch
+      continue
+    }
+
+    if (ch === '`') {
+      inBacktick = true
+      current += ch
+      continue
+    }
+
+    if (ch === ';') {
+      const trimmed = current.trim()
+      if (trimmed.length > 0) {
+        statements.push(trimmed)
+      }
+      current = ''
+      continue
+    }
+
+    current += ch
+  }
+
+  const tail = current.trim()
+  if (tail.length > 0) {
+    statements.push(tail)
+  }
+
+  return statements
 }
 
 /**

@@ -44,11 +44,22 @@ const FORBIDDEN_NAMES = new Set([
 ])
 
 function shouldCopyPath(srcPath) {
-  const parts = srcPath.replace(/\\/g, '/').split('/')
+  const norm = srcPath.replace(/\\/g, '/')
+  const parts = norm.split('/')
   const base = parts[parts.length - 1]
   if (FORBIDDEN_NAMES.has(base)) return false
   if (base.startsWith('.env') && base !== '.env.example') return false
   if (base.endsWith('.py') || base.endsWith('.pyc') || base === '__pycache__') return false
+  // Exclude OS-specific native sharp/libvips binaries so bundle is 100% OS-independent pure JS for Linux cPanel
+  if (
+    norm.includes('/node_modules/@img') ||
+    norm.includes('/node_modules/sharp') ||
+    base.endsWith('.dll') ||
+    base.endsWith('.node') ||
+    base.endsWith('.exe')
+  ) {
+    return false
+  }
   return true
 }
 
@@ -134,12 +145,18 @@ function main() {
     }
   }
 
-  // Copy database/schema.sql -> dist-deploy/database/schema.sql
+  // Generate and copy database/schema.sql + database/phpmyadmin_bootstrap.sql
+  console.log('[package:deploy] Membuat database/phpmyadmin_bootstrap.sql (jalur tanpa terminal)...')
+  execSync('node scripts/generate_phpmyadmin_sql.mjs', { cwd: ROOT, stdio: 'inherit' })
   const schemaFile = join(ROOT, 'database', 'schema.sql')
+  const bootstrapSqlFile = join(ROOT, 'database', 'phpmyadmin_bootstrap.sql')
   if (existsSync(schemaFile)) {
-    console.log('[package:deploy] Menyalin database/schema.sql...')
+    console.log('[package:deploy] Menyalin database/schema.sql & phpmyadmin_bootstrap.sql...')
     mkdirSync(join(DIST_DIR, 'database'), { recursive: true })
     cpSync(schemaFile, join(DIST_DIR, 'database', 'schema.sql'))
+    if (existsSync(bootstrapSqlFile)) {
+      cpSync(bootstrapSqlFile, join(DIST_DIR, 'database', 'phpmyadmin_bootstrap.sql'))
+    }
   }
 
   // Copy scripts/migrate_mysql.mjs -> dist-deploy/scripts/migrate_mysql.mjs

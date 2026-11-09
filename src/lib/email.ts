@@ -1,24 +1,14 @@
-import 'server-only'
+import nodemailer from 'nodemailer'
 import { Resend } from 'resend'
-import { env } from '@/lib/env'
 import { escapeHtml } from '@/lib/security/sanitize'
 import type { InquiryBodyInput } from '@/lib/validation/inquiry'
 
-function stripHeaderCrLf(value: string): string {
+export function stripHeaderCrLf(value: string): string {
   return value.replace(/[\r\n]+/g, ' ').trim()
 }
 
-export async function sendInquiryNotificationEmail(
-  inquiryId: string,
-  data: InquiryBodyInput,
-): Promise<void> {
-  const resend = new Resend(env.RESEND_API_KEY)
-
-  // SEC-004: Fixed subject without untrusted user strings in headers; replyTo validated & stripped of CR/LF
-  const safeReplyTo = stripHeaderCrLf(data.email)
-  const subject = `[FS dan Rekan] Permohonan Konsultasi Baru (#${stripHeaderCrLf(inquiryId)})`
-
-  const html = `
+export function buildInquiryEmailHtml(inquiryId: string, data: InquiryBodyInput): string {
+  return `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
       <h2 style="margin-bottom: 12px;">Permohonan Janji Temu Konsultasi Baru</h2>
       <p>Permohonan konsultasi baru telah tercatat di sistem <strong>Ferdinan Silalahi dan Rekan Law Firm</strong>:</p>
@@ -37,16 +27,71 @@ export async function sendInquiryNotificationEmail(
       </blockquote>
     </div>
   `
+}
 
-  const result = await resend.emails.send({
-    from: stripHeaderCrLf(env.MAIL_FROM),
-    to: [stripHeaderCrLf(env.INQUIRY_TO)],
-    replyTo: safeReplyTo,
-    subject,
-    html,
-  })
+/**
+ * Send inquiry notification email via cPanel SMTP (mail.fsdanrekan.com:465 SSL)
+ * with optional fallback to Resend if configured.
+ * SEC-004: Strips CR/LF from all headers and escapes HTML entities in body.
+ */
+export async function sendInquiryNotificationEmail(
+  inquiryId: string,
+  data: InquiryBodyInput,
+  recipientOverride?: string,
+): Promise<void> {
+  const smtpHost = (process.env.SMTP_HOST || 'mail.fsdanrekan.com').trim()
+  const smtpPort = Number.parseInt(process.env.SMTP_PORT || '465', 10) || 465
+  const smtpUser = (process.env.SMTP_USER || '').trim()
+  const smtpPass = process.env.SMTP_PASS || ''
+  const mailFrom = stripHeaderCrLf(
+    process.env.MAIL_FROM || smtpUser || 'noreply@fsdanrekan.com',
+  )
+  const inquiryTo = stripHeaderCrLf(
+    recipientOverride || process.env.INQUIRY_TO || 'konsultasi@fsdanrekan.com',
+  )
+  const safeReplyTo = stripHeaderCrLf(data.email)
+  const subject = `[FS dan Rekan] Permohonan Konsultasi Baru (#${stripHeaderCrLf(inquiryId)})`
+  const html = buildInquiryEmailHtml(inquiryId, data)
 
-  if (result.error) {
-    throw new Error(`Resend dispatch failed: ${result.error.name}`)
+  if (smtpUser && smtpPass) {
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+    })
+
+    await transporter.sendMail({
+      from: `"Ferdinan Silalahi dan Rekan Law Firm" <${mailFrom}>`,
+      to: inquiryTo,
+      replyTo: safeReplyTo,
+      subject,
+      html,
+    })
+    return
   }
+
+  const resendKey = (process.env.RESEND_API_KEY || '').trim()
+  if (resendKey && resendKey !== 're_build_placeholder') {
+    const resend = new Resend(resendKey)
+    const result = await resend.emails.send({
+      from: mailFrom,
+      to: [inquiryTo],
+      replyTo: safeReplyTo,
+      subject,
+      html,
+    })
+    if (result.error) {
+      throw new Error(`Resend dispatch failed: ${result.error.name}`)
+    }
+    return
+  }
+
+  throw new Error('SMTP_USER / SMTP_PASS belum dikonfigurasi untuk pengiriman email.')
 }

@@ -25,6 +25,8 @@ import {
   detectImageMimeFromBytes,
   resolveSafeUploadFilePath,
 } from '../src/lib/uploads'
+import { buildInquiryEmailHtml, stripHeaderCrLf } from '../src/lib/email'
+import { createInquiry } from '../src/lib/inquiries'
 import { InquiryBodySchema } from '../src/lib/validation/inquiry'
 import { GuidedChatSchema } from '../src/lib/validation/chat'
 import { isValidIndonesianWaNumber, waLink } from '../src/lib/whatsapp'
@@ -271,5 +273,47 @@ describe('Security & Validation Unit Suite (SEC-004, SEC-005, SEC-006, SEC-008, 
       })
       expect(changed.ok).toBe(true)
     }
+  })
+
+  it('SK-04 & FR-7.4: strips CR/LF in email headers and marks email_failed=1 in MySQL when SMTP fails', async () => {
+    expect(stripHeaderCrLf('budi@example.com\r\nBcc: attacker@evil.example')).toBe(
+      'budi@example.com Bcc: attacker@evil.example',
+    )
+
+    const sampleInput = {
+      name: 'Budi <script>alert(1)</script>',
+      email: 'budi@perusahaan.co.id',
+      phone: '+6281234567890',
+      practiceAreaId: 'Litigasi Korporasi & Komersial',
+      preferredDate: '2026-11-15',
+      sessionSlot: 'pagi' as const,
+      method: 'tatap-muka' as const,
+      summary: 'Mohon jadwal konsultasi kontrak.',
+      consent: true as const,
+      turnstileToken: 'ok',
+    }
+
+    const html = buildInquiryEmailHtml('inq-test-1', sampleInput)
+    expect(html).not.toContain('<script>')
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
+
+    const executedSql: string[] = []
+    const mockPool = {
+      query: async (sql: string) => {
+        executedSql.push(sql)
+        return [[], []]
+      },
+    } as unknown as Parameters<typeof createInquiry>[2] extends { poolOverride?: infer P } ? P : never
+
+    const res = await createInquiry(sampleInput, '203.0.113.77', {
+      poolOverride: mockPool,
+      sendEmailFn: async () => {
+        throw new Error('SMTP connection timeout')
+      },
+    })
+
+    expect(res.emailFailed).toBe(true)
+    expect(executedSql.some((s) => s.includes('INSERT INTO `inquiries`'))).toBe(true)
+    expect(executedSql.some((s) => s.includes('SET `email_failed` = 1'))).toBe(true)
   })
 })

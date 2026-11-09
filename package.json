@@ -13,7 +13,8 @@
     "test:py": "python -m unittest discover -s tests -p \"test_*.py\" -v",
     "test:e2e": "playwright test",
     "seed": "python scripts/seed_team.py && python scripts/process_assets.py",
-    "db:migrate": "node scripts/migrate_mysql.mjs"
+    "db:migrate": "node scripts/migrate_mysql.mjs",
+    "package:deploy": "node scripts/package_deploy.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.3",

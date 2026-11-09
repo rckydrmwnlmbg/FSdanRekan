@@ -15,6 +15,16 @@ import {
   resetMemoryRateLimitsForTest,
 } from '../src/lib/security/ratelimit'
 import { splitSqlStatements } from '../src/lib/db'
+import {
+  authenticateAdminUser,
+  changeAdminUserPassword,
+  resetAdminAuthMemoryForTest,
+  verifyAdminCsrf,
+} from '../src/lib/admin-auth'
+import {
+  detectImageMimeFromBytes,
+  resolveSafeUploadFilePath,
+} from '../src/lib/uploads'
 import { InquiryBodySchema } from '../src/lib/validation/inquiry'
 import { GuidedChatSchema } from '../src/lib/validation/chat'
 import { isValidIndonesianWaNumber, waLink } from '../src/lib/whatsapp'
@@ -186,6 +196,80 @@ describe('Security & Validation Unit Suite (SEC-004, SEC-005, SEC-006, SEC-008, 
     ]
     for (const tableClause of requiredTables) {
       expect(schemaText).toContain(tableClause)
+    }
+  })
+
+  it('SEC-013: validates image magic bytes, blocks SVG/polyglot scripts, and prevents path traversal in /uploads', () => {
+    const validPng = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+    ])
+    const validJpeg = Buffer.from([
+      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+    ])
+    const svgPayload = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>')
+
+    expect(detectImageMimeFromBytes(validPng)).toBe('image/png')
+    expect(detectImageMimeFromBytes(validJpeg)).toBe('image/jpeg')
+    expect(detectImageMimeFromBytes(svgPayload)).toBeNull()
+
+    expect(resolveSafeUploadFilePath(['media-123.webp'])?.filename).toBe('media-123.webp')
+    expect(resolveSafeUploadFilePath(['..', 'secret.txt'])).toBeNull()
+    expect(resolveSafeUploadFilePath(['../secret.webp'])).toBeNull()
+    expect(resolveSafeUploadFilePath(['xss.svg'])).toBeNull()
+    expect(resolveSafeUploadFilePath(['shell.php.webp/../../etc'])).toBeNull()
+  })
+
+  it('SEC-001: enforces 5-attempt admin login lockout, CSRF check, and mandatory first-login password change', async () => {
+    resetAdminAuthMemoryForTest()
+    process.env.ADMIN_INITIAL_EMAIL = 'admin@fsdanrekan.com'
+    process.env.ADMIN_INITIAL_PASSWORD = 'InitialSecurePass2026!#'
+
+    // 4 failed attempts -> 401
+    for (let i = 1; i <= 4; i++) {
+      const bad = await authenticateAdminUser({
+        email: 'admin@fsdanrekan.com',
+        password: 'WrongPassword123!',
+        ip: '198.51.100.10',
+      })
+      expect(bad.ok).toBe(false)
+      if (!bad.ok) expect(bad.status).toBe(401)
+    }
+
+    // 5th failed attempt -> 423 Locked
+    const fifth = await authenticateAdminUser({
+      email: 'admin@fsdanrekan.com',
+      password: 'WrongPassword123!',
+      ip: '198.51.100.10',
+    })
+    expect(fifth.ok).toBe(false)
+    if (!fifth.ok) expect(fifth.status).toBe(423)
+
+    // Reset memory store and verify successful login with mustChangePassword=true
+    resetAdminAuthMemoryForTest()
+    const good = await authenticateAdminUser({
+      email: 'admin@fsdanrekan.com',
+      password: 'InitialSecurePass2026!#',
+      ip: '198.51.100.11',
+    })
+    expect(good.ok).toBe(true)
+    if (good.ok) {
+      expect(good.user.mustChangePassword).toBe(true)
+      const validReq = new Request('https://fsdanrekan.com/api/admin/cms', {
+        headers: { 'x-csrf-token': good.user.csrfToken },
+      })
+      const invalidReq = new Request('https://fsdanrekan.com/api/admin/cms', {
+        headers: { 'x-csrf-token': 'wrong-token' },
+      })
+      expect(verifyAdminCsrf(validReq, good.user)).toBe(true)
+      expect(verifyAdminCsrf(invalidReq, good.user)).toBe(false)
+
+      const changed = await changeAdminUserPassword({
+        userId: good.user.id,
+        email: good.user.email,
+        currentPassword: 'InitialSecurePass2026!#',
+        newPassword: 'UpdatedSecurePass2026!#',
+      })
+      expect(changed.ok).toBe(true)
     }
   })
 })

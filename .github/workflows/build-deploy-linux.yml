@@ -13,10 +13,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20 LTS (Linux x64)
+      - name: Setup Node.js 24 LTS (24.22.1 Linux x64)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24.22.1'
           cache: 'npm'
 
       - name: Install dependencies
@@ -37,4 +37,3 @@ jobs:
           name: fsdanrekan-deploy-linux-x64
           path: fsdanrekan-deploy.zip
           retention-days: 14
-

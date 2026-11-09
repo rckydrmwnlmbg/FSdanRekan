@@ -104,7 +104,7 @@ Gunakan jalur ini bila paket cPanel Anda tidak mengaktifkan menu Terminal/SSH. S
 Jika Anda memiliki akses **Terminal cPanel** atau **SSH**, Anda dapat menjalankan skrip migrasi otomatis setelah mengunggah aplikasi dan mengisi environment variable:
 
 ```bash
-source /home/<user_cpanel>/nodevenv/fsdanrekan_app/20/bin/activate && cd /home/<user_cpanel>/fsdanrekan_app
+source /home/<user_cpanel>/nodevenv/fsdanrekan_app/24/bin/activate && cd /home/<user_cpanel>/fsdanrekan_app
 node scripts/migrate_mysql.mjs
 ```
 Skrip ini akan mengeksekusi `database/schema.sql`, menyalin seluruh data dari `content/*.json` dan `content/cms_state.json`, serta membuat akun admin awal dengan `must_change_password = 1`.
@@ -140,7 +140,8 @@ Skrip ini akan mengeksekusi `database/schema.sql`, menyalin seluruh data dari `c
    - `/home/<user_cpanel>/fsdanrekan_app` (folder kode aplikasi / Application Root)
    - `/home/<user_cpanel>/fsdanrekan_uploads` (folder persisten gambar upload admin agar tidak pernah terhapus saat update kode)
 2. Kembali ke cPanel -> bagian **Software** -> klik **Setup Node.js App** -> klik **Create Application**:
-   - **Node.js version:** Pilih **20.x** (LTS, minimal `20.11+` atau `22.x`).
+   - **Node.js version:** Pilih **`24.22.1`** (Node 24 LTS).  
+     *(Jika suatu saat aplikasi gagal start pada Node `24.22.1` di cPanel, ubah pilihan ini ke fallback **`20.20.2`** lalu klik **Save** & **Restart** — paket `fsdanrekan-deploy.zip` yang sama **bisa langsung dipakai tanpa build ulang** karena 100% pure JavaScript tanpa binary native C++).*
    - **Application mode:** `Production`
    - **Application root:** `fsdanrekan_app`
    - **Application URL:** `fsdanrekan.com` (biarkan kolom path di sebelahnya kosong)
@@ -344,7 +345,7 @@ Seluruh gambar yang diunggah dari panel `/admin` berada di `/home/<user_cpanel>/
 ### 2. Masalah Umum & Solusinya
 | Gejala / Error | Penyebab Umum | Solusi Langkah demi Langkah |
 |---|---|---|
-| **Error 503 Service Unavailable / Phusion Passenger Error** | File `standalone-server.js` belum terunggah atau memori penuh saat startup. | 1. Cek `/home/<user>/fsdanrekan_app/stderr.log`.<br>2. Pastikan seluruh isi `fsdanrekan-deploy.zip` (termasuk folder tersembunyi `.next/`) sudah diekstrak langsung di dalam `/home/<user>/fsdanrekan_app`.<br>3. Klik **Restart** di Setup Node.js App. |
+| **Error 503 Service Unavailable / Phusion Passenger Error** | File `standalone-server.js` belum terunggah, memori penuh saat startup, atau ketidakcocokan modul Passenger pada Node 24. | 1. Cek `/home/<user>/fsdanrekan_app/stderr.log`.<br>2. Pastikan seluruh isi `fsdanrekan-deploy.zip` (termasuk folder tersembunyi `.next/`) sudah diekstrak langsung di dalam `/home/<user>/fsdanrekan_app`.<br>3. **Fallback Versi Node.js (Tanpa Build Ulang):** Jika aplikasi gagal start pada **Node `24.22.1`** di cPanel, buka **Setup Node.js App**, ganti *Node.js version* ke **`20.20.2`**, klik **Save**, lalu klik **Restart**. Anda **tidak perlu** melakukan `next build` atau `package:deploy` ulang di laptop karena `fsdanrekan-deploy.zip` sudah 100% pure JavaScript (bebas binary native C++ `.node`/`.so` yang terikat versi ABI Node). |
 | **`/api/health` mengembalikan `503 degraded` (Koneksi DB gagal)** | `DATABASE_URL` salah ketik, karakter spesial password belum di-encode, atau user belum diberi *ALL PRIVILEGES*. | 1. Pastikan host di `DATABASE_URL` menggunakan `127.0.0.1:3306` (bukan nama domain).<br>2. Pastikan karakter `@` atau `#` di password diubah menjadi `%40` atau `%23`.<br>3. Cek kembali bagian *Add User To Database* di menu **MySQL Databases**. |
 | **Email Janji Temu tidak terkirim (`email_failed = 1`)** | `SMTP_USER` / `SMTP_PASS` salah, atau port `465` diblokir keluar. | 1. Tenang: data permohonan klien **tetap tersimpan aman** di tab Inquiries `/admin` dengan label peringatan kuning.<br>2. Pastikan akun `noreply@fsdanrekan.com` sudah dibuat di **Email Accounts** dan password-nya cocok dengan `SMTP_PASS`.<br>3. Jika port `465` tidak terhubung dari `mail.fsdanrekan.com`, coba ubah `SMTP_HOST` menjadi `127.0.0.1` di cPanel yang sama. |
 | **Kehabisan Memori (`Out of Memory` / `ENOMEM` pada paket 1 GB RAM)** | Menjalankan `npm run build` di server cPanel atau terlalu banyak proses worker. | 1. **Jangan pernah** menjalankan `next build` di dalam server cPanel.<br>2. Selalu jalankan `npm run package:deploy` di komputer lokal dan unggah `fsdanrekan-deploy.zip`.<br>3. Koneksi pool MySQL sudah dibatasi ke `5` koneksi (`connectionLimit: 5`) agar hemat RAM. |
@@ -357,7 +358,7 @@ Seluruh gambar yang diunggah dari panel `/admin` berada di `/home/<user_cpanel>/
 Sebelum atau saat melakukan setup pertama kali, Anda dapat mengirimkan tiket/chat ke tim Support **Biznet Gio** dengan daftar pertanyaan berikut:
 
 1. **Fitur Setup Node.js App (CloudLinux Passenger):**  
-   *"Apakah pada paket Web Hosting Personal Large untuk domain `fsdanrekan.com`, fitur **Setup Node.js App** (Phusion Passenger) sudah aktif dengan versi **Node.js 20 LTS** atau **22 LTS**?"*
+   *"Apakah pada paket Web Hosting Personal Large untuk domain `fsdanrekan.com`, fitur **Setup Node.js App** (Phusion Passenger) sudah aktif dengan versi **Node.js `24.22.1`** (dan fallback **`20.20.2`**)?"*
 2. **Batas Memori (RAM) & Jumlah Proses (LVE Limits):**  
    *"Berapa batas maksimum Physical Memory (RAM), Entry Processes (EP), dan Number of Processes (NPROC) untuk akun cPanel paket Personal Large kami, dan apakah Passenger dikonfigurasi 1 proses worker secara default?"*
 3. **Akses Terminal / SSH:**  

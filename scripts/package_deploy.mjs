@@ -2,10 +2,16 @@
 /**
  * Build and package Next.js standalone bundle for Biznet Gio cPanel (Personal Large - 1 GB RAM).
  * Produces:
- *   - dist-deploy/         (clean production directory)
+ *   - dist-deploy/          (clean production directory)
  *   - fsdanrekan-deploy.zip (ready to upload via cPanel File Manager -> Extract)
  *
- * Strictly excludes: devDependencies, tests/, .git/, .env*, cms_state.json, and Python preview scripts.
+ * Key cPanel CloudLinux Node.js Selector design:
+ *   1. Renames standalone `node_modules` -> `app_modules` so there is NO `node_modules` folder
+ *      in the zip root that would conflict with CloudLinux's `nodevenv` symlink.
+ *   2. Uses POSIX forward slashes (`/`) for all ZIP entries so Linux `unzip` in cPanel extracts
+ *      every nested file (`app_modules/next/dist/server/next.js`, `.next/BUILD_ID`, etc.) cleanly.
+ *   3. Strips OS-specific native binaries (`@img/sharp-*`, `.node`, `.dll`, `.exe`) so the bundle
+ *      is 100% pure JavaScript across Windows & Linux (Node 24.22.1 and fallback Node 20.20.2).
  */
 
 import { execSync } from 'node:child_process'
@@ -14,6 +20,7 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
+  readFileSync,
   renameSync,
   rmSync,
   statSync,
@@ -63,6 +70,30 @@ function shouldCopyPath(srcPath) {
   return true
 }
 
+function readZipEntryNames(zipFilePath) {
+  const buf = readFileSync(zipFilePath)
+  let offset = 0
+  const names = []
+  while (offset < buf.length - 4) {
+    if (
+      buf[offset] === 0x50 &&
+      buf[offset + 1] === 0x4b &&
+      buf[offset + 2] === 0x01 &&
+      buf[offset + 3] === 0x02
+    ) {
+      const nameLen = buf.readUInt16LE(offset + 28)
+      const extraLen = buf.readUInt16LE(offset + 30)
+      const commentLen = buf.readUInt16LE(offset + 32)
+      const name = buf.toString('utf8', offset + 46, offset + 46 + nameLen)
+      names.push(name)
+      offset += 46 + nameLen + extraLen + commentLen
+    } else {
+      offset++
+    }
+  }
+  return names
+}
+
 function main() {
   const skipBuild = process.argv.includes('--skip-build')
 
@@ -99,6 +130,16 @@ function main() {
     filter: (src) => shouldCopyPath(src),
   })
 
+  // Rename dist-deploy/node_modules -> dist-deploy/app_modules to avoid CloudLinux nodevenv symlink collision
+  const standaloneNodeModules = join(DIST_DIR, 'node_modules')
+  const targetAppModules = join(DIST_DIR, 'app_modules')
+  if (existsSync(standaloneNodeModules)) {
+    console.log(
+      '[package:deploy] Mengubah nama node_modules -> app_modules (anti bentrok symlink CloudLinux nodevenv)...',
+    )
+    renameSync(standaloneNodeModules, targetAppModules)
+  }
+
   // Rename Next's generated server.js -> standalone-server.js and install Passenger wrapper server.js
   const nextStandaloneServer = join(DIST_DIR, 'server.js')
   const renamedStandaloneServer = join(DIST_DIR, 'standalone-server.js')
@@ -106,6 +147,22 @@ function main() {
     renameSync(nextStandaloneServer, renamedStandaloneServer)
   }
   cpSync(join(ROOT, 'server.js'), join(DIST_DIR, 'server.js'))
+
+  // Prepare runtime-only package.json in dist-deploy/package.json (Option c backup)
+  const rootPkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'))
+  const runtimePkg = {
+    name: rootPkg.name,
+    version: rootPkg.version,
+    private: true,
+    description: rootPkg.description,
+    scripts: {
+      start: 'node server.js',
+      'db:migrate': 'node scripts/migrate_mysql.mjs',
+    },
+    dependencies: rootPkg.dependencies,
+    engines: rootPkg.engines,
+  }
+  writeFileSync(join(DIST_DIR, 'package.json'), JSON.stringify(runtimePkg, null, 2) + '\n', 'utf8')
 
   // Copy .next/static -> dist-deploy/.next/static
   if (existsSync(STATIC_DIR)) {
@@ -177,36 +234,58 @@ function main() {
   mkdirSync(uploadsDir, { recursive: true })
   writeFileSync(join(uploadsDir, '.gitkeep'), '', 'utf8')
 
-  // Create fsdanrekan-deploy.zip for one-click upload in cPanel File Manager
-  console.log('[package:deploy] Membuat arsip fsdanrekan-deploy.zip...')
-  try {
-    if (process.platform === 'win32') {
-      execSync(
-        `powershell -NoProfile -Command "Compress-Archive -Path '${DIST_DIR}\\*' -DestinationPath '${ZIP_PATH}' -Force"`,
-        { stdio: 'inherit' },
-      )
-    } else {
-      execSync(`cd "${DIST_DIR}" && zip -rq "${ZIP_PATH}" .`, { stdio: 'inherit' })
-    }
-  } catch (err) {
-    console.warn(
-      '[package:deploy] Peringatan: pembuatan file .zip gagal, namun folder dist-deploy/ sudah siap diunggah.',
-      err instanceof Error ? err.message : err,
-    )
+  // Create fsdanrekan-deploy.zip using bsdtar (POSIX forward slashes) for Linux cPanel extraction
+  console.log('[package:deploy] Membuat arsip fsdanrekan-deploy.zip (format POSIX / Linux)...')
+  const topEntries = readdirSync(DIST_DIR)
+  const quotedEntries = topEntries.map((item) => `"${item}"`).join(' ')
+  if (process.platform === 'win32') {
+    execSync(`tar.exe -a -c -f "${ZIP_PATH}" -C "${DIST_DIR}" ${quotedEntries}`, {
+      stdio: 'inherit',
+    })
+  } else {
+    execSync(`cd "${DIST_DIR}" && zip -rq "${ZIP_PATH}" .`, { stdio: 'inherit' })
   }
 
-  const zipSizeMb = existsSync(ZIP_PATH)
-    ? (statSync(ZIP_PATH).size / (1024 * 1024)).toFixed(2)
-    : null
+  // Verify ZIP integrity for Linux cPanel
+  const zipNames = readZipEntryNames(ZIP_PATH)
+  const backslashCount = zipNames.filter((n) => n.includes('\\')).length
+  const hasRootNodeModules = zipNames.some(
+    (n) => n === 'node_modules' || n.startsWith('node_modules/'),
+  )
+  const hasNextServer = zipNames.includes('app_modules/next/dist/server/next.js')
+  const hasMysql2 = zipNames.includes('app_modules/mysql2/promise.js')
+  const hasNodemailer =
+    zipNames.includes('app_modules/nodemailer/dist/cjs/nodemailer.js') ||
+    zipNames.includes('app_modules/nodemailer/package.json')
+  const hasBuildId = zipNames.includes('.next/BUILD_ID')
+
+  if (
+    backslashCount > 0 ||
+    hasRootNodeModules ||
+    !hasNextServer ||
+    !hasMysql2 ||
+    !hasNodemailer ||
+    !hasBuildId
+  ) {
+    console.error('[package:deploy] Verifikasi integritas ZIP gagal:', {
+      backslashCount,
+      hasRootNodeModules,
+      hasNextServer,
+      hasMysql2,
+      hasNodemailer,
+      hasBuildId,
+    })
+    process.exit(1)
+  }
+
+  const zipSizeMb = (statSync(ZIP_PATH).size / (1024 * 1024)).toFixed(2)
 
   console.log('------------------------------------------------------------')
-  console.log('[package:deploy] Paket deploy produksi berhasil dibuat!')
+  console.log('[package:deploy] Paket deploy produksi berhasil dibuat & diverifikasi!')
   console.log(`  Folder siap upload : ${DIST_DIR}`)
-  if (zipSizeMb) {
-    console.log(`  Arsip ZIP cPanel   : ${ZIP_PATH} (${zipSizeMb} MB)`)
-  }
+  console.log(`  Arsip ZIP cPanel   : ${ZIP_PATH} (${zipSizeMb} MB, ${zipNames.length} entries)`)
+  console.log('  Verifikasi Linux   : 0 backslash, 0 root node_modules, app_modules/next siap')
   console.log('------------------------------------------------------------')
 }
 
 main()
-

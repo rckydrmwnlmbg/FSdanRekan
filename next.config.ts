@@ -48,6 +48,7 @@ const legacyRedirects = [
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  serverExternalPackages: ['mysql2', 'nodemailer', 'pino'],
   poweredByHeader: false,
   reactStrictMode: true,
   images: {

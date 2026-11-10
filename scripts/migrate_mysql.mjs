@@ -8,13 +8,34 @@
 
 import crypto from 'node:crypto'
 import fs from 'node:fs'
+import Module, { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import mysql from 'mysql2/promise'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const ROOT_DIR = path.resolve(__dirname, '..')
+
+const APP_MODULES_DIR = path.join(ROOT_DIR, 'app_modules')
+if (fs.existsSync(APP_MODULES_DIR)) {
+  process.env.NODE_PATH = [APP_MODULES_DIR, process.env.NODE_PATH]
+    .filter(Boolean)
+    .join(path.delimiter)
+  if (typeof Module._initPaths === 'function') {
+    Module._initPaths()
+  }
+  const origNodeModulePaths = Module._nodeModulePaths
+  Module._nodeModulePaths = function patchedNodeModulePaths(from) {
+    const paths = origNodeModulePaths.call(this, from)
+    if (!paths.includes(APP_MODULES_DIR)) {
+      paths.unshift(APP_MODULES_DIR)
+    }
+    return paths
+  }
+}
+
+const require = createRequire(import.meta.url)
+const mysql = require('mysql2/promise')
 
 function loadEnvFiles() {
   for (const envName of ['.env.local', '.env']) {

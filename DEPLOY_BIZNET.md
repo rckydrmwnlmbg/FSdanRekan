@@ -169,6 +169,13 @@ Skrip ini akan mengeksekusi `database/schema.sql`, menyalin seluruh data dari `c
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Site key Cloudflare Turnstile untuk `fsdanrekan.com` | Opsional (Disarankan) |
 | `TURNSTILE_SECRET_KEY` | Secret key Cloudflare Turnstile | Opsional (Disarankan) |
 
+> **Peringatan Penting Pengisian Environment Variables di cPanel:**
+> 1. **Jangan Pernah Menyisakan Baris Variabel dengan Nama (`Name`) Kosong:** Jika Anda terlanjur menekan *Add Variable* namun tidak jadi mengisi, **hapus baris tersebut** dengan ikon tempat sampah sebelum klik *Save*. Baris dengan nama kosong di CloudLinux Node.js Selector akan merusak konfigurasi `.htaccess` Passenger dan memicu error `503`.
+> 2. **Hindari Spasi, Tanda Kutip (`"` / `'`), dan Karakter `$` di Nilai Variabel:** Antarmuka cPanel meneruskan Environment Variables ke konfigurasi Apache/Passenger `PassEnv`/`SetEnv`. Nilai yang mengandung spasi atau tanda kutip dapat terpotong, dan karakter `$` dapat diekspansi sebagai variabel shell kosong.
+>    - Untuk `SESSION_SECRET`, `PAYLOAD_SECRET`, dan `CRON_SECRET`: gunakan string heksadesimal/alfanumerik murni tanpa spasi (mis. `a9f8e7d6c5b4...`).
+>    - Untuk `ADMIN_INITIAL_PASSWORD` dan `SMTP_PASS`: gunakan huruf besar, huruf kecil, angka, dan simbol aman tanpa spasi seperti `!`, `@`, `_`, `-` (mis. `AdminFSdanRekan2026!_`).
+>    - Untuk `DATABASE_URL`: jika password database MySQL mengandung karakter khusus (`@`, `#`, `:`, `/`, `%`, spasi), **wajib di-URL-encode** (`@` $\rightarrow$ `%40`, `#` $\rightarrow$ `%23`, `%` $\rightarrow$ `%25`, spasi $\rightarrow$ `%20`).
+
 4. Klik **Create** di kanan atas, lalu klik **Stop App** sementara sebelum mengunggah file hasil build.
 
 ---
@@ -192,35 +199,38 @@ Perintah ini akan menjalankan `next build` (mode `standalone`), lalu menghasilka
 3. Setelah selesai diunggah, kembali ke `/home/<user_cpanel>/fsdanrekan_app`, klik kanan pada `fsdanrekan-deploy.zip`, lalu pilih **Extract** ke `/fsdanrekan_app`.
 4. Hapus file `fsdanrekan-deploy.zip` setelah berhasil diekstrak.
 
-### Struktur Folder Produksi yang Benar di Server
-Pastikan isi `/home/<user_cpanel>/fsdanrekan_app` tampak seperti berikut:
+### Struktur Folder Produksi yang Benar di Server (`app_modules/` Anti-Bentrok CloudLinux)
+CloudLinux Node.js Selector di cPanel secara otomatis mengganti folder bernama `node_modules` di dalam Application Root (`fsdanrekan_app`) menjadi symlink ke `/home/<user_cpanel>/nodevenv/fsdanrekan_app/24/lib/node_modules`. Agar dependensi bawaan Next.js standalone tidak tertimpa oleh symlink kosong tersebut, skrip `npm run package:deploy` menempatkan seluruh modul produksi di dalam folder **`app_modules/`** (tidak ada folder `node_modules` di dalam file zip) dan `server.js` otomatis mendaftarkan `app_modules/` ke `NODE_PATH` serta resolver internal Node.js saat startup:
+
 ```text
 /home/<user_cpanel>/
-├── fsdanrekan_uploads/          <-- Folder persisten gambar upload (UPLOAD_DIR)
-└── fsdanrekan_app/              <-- Application Root Node.js cPanel
+├── fsdanrekan_uploads/                  <-- Folder persisten gambar upload (UPLOAD_DIR)
+└── fsdanrekan_app/                      <-- Application Root Node.js cPanel
     ├── .next/
+    │   ├── BUILD_ID
     │   ├── server/
-    │   └── static/              <-- Aset CSS/JS hasil build
-    ├── content/                 <-- Seed JSON resmi (team, practice_areas, articles, dll.)
+    │   └── static/                      <-- Aset CSS/JS hasil build
+    ├── app_modules/                     <-- Dependensi runtime produksi (100% pure JS, bebas bentrok symlink cPanel)
+    ├── content/                         <-- Seed JSON resmi (team, practice_areas, articles, dll.)
     ├── database/
     │   ├── schema.sql                   <-- Skema SQL 14 tabel MySQL/MariaDB
     │   └── phpmyadmin_bootstrap.sql     <-- Skema + Seed lengkap siap impor lewat phpMyAdmin
-    ├── node_modules/                    <-- Dependensi runtime produksi (100% pure JS lintas-OS)
+    ├── node_modules -> /home/.../nodevenv/... <-- Symlink otomatis milik cPanel (dibiarkan apa adanya)
     ├── public/                          <-- Aset statis bawaan (foto advokat, logo, favicon)
     ├── scripts/
     │   └── migrate_mysql.mjs            <-- Skrip migrasi & seed database idempoten (opsional CLI)
-    ├── package.json
-    ├── server.js                        <-- Startup file untuk Phusion Passenger
+    ├── .env.example
+    ├── package.json                     <-- Hanya berisi dependencies runtime (cadangan Opsi c)
+    ├── server.js                        <-- Startup file Passenger (memuat app_modules & diagnostik stderr)
     └── standalone-server.js             <-- Server internal Next.js standalone
 ```
 
 ### Aturan Penting: Kapan BOLEH dan TIDAK BOLEH Menekan "Run NPM Install" di cPanel
-- **JANGAN menekan tombol "Run NPM Install" saat menggunakan paket `fsdanrekan-deploy.zip` (Mode Standalone):**
-  1. Arsip `fsdanrekan-deploy.zip` sudah berisi folder `node_modules/` produksi yang di-*trace* secara khusus oleh Next.js Standalone dan telah dibersihkan dari binary spesifik-OS (`@img/sharp-*`), sehingga **100% pure JavaScript** dan langsung berjalan di Linux x64 tanpa kompilasi ulang.
-  2. Menekan tombol **Run NPM Install** di cPanel pada paket standalone berisiko menimpa struktur `node_modules/` standalone dan memicu proses instalasi `npm` yang menghabiskan batas **1 GB RAM** (`ENOMEM` / `Out of Memory`).
-  3. Cukup ekstrak `fsdanrekan-deploy.zip` ke `/home/<user_cpanel>/fsdanrekan_app`, lalu klik tombol **Restart** pada halaman **Setup Node.js App**.
-- **Kapan "Run NPM Install" Boleh Dijalankan?**  
-  Hanya jika di masa depan Anda memindahkan hosting ke VPS dengan RAM ≥ 4 GB dan memilih melakukan `git clone` kode mentah (tanpa memakai `fsdanrekan-deploy.zip`). Pada paket Biznet Gio Personal Large (1 GB RAM), **selalu gunakan `fsdanrekan-deploy.zip` dan jangan jalankan `Run NPM Install` di server**.
+- **Anda TIDAK PERLU menekan tombol "Run NPM Install" saat menggunakan `fsdanrekan-deploy.zip`:**
+  1. Seluruh modul produksi (`next`, `react`, `mysql2`, `nodemailer`, `zod`, dll.) sudah tersedia lengkap di dalam folder **`app_modules/`** dan otomatis dimuat oleh `server.js` tanpa menyentuh symlink `node_modules` milik cPanel.
+  2. Cukup ekstrak `fsdanrekan-deploy.zip` ke `/home/<user_cpanel>/fsdanrekan_app`, lalu klik tombol **Restart** pada halaman **Setup Node.js App**.
+- **Cadangan `package.json` Runtime (Bila Tombol "Run NPM Install" Ditekan):**  
+  File `package.json` di dalam `fsdanrekan-deploy.zip` sudah dibersihkan dari seluruh `devDependencies` berat (`payload`, `@playwright/test`, `typescript`, `eslint`, `vitest`). Jika suatu saat Anda menekan *Run NPM Install* di cPanel sebagai cadangan, ukuran unduhan hanya ~45–60 MB dengan puncak memori instalasi ~220–280 MB RAM (masih di bawah batas 1 GB RAM), dan tetap tidak akan mengganggu folder `app_modules/`.
 
 ### Cara Menghapus `ADMIN_INITIAL_PASSWORD` Setelah Login Pertama
 Setelah Anda login pertama kali di `https://fsdanrekan.com/admin` dan mengganti kata sandi awal menjadi kata sandi permanen:
@@ -345,7 +355,8 @@ Seluruh gambar yang diunggah dari panel `/admin` berada di `/home/<user_cpanel>/
 ### 2. Masalah Umum & Solusinya
 | Gejala / Error | Penyebab Umum | Solusi Langkah demi Langkah |
 |---|---|---|
-| **Error 503 Service Unavailable / Phusion Passenger Error** | File `standalone-server.js` belum terunggah, memori penuh saat startup, atau ketidakcocokan modul Passenger pada Node 24. | 1. Cek `/home/<user>/fsdanrekan_app/stderr.log`.<br>2. Pastikan seluruh isi `fsdanrekan-deploy.zip` (termasuk folder tersembunyi `.next/`) sudah diekstrak langsung di dalam `/home/<user>/fsdanrekan_app`.<br>3. **Fallback Versi Node.js (Tanpa Build Ulang):** Jika aplikasi gagal start pada **Node `24.22.1`** di cPanel, buka **Setup Node.js App**, ganti *Node.js version* ke **`20.20.2`**, klik **Save**, lalu klik **Restart**. Anda **tidak perlu** melakukan `next build` atau `package:deploy` ulang di laptop karena `fsdanrekan-deploy.zip` sudah 100% pure JavaScript (bebas binary native C++ `.node`/`.so` yang terikat versi ABI Node). |
+| **`Error: Cannot find module '.../node_modules/next/dist/server/next.js' (MODULE_NOT_FOUND)`** | CloudLinux Node.js Selector mengganti folder `node_modules` di Application Root menjadi symlink ke `nodevenv` kosong, atau arsip zip lama diekstrak dengan separator backslash Windows. | 1. Gunakan `fsdanrekan-deploy.zip` terbaru yang menempatkan seluruh dependensi di dalam folder **`app_modules/`** (bukan `node_modules/`) dengan format path POSIX (`/`).<br>2. Sebelum mengekstrak zip baru, hapus file/folder lama di `/home/<user>/fsdanrekan_app` **kecuali** symlink `node_modules` milik cPanel, lalu ekstrak `fsdanrekan-deploy.zip`.<br>3. Pastikan folder `/home/<user>/fsdanrekan_app/app_modules/next/dist/server/next.js` dan `/home/<user>/fsdanrekan_app/.next/BUILD_ID` ada.<br>4. Jika ada modul yang belum terunggah, `server.js` akan menulis daftar path yang dicari secara jelas ke `/home/<user>/fsdanrekan_app/stderr.log`. |
+| **Error 503 Service Unavailable / Phusion Passenger Error** | File `standalone-server.js` belum terunggah, ada baris Environment Variable kosong di cPanel, atau ketidakcocokan modul Passenger pada Node 24. | 1. Cek `/home/<user>/fsdanrekan_app/stderr.log`.<br>2. Periksa daftar **Environment variables** di Setup Node.js App: pastikan tidak ada baris variabel dengan nama kosong dan tidak ada spasi/karakter khusus tanpa encoding di `DATABASE_URL`.<br>3. **Fallback Versi Node.js (Tanpa Build Ulang):** Jika aplikasi gagal start pada **Node `24.22.1`** di cPanel, buka **Setup Node.js App**, ganti *Node.js version* ke **`20.20.2`**, klik **Save**, lalu klik **Restart**. Anda **tidak perlu** melakukan `next build` atau `package:deploy` ulang di laptop karena `fsdanrekan-deploy.zip` sudah 100% pure JavaScript (bebas binary native C++ `.node`/`.so` yang terikat versi ABI Node). |
 | **`/api/health` mengembalikan `503 degraded` (Koneksi DB gagal)** | `DATABASE_URL` salah ketik, karakter spesial password belum di-encode, atau user belum diberi *ALL PRIVILEGES*. | 1. Pastikan host di `DATABASE_URL` menggunakan `127.0.0.1:3306` (bukan nama domain).<br>2. Pastikan karakter `@` atau `#` di password diubah menjadi `%40` atau `%23`.<br>3. Cek kembali bagian *Add User To Database* di menu **MySQL Databases**. |
 | **Email Janji Temu tidak terkirim (`email_failed = 1`)** | `SMTP_USER` / `SMTP_PASS` salah, atau port `465` diblokir keluar. | 1. Tenang: data permohonan klien **tetap tersimpan aman** di tab Inquiries `/admin` dengan label peringatan kuning.<br>2. Pastikan akun `noreply@fsdanrekan.com` sudah dibuat di **Email Accounts** dan password-nya cocok dengan `SMTP_PASS`.<br>3. Jika port `465` tidak terhubung dari `mail.fsdanrekan.com`, coba ubah `SMTP_HOST` menjadi `127.0.0.1` di cPanel yang sama. |
 | **Kehabisan Memori (`Out of Memory` / `ENOMEM` pada paket 1 GB RAM)** | Menjalankan `npm run build` di server cPanel atau terlalu banyak proses worker. | 1. **Jangan pernah** menjalankan `next build` di dalam server cPanel.<br>2. Selalu jalankan `npm run package:deploy` di komputer lokal dan unggah `fsdanrekan-deploy.zip`.<br>3. Koneksi pool MySQL sudah dibatasi ke `5` koneksi (`connectionLimit: 5`) agar hemat RAM. |

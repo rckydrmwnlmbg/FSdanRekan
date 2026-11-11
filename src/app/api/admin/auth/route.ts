@@ -132,7 +132,7 @@ export async function POST(req: Request): Promise<Response> {
         return NextResponse.json({ error: 'Sesi tidak ditemukan. Silakan login kembali.' }, { status: 401 })
       }
       if (!verifyAdminCsrf(req, session)) {
-        return NextResponse.json({ error: 'Token keamanan CSRF tidak valid.' }, { status: 403 })
+        return NextResponse.json({ error: 'Sesi keamanan telah kedaluwarsa. Silakan muat ulang halaman.' }, { status: 403 })
       }
 
       const result = await changeAdminUserPassword({

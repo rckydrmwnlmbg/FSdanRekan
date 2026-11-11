@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { ImageUploader } from '@/components/admin/ImageUploader'
+import { MultiPhotoUploader, type CasePhotoEntry } from '@/components/admin/MultiPhotoUploader'
 
 interface AdminUserSession {
   id: string
@@ -63,7 +65,14 @@ interface AdminTeamMemberItem {
   credentials: string[]
   languages: string[]
   tags: string[]
-  photo: { url: string; alt: string }
+  photo: {
+    id?: string
+    url: string
+    alt: string
+    width?: number
+    height?: number
+    mimeType?: string
+  }
   displayOrder: number
   isPublished: boolean
 }
@@ -77,6 +86,7 @@ interface AdminCaseRecordItem {
   consentRef?: string | null
   imageUrl?: string
   imageAlt?: string
+  photos?: Array<{ url: string; caption?: string; alt?: string }>
   displayOrder: number
   isPublished?: boolean
 }
@@ -176,6 +186,7 @@ export function AdminDashboardClient() {
   const [artExcerpt, setArtExcerpt] = useState('')
   const [artBodyHtml, setArtBodyHtml] = useState('<p></p>')
   const [artCoverUrl, setArtCoverUrl] = useState('/images/practice-corporate.webp')
+  const [artCoverAlt, setArtCoverAlt] = useState('')
   const [artCategorySlug, setArtCategorySlug] = useState('hukum-korporasi')
   const [artStatus, setArtStatus] = useState<'draft' | 'published'>('draft')
   const [artSeoTitle, setArtSeoTitle] = useState('')
@@ -196,6 +207,7 @@ export function AdminDashboardClient() {
   const [teamShortBio, setTeamShortBio] = useState('')
   const [teamFullBio, setTeamFullBio] = useState('')
   const [teamPhotoUrl, setTeamPhotoUrl] = useState('/team/ferdinan-hasiholan-silalahi.webp')
+  const [teamPhotoMeta, setTeamPhotoMeta] = useState<{ width?: number; height?: number; mimeType?: string }>({})
   const [teamOrder, setTeamOrder] = useState(1)
 
   // Practice area editor form state
@@ -217,11 +229,14 @@ export function AdminDashboardClient() {
   const [caseClientName, setCaseClientName] = useState('')
   const [caseConsentRef, setCaseConsentRef] = useState('')
   const [caseImageUrl, setCaseImageUrl] = useState('/images/hero-slide-courtroom.webp')
+  const [casePhotos, setCasePhotos] = useState<CasePhotoEntry[]>([])
   const [caseOrder, setCaseOrder] = useState(1)
 
-  // Media upload state
-  const [uploadFile, setUploadFile] = useState<File | null>(null)
-  const [uploadAlt, setUploadAlt] = useState('')
+  // Modals state
+  const [showDevToolsConfirmModal, setShowDevToolsConfirmModal] = useState(false)
+  const [devConfirmChecked, setDevConfirmChecked] = useState(false)
+  const [devConfirmText, setDevConfirmText] = useState('')
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState<{ title: string; onConfirm: () => void } | null>(null)
 
   // New user form state
   const [newUserName, setNewUserName] = useState('')
@@ -288,6 +303,23 @@ export function AdminDashboardClient() {
       active = false
     }
   }, [loadDashboardData])
+
+  useEffect(() => {
+    const isDirty = Boolean(
+      (artTitle && artTitle.trim().length > 0) ||
+      (teamFullName && teamFullName.trim().length > 0) ||
+      (paName && paName.trim().length > 0) ||
+      (caseType && caseType.trim().length > 0)
+    )
+    if (!isDirty) return
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [artTitle, teamFullName, paName, caseType])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -392,44 +424,10 @@ export function AdminDashboardClient() {
     }
   }
 
-  async function handleUploadImage(e: React.FormEvent) {
-    e.preventDefault()
-    if (!user || !uploadFile) return
-    setBusy(true)
-    setFeedback(null)
-    try {
-      const formData = new FormData()
-      formData.append('file', uploadFile)
-      formData.append('altText', uploadAlt)
-
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        headers: {
-          'x-csrf-token': user.csrfToken,
-        },
-        body: formData,
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setFeedback({ type: 'err', text: data.error || 'Gagal mengunggah gambar.' })
-        return
-      }
-      setUploadFile(null)
-      setUploadAlt('')
-      setFeedback({
-        type: 'ok',
-        text: `Gambar berhasil diunggah ke ${data.asset.url}`,
-      })
-      await loadDashboardData()
-    } finally {
-      setBusy(false)
-    }
-  }
-
   if (loading) {
     return (
       <div className="cred-box" style={{ marginTop: '32px' }}>
-        <div className="cred-title">Memuat Panel Admin CMS...</div>
+        <div className="cred-title">Memuat Panel Pengelolaan Website...</div>
       </div>
     )
   }
@@ -438,15 +436,15 @@ export function AdminDashboardClient() {
   if (!user) {
     return (
       <div className="docket-panel-form" style={{ maxWidth: '520px', marginTop: '32px' }}>
-        <h2>Masuk ke Panel Admin CMS</h2>
+        <h2>Masuk ke Panel Pengelolaan Website</h2>
         <p className="trust-stat-desc" style={{ marginBottom: '20px' }}>
-          Gunakan akun Administrator atau Editor resmi Ferdinan Silalahi dan Rekan Law Firm.
+          Gunakan akun resmi Pengelola atau Penyunting Ferdinan Silalahi dan Rekan Law Firm.
         </p>
 
         {feedback ? (
           <div className="cred-box" style={{ marginBottom: '16px' }} role="alert">
             <div className="cred-title">
-              {feedback.type === 'err' ? 'Peringatan Keamanan' : 'Informasi'}
+              {feedback.type === 'err' ? 'Peringatan' : 'Informasi'}
             </div>
             <div className="cred-desc">{feedback.text}</div>
           </div>
@@ -485,7 +483,7 @@ export function AdminDashboardClient() {
           </div>
           <div className="hero-actions-row">
             <button type="submit" className="btn-gold" disabled={busy}>
-              {busy ? 'Memverifikasi...' : 'Masuk ke Panel Admin'}
+              {busy ? 'Memverifikasi...' : 'Masuk'}
             </button>
             <Link href="/" className="btn-outline">
               &larr; Kembali ke Beranda
@@ -496,15 +494,15 @@ export function AdminDashboardClient() {
     )
   }
 
-  // 2. Mandatory First-Login Password Change View (Requirement 7)
+  // 2. Mandatory First-Login Password Change View
   if (user.mustChangePassword) {
     return (
       <div className="docket-panel-form" style={{ maxWidth: '580px', marginTop: '32px' }}>
-        <div className="eyebrow-tag">KEAMANAN AKUN WAJIB (SEC-001)</div>
+        <div className="eyebrow-tag">PENGATURAN KEAMANAN AKUN</div>
         <h2>Wajib Ganti Kata Sandi Awal</h2>
         <p className="trust-stat-desc" style={{ marginBottom: '20px' }}>
-          Anda masuk menggunakan kata sandi inisialisasi awal. Demi keamanan firma, Anda wajib
-          mengganti kata sandi sebelum dapat mengelola konten situs.
+          Anda masuk menggunakan kata sandi awal dari sistem. Demi keamanan kantor, Anda wajib
+          mengganti kata sandi terlebih dahulu sebelum dapat mengelola konten website.
         </p>
 
         {feedback ? (
@@ -571,11 +569,11 @@ export function AdminDashboardClient() {
       >
         <div>
           <div className="cred-title">
-            Masuk sebagai: {user.name} ({user.email}) — Peran: {user.role.toUpperCase()}
+            Masuk sebagai: {user.name} ({user.email}) &mdash; Peran: {user.role === 'admin' ? 'PENGELOLA' : 'PENYUNTING'}
           </div>
           <div className="cred-desc">
-            Status Database MySQL/MariaDB:{' '}
-            <strong>{dbConnected ? 'Terhubung (Aktif)' : 'Mode Fallback Seed JSON'}</strong>
+            Status Penyimpanan Data:{' '}
+            <strong>{dbConnected ? 'Aktif dan Terhubung' : 'Penyimpanan Cadangan'}</strong>
           </div>
         </div>
         <div className="hero-actions-row" style={{ marginTop: 0 }}>
@@ -583,7 +581,7 @@ export function AdminDashboardClient() {
             Lihat Situs Publik
           </Link>
           <button type="button" onClick={handleLogout} className="btn-outline" disabled={busy}>
-            Keluar (Logout)
+            Keluar
           </button>
         </div>
       </div>
@@ -591,7 +589,7 @@ export function AdminDashboardClient() {
       {feedback ? (
         <div className="cred-box" style={{ marginBottom: '20px' }} role="status">
           <div className="cred-title">
-            {feedback.type === 'err' ? 'Peringatan' : 'Berhasil Disimpan'}
+            {feedback.type === 'err' ? 'Peringatan' : 'Berhasil'}
           </div>
           <div className="cred-desc">{feedback.text}</div>
         </div>
@@ -657,7 +655,7 @@ export function AdminDashboardClient() {
           onClick={() => setActiveTab('media')}
           className={activeTab === 'media' ? 'btn-gold' : 'btn-outline'}
         >
-          8. Media &amp; Upload
+          8. Pustaka Foto ({mediaAssets.length})
         </button>
         {user.role === 'admin' ? (
           <>
@@ -673,7 +671,7 @@ export function AdminDashboardClient() {
               onClick={() => setActiveTab('security')}
               className={activeTab === 'security' ? 'btn-gold' : 'btn-outline'}
             >
-              10. Pengguna &amp; Audit
+              10. Pengguna &amp; Riwayat
             </button>
           </>
         ) : null}
@@ -681,47 +679,77 @@ export function AdminDashboardClient() {
 
       {/* TAB 1: DASHBOARD */}
       {activeTab === 'dashboard' ? (
-        <div className="credentials-spec-grid">
-          <div className="cred-box">
-            <div className="cred-title">Artikel Terbit / Draf</div>
-            <div className="cred-desc">
-              {articles.filter((a) => a.status === 'published').length} Terbit &middot;{' '}
-              {articles.filter((a) => a.status === 'draft').length} Draf
-            </div>
-          </div>
-          <div className="cred-box">
-            <div className="cred-title">Permohonan Janji Temu</div>
-            <div className="cred-desc">
-              {inquiries.filter((i) => i.status === 'baru').length} Baru &middot;{' '}
-              {inquiries.filter((i) => i.emailFailed).length} Gagal Notifikasi Email
-            </div>
-          </div>
-          <div className="cred-box">
-            <div className="cred-title">Profil Tim &amp; Bidang Praktik</div>
-            <div className="cred-desc">
-              {teamMembers.length} Anggota Tim &middot; {practiceAreas.length} Bidang Layanan
-            </div>
-          </div>
-          {user.role === 'admin' ? (
+        <div>
+          <div className="credentials-spec-grid">
             <div className="cred-box">
-              <div className="cred-title">Sinkronisasi Database MySQL</div>
-              <div className="cred-desc" style={{ marginBottom: '12px' }}>
-                Impor ulang data awal dari berkas seed JSON ke tabel MySQL secara idempoten.
+              <div className="cred-title">Artikel Tayang / Konsep</div>
+              <div className="cred-desc">
+                {articles.filter((a) => a.status === 'published').length} Tayang &middot;{' '}
+                {articles.filter((a) => a.status === 'draft').length} Konsep
               </div>
-              <button
-                type="button"
-                className="btn-gold"
-                disabled={busy}
-                onClick={() =>
-                  postCmsMutation(
-                    { module: 'system', action: 'migrate_seed' },
-                    'Sinkronisasi seed ke database MySQL berhasil dijalankan.',
-                  )
-                }
-              >
-                Jalankan Migrasi Seed ke MySQL
-              </button>
             </div>
+            <div className="cred-box">
+              <div className="cred-title">Permohonan Janji Temu</div>
+              <div className="cred-desc">
+                {inquiries.filter((i) => i.status === 'baru').length} Baru &middot;{' '}
+                {inquiries.filter((i) => i.emailFailed).length} Menunggu Notifikasi
+              </div>
+            </div>
+            <div className="cred-box">
+              <div className="cred-title">Profil Tim &amp; Bidang Layanan</div>
+              <div className="cred-desc">
+                {teamMembers.length} Anggota Tim &middot; {practiceAreas.length} Bidang Layanan
+              </div>
+            </div>
+            <div className="cred-box">
+              <div className="cred-title">Dokumentasi Perkara</div>
+              <div className="cred-desc">
+                {caseRecords.length} Perkara Terdaftar &middot; {mediaAssets.length} Berkas di Pustaka Foto
+              </div>
+            </div>
+          </div>
+
+          {user.role === 'admin' ? (
+            <details
+              style={{
+                marginTop: '28px',
+                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                padding: '14px 18px',
+                background: 'rgba(255, 255, 255, 0.02)',
+              }}
+            >
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  color: 'var(--color-text-muted)',
+                  fontSize: '13px',
+                  userSelect: 'none',
+                }}
+              >
+                ⚙️ Alat Pengembang (Khusus Pengelola)
+              </summary>
+              <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '6px' }}>
+                  Muat Ulang Data Bawaan Sistem
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '14px', maxWidth: '680px', lineHeight: 1.6 }}>
+                  Tindakan ini akan memeriksa dan memuat kembali data awal bawaan ke penyimpanan database.
+                  <br />
+                  <span style={{ color: 'var(--color-gold)' }}>⚠️ Perhatian:</span> Data bawaan yang sebelumnya sengaja dihapus mungkin akan muncul kembali. Data yang telah Anda ubah atau sunting tidak akan hilang. Gunakan fitur ini hanya bila diarahkan oleh tim teknis.
+                </p>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{ fontSize: '13px', padding: '6px 14px' }}
+                  disabled={busy}
+                  onClick={() => setShowDevToolsConfirmModal(true)}
+                >
+                  Muat Ulang Data Bawaan
+                </button>
+              </div>
+            </details>
           ) : null}
         </div>
       ) : null}
@@ -745,13 +773,14 @@ export function AdminDashboardClient() {
                     excerpt: artExcerpt,
                     bodyHtml: artBodyHtml,
                     coverUrl: artCoverUrl,
+                    coverAlt: artCoverAlt || `Ilustrasi ${artTitle}`,
                     categorySlug: artCategorySlug,
                     categoryName: selectedCat?.name || 'Hukum Korporasi & Bisnis',
                     status: artStatus,
                     seoTitle: artSeoTitle || artTitle,
                     seoDescription: artSeoDesc || artExcerpt.slice(0, 155),
                   },
-                  'Artikel berhasil disimpan ke database.',
+                  'Artikel berhasil disimpan.',
                 )
                 if (ok) {
                   setArtId('')
@@ -759,6 +788,8 @@ export function AdminDashboardClient() {
                   setArtTitle('')
                   setArtExcerpt('')
                   setArtBodyHtml('<p></p>')
+                  setArtCoverUrl('/images/practice-corporate.webp')
+                  setArtCoverAlt('')
                 }
               }}
             >
@@ -773,11 +804,12 @@ export function AdminDashboardClient() {
                   value={artTitle}
                   onChange={(e) => setArtTitle(e.target.value)}
                   className="form-input"
+                  placeholder="Contoh: Panduan Mitigasi Risiko Hukum dalam Kontrak Bisnis"
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="artSlugInput" className="form-label">
-                  Slug URL (Kosongkan untuk otomatis)
+                  Alamat Tautan Halaman (Otomatis dibuat dari judul bila dikosongkan)
                 </label>
                 <input
                   id="artSlugInput"
@@ -785,6 +817,7 @@ export function AdminDashboardClient() {
                   value={artSlug}
                   onChange={(e) => setArtSlug(e.target.value)}
                   className="form-input"
+                  placeholder="Contoh: panduan-mitigasi-risiko-hukum-kontrak"
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
@@ -806,7 +839,7 @@ export function AdminDashboardClient() {
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="artStatusSelect" className="form-label">
-                  Status Publikasi
+                  Status Penayangan
                 </label>
                 <select
                   id="artStatusSelect"
@@ -816,26 +849,34 @@ export function AdminDashboardClient() {
                   }
                   className="form-input"
                 >
-                  <option value="draft">Draf (Tidak tampil di publik)</option>
-                  <option value="published">Terbit (Tampil di publik)</option>
+                  <option value="draft">Konsep (Belum tayang di website)</option>
+                  <option value="published">Tayang (Sudah tampil di website)</option>
                 </select>
               </div>
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label htmlFor="artCoverInput" className="form-label">
-                  URL Gambar Sampul
-                </label>
-                <input
-                  id="artCoverInput"
-                  type="text"
-                  required
-                  value={artCoverUrl}
-                  onChange={(e) => setArtCoverUrl(e.target.value)}
-                  className="form-input"
-                />
-              </div>
+
+              {/* Komponen Upload Foto Sampul */}
+              <ImageUploader
+                label="Foto Sampul Artikel"
+                helperText="Format JPG, PNG, atau WebP, maksimal 5 MB"
+                value={artCoverUrl}
+                altText={artCoverAlt || `Ilustrasi ${artTitle}`}
+                suggestedAlt={`Ilustrasi ${artTitle}`}
+                onUploadSuccess={(asset) => {
+                  setArtCoverUrl(asset.url)
+                  if (asset.altText) setArtCoverAlt(asset.altText)
+                }}
+                onRemove={() => {
+                  setArtCoverUrl('')
+                  setArtCoverAlt('')
+                }}
+                csrfToken={user.csrfToken}
+                mediaAssets={mediaAssets}
+                disabled={busy}
+              />
+
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="artExcerptInput" className="form-label">
-                  Ringkasan Singkat (Excerpt)
+                  Ringkasan Singkat (1–2 Kalimat)
                 </label>
                 <textarea
                   id="artExcerptInput"
@@ -844,11 +885,12 @@ export function AdminDashboardClient() {
                   value={artExcerpt}
                   onChange={(e) => setArtExcerpt(e.target.value)}
                   className="form-input"
+                  placeholder="Tulis ringkasan singkat artikel yang akan tampil pada kartu..."
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="artBodyInput" className="form-label">
-                  Isi Artikel (HTML — otomatis disanitasi terhadap XSS)
+                  Isi Artikel Lengkap (Format HTML/Teks)
                 </label>
                 <textarea
                   id="artBodyInput"
@@ -861,7 +903,7 @@ export function AdminDashboardClient() {
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="artSeoTitleInput" className="form-label">
-                  SEO Title ({artSeoTitle.length}/60 karakter)
+                  Judul untuk Mesin Pencari (SEO Title — {artSeoTitle.length}/60 karakter)
                 </label>
                 <input
                   id="artSeoTitleInput"
@@ -874,7 +916,7 @@ export function AdminDashboardClient() {
               </div>
               <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label htmlFor="artSeoDescInput" className="form-label">
-                  SEO Description ({artSeoDesc.length}/155 karakter)
+                  Deskripsi untuk Mesin Pencari (SEO Description — {artSeoDesc.length}/155 karakter)
                 </label>
                 <textarea
                   id="artSeoDescInput"
@@ -899,6 +941,8 @@ export function AdminDashboardClient() {
                       setArtTitle('')
                       setArtExcerpt('')
                       setArtBodyHtml('<p></p>')
+                      setArtCoverUrl('/images/practice-corporate.webp')
+                      setArtCoverAlt('')
                     }}
                   >
                     Batal Edit
@@ -912,44 +956,102 @@ export function AdminDashboardClient() {
             <h3>Daftar Artikel ({articles.length})</h3>
             <div className="stacked-articles-column" style={{ marginTop: '16px' }}>
               {articles.map((art) => (
-                <div key={art.id} className="cred-box">
-                  <div className="cred-title">
-                    [{art.status.toUpperCase()}] {art.title}
-                  </div>
-                  <div className="cred-desc">
-                    Slug: <code>/artikel/{art.slug}</code> &middot; Kategori: {art.category.name}
-                  </div>
-                  <div className="hero-actions-row" style={{ marginTop: '10px' }}>
-                    <button
-                      type="button"
-                      className="btn-outline"
-                      onClick={() => {
-                        setArtId(art.id)
-                        setArtSlug(art.slug)
-                        setArtTitle(art.title)
-                        setArtExcerpt(art.excerpt)
-                        setArtBodyHtml(art.bodyHtml)
-                        setArtCoverUrl(art.coverImage.url)
-                        setArtCategorySlug(art.category.slug)
-                        setArtStatus(art.status)
-                        setArtSeoTitle(art.seoTitle)
-                        setArtSeoDesc(art.seoDescription)
+                <div
+                  key={art.id}
+                  className="cred-box"
+                  style={{
+                    display: 'flex',
+                    gap: '14px',
+                    alignItems: 'flex-start',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '76px',
+                      height: '56px',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      background: '#18181b',
+                      flexShrink: 0,
+                      border: '1px solid rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    <img
+                      src={art.coverImage.url}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        ;(e.currentTarget as HTMLElement).style.display = 'none'
                       }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-outline"
-                      onClick={() =>
-                        postCmsMutation(
-                          { module: 'article', action: 'delete', id: art.id },
-                          'Artikel dihapus.',
-                        )
-                      }
-                    >
-                      Hapus
-                    </button>
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="cred-title" style={{ fontSize: '15px' }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          marginRight: '6px',
+                          backgroundColor:
+                            art.status === 'published'
+                              ? 'rgba(34, 197, 94, 0.2)'
+                              : 'rgba(234, 179, 8, 0.2)',
+                          color: art.status === 'published' ? '#4ade80' : '#facc15',
+                        }}
+                      >
+                        {art.status === 'published' ? 'Tayang' : 'Konsep'}
+                      </span>
+                      {art.title}
+                    </div>
+                    <div className="cred-desc">
+                      Alamat: <code>/artikel/{art.slug}</code> &middot; Kategori: {art.category.name}
+                    </div>
+                    <div className="hero-actions-row" style={{ marginTop: '10px' }}>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        style={{ padding: '4px 10px', fontSize: '13px' }}
+                        onClick={() => {
+                          setArtId(art.id)
+                          setArtSlug(art.slug)
+                          setArtTitle(art.title)
+                          setArtExcerpt(art.excerpt)
+                          setArtBodyHtml(art.bodyHtml)
+                          setArtCoverUrl(art.coverImage.url)
+                          setArtCoverAlt(art.coverImage.alt || '')
+                          setArtCategorySlug(art.category.slug)
+                          setArtStatus(art.status)
+                          setArtSeoTitle(art.seoTitle)
+                          setArtSeoDesc(art.seoDescription)
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        style={{
+                          padding: '4px 10px',
+                          fontSize: '13px',
+                          color: '#ef4444',
+                          borderColor: 'rgba(239, 68, 68, 0.4)',
+                        }}
+                        onClick={() => {
+                          setDeleteConfirmItem({
+                            title: `Artikel "${art.title}"`,
+                            onConfirm: () =>
+                              postCmsMutation(
+                                { module: 'article', action: 'delete', id: art.id },
+                                'Artikel berhasil dihapus.',
+                              ),
+                          })
+                        }}
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1018,17 +1120,27 @@ export function AdminDashboardClient() {
               {categories.map((c) => (
                 <div key={c.id} className="cred-box">
                   <div className="cred-title">{c.name}</div>
-                  <div className="cred-desc">Slug: {c.slug}</div>
+                  <div className="cred-desc">Alamat tautan: <code>/{c.slug}</code></div>
                   <div className="hero-actions-row" style={{ marginTop: '8px' }}>
                     <button
                       type="button"
                       className="btn-outline"
-                      onClick={() =>
-                        postCmsMutation(
-                          { module: 'category', action: 'delete', id: c.id, slug: c.slug },
-                          'Kategori berhasil dihapus.',
-                        )
-                      }
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '13px',
+                        color: '#ef4444',
+                        borderColor: 'rgba(239, 68, 68, 0.4)',
+                      }}
+                      onClick={() => {
+                        setDeleteConfirmItem({
+                          title: `Kategori "${c.name}"`,
+                          onConfirm: () =>
+                            postCmsMutation(
+                              { module: 'category', action: 'delete', id: c.id, slug: c.slug },
+                              'Kategori berhasil dihapus.',
+                            ),
+                        })
+                      }}
                     >
                       Hapus
                     </button>
@@ -1048,16 +1160,15 @@ export function AdminDashboardClient() {
             <div className="cred-box">
               <div className="cred-title">Belum Ada Permohonan Masuk</div>
               <div className="cred-desc">
-                Setiap kiriman formulir konsultasi akan langsung tercatat di tabel MySQL{' '}
-                <code>inquiries</code>.
+                Setiap pesan dan jadwal konsultasi dari pengunjung website akan langsung tercatat di sini dan dikirimkan ke email kantor secara otomatis.
               </div>
             </div>
           ) : (
             inquiries.map((inq) => (
               <div key={inq.id} className="cred-box">
                 <div className="cred-title">
-                  [{inq.status.toUpperCase()}] {inq.name} — {inq.practiceAreaId}
-                  {inq.emailFailed ? ' (PERINGATAN: Notifikasi Email Gagal Terkirim)' : ''}
+                  [{inq.status.toUpperCase()}] {inq.name} &mdash; {inq.practiceAreaId}
+                  {inq.emailFailed ? ' (PERINGATAN: Notifikasi Email Belum Terkirim)' : ''}
                 </div>
                 <div className="cred-desc">
                   Jadwal: {inq.preferredDate} ({inq.sessionSlot}, {inq.method}) &middot; Email:{' '}
@@ -1089,14 +1200,24 @@ export function AdminDashboardClient() {
                   <button
                     type="button"
                     className="btn-outline"
-                    onClick={() =>
-                      postCmsMutation(
-                        { module: 'inquiry', action: 'delete', id: inq.id },
-                        'Data permohonan dihapus sesuai ketentuan UU PDP.',
-                      )
-                    }
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: '13px',
+                      color: '#ef4444',
+                      borderColor: 'rgba(239, 68, 68, 0.4)',
+                    }}
+                    onClick={() => {
+                      setDeleteConfirmItem({
+                        title: `Permohonan dari "${inq.name}"`,
+                        onConfirm: () =>
+                          postCmsMutation(
+                            { module: 'inquiry', action: 'delete', id: inq.id },
+                            'Permohonan berhasil dihapus.',
+                          ),
+                      })
+                    }}
                   >
-                    Hapus Data (UU PDP)
+                    Hapus
                   </button>
                 </div>
               </div>
@@ -1114,6 +1235,10 @@ export function AdminDashboardClient() {
               onSubmit={async (e) => {
                 e.preventDefault()
                 const existing = teamMembers.find((m) => m.id === teamId)
+                const teamDisplayName = teamHonorific
+                  ? `${teamFullName}, ${teamHonorific}`
+                  : teamFullName
+
                 const ok = await postCmsMutation(
                   {
                     module: 'team_member',
@@ -1132,6 +1257,10 @@ export function AdminDashboardClient() {
                     languages: existing?.languages || ['Indonesia'],
                     tags: existing?.tags || [],
                     photoUrl: teamPhotoUrl,
+                    photoAlt: `Foto ${teamDisplayName}`,
+                    photoWidth: teamPhotoMeta.width,
+                    photoHeight: teamPhotoMeta.height,
+                    photoMime: teamPhotoMeta.mimeType,
                     displayOrder: teamOrder,
                     isPublished: true,
                   },
@@ -1144,6 +1273,8 @@ export function AdminDashboardClient() {
                   setTeamHonorific('')
                   setTeamShortBio('')
                   setTeamFullBio('')
+                  setTeamPhotoUrl('/team/ferdinan-hasiholan-silalahi.webp')
+                  setTeamPhotoMeta({})
                 }
               }}
             >
@@ -1158,6 +1289,7 @@ export function AdminDashboardClient() {
                   value={teamFullName}
                   onChange={(e) => setTeamFullName(e.target.value)}
                   className="form-input"
+                  placeholder="Contoh: Basit Rezki"
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
@@ -1170,11 +1302,12 @@ export function AdminDashboardClient() {
                   value={teamHonorific}
                   onChange={(e) => setTeamHonorific(e.target.value)}
                   className="form-input"
+                  placeholder="S.H."
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="teamRoleInput" className="form-label">
-                  Jabatan (Role Title)
+                  Jabatan dalam Kantor
                 </label>
                 <input
                   id="teamRoleInput"
@@ -1183,21 +1316,34 @@ export function AdminDashboardClient() {
                   value={teamRoleTitle}
                   onChange={(e) => setTeamRoleTitle(e.target.value)}
                   className="form-input"
+                  placeholder="Contoh: Senior Associate"
                 />
               </div>
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label htmlFor="teamPhotoInput" className="form-label">
-                  URL Foto (contoh: /team/basit-rezki.webp atau /uploads/...)
-                </label>
-                <input
-                  id="teamPhotoInput"
-                  type="text"
-                  required
-                  value={teamPhotoUrl}
-                  onChange={(e) => setTeamPhotoUrl(e.target.value)}
-                  className="form-input"
-                />
-              </div>
+
+              {/* Upload Foto Profil Tim */}
+              <ImageUploader
+                label="Foto Profil Anggota Tim"
+                helperText="Format JPG, PNG, atau WebP, maksimal 5 MB (Rasio tegak 4:5 disarankan)"
+                value={teamPhotoUrl}
+                altText={`Foto ${teamFullName}${teamHonorific ? `, ${teamHonorific}` : ''}`}
+                suggestedAlt={`Foto ${teamFullName}`}
+                onUploadSuccess={(asset) => {
+                  setTeamPhotoUrl(asset.url)
+                  setTeamPhotoMeta({
+                    width: asset.width,
+                    height: asset.height,
+                    mimeType: asset.mimeType,
+                  })
+                }}
+                onRemove={() => {
+                  setTeamPhotoUrl('')
+                  setTeamPhotoMeta({})
+                }}
+                csrfToken={user.csrfToken}
+                mediaAssets={mediaAssets}
+                disabled={busy}
+              />
+
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="teamOrderInput" className="form-label">
                   Urutan Tampil
@@ -1224,6 +1370,7 @@ export function AdminDashboardClient() {
                   value={teamShortBio}
                   onChange={(e) => setTeamShortBio(e.target.value)}
                   className="form-input"
+                  placeholder="Ringkasan keahlian dan pengalaman advokat..."
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '16px' }}>
@@ -1237,11 +1384,32 @@ export function AdminDashboardClient() {
                   value={teamFullBio}
                   onChange={(e) => setTeamFullBio(e.target.value)}
                   className="form-input"
+                  placeholder="Riwayat karier hukum lengkap, latar belakang pendidikan, dan fokus penanganan..."
                 />
               </div>
-              <button type="submit" className="btn-gold" disabled={busy}>
-                Simpan Profil Tim
-              </button>
+              <div className="hero-actions-row">
+                <button type="submit" className="btn-gold" disabled={busy}>
+                  Simpan Profil Tim
+                </button>
+                {teamId ? (
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    onClick={() => {
+                      setTeamId('')
+                      setTeamSlug('')
+                      setTeamFullName('')
+                      setTeamHonorific('')
+                      setTeamShortBio('')
+                      setTeamFullBio('')
+                      setTeamPhotoUrl('/team/ferdinan-hasiholan-silalahi.webp')
+                      setTeamPhotoMeta({})
+                    }}
+                  >
+                    Batal Edit
+                  </button>
+                ) : null}
+              </div>
             </form>
           </div>
 
@@ -1249,31 +1417,67 @@ export function AdminDashboardClient() {
             <h3>Daftar Anggota Tim ({teamMembers.length})</h3>
             <div className="stacked-articles-column" style={{ marginTop: '16px' }}>
               {teamMembers.map((m) => (
-                <div key={m.id} className="cred-box">
-                  <div className="cred-title">
-                    #{m.displayOrder} {m.displayName}
-                  </div>
-                  <div className="cred-desc">{m.roleTitle}</div>
-                  <div className="hero-actions-row" style={{ marginTop: '8px' }}>
-                    <button
-                      type="button"
-                      className="btn-outline"
-                      onClick={() => {
-                        setTeamId(m.id)
-                        setTeamSlug(m.slug)
-                        setTeamFullName(m.fullName)
-                        setTeamHonorific(m.honorific)
-                        setTeamRoleTitle(m.roleTitle)
-                        setTeamGroup(m.group)
-                        setTeamMotto(m.motto || '')
-                        setTeamShortBio(m.shortBio)
-                        setTeamFullBio(m.fullBio)
-                        setTeamPhotoUrl(m.photo.url)
-                        setTeamOrder(m.displayOrder)
+                <div
+                  key={m.id}
+                  className="cred-box"
+                  style={{
+                    display: 'flex',
+                    gap: '14px',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '52px',
+                      height: '52px',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      background: '#18181b',
+                      flexShrink: 0,
+                      border: '1px solid rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    <img
+                      src={m.photo.url}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        ;(e.currentTarget as HTMLElement).style.display = 'none'
                       }}
-                    >
-                      Edit Profil
-                    </button>
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="cred-title" style={{ fontSize: '15px' }}>
+                      #{m.displayOrder} {m.displayName}
+                    </div>
+                    <div className="cred-desc">{m.roleTitle}</div>
+                    <div className="hero-actions-row" style={{ marginTop: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        style={{ padding: '4px 10px', fontSize: '13px' }}
+                        onClick={() => {
+                          setTeamId(m.id)
+                          setTeamSlug(m.slug)
+                          setTeamFullName(m.fullName)
+                          setTeamHonorific(m.honorific)
+                          setTeamRoleTitle(m.roleTitle)
+                          setTeamGroup(m.group)
+                          setTeamMotto(m.motto || '')
+                          setTeamShortBio(m.shortBio)
+                          setTeamFullBio(m.fullBio)
+                          setTeamPhotoUrl(m.photo.url)
+                          setTeamPhotoMeta({
+                            width: m.photo.width,
+                            height: m.photo.height,
+                            mimeType: m.photo.mimeType,
+                          })
+                          setTeamOrder(m.displayOrder)
+                        }}
+                      >
+                        Edit Profil
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1373,6 +1577,20 @@ export function AdminDashboardClient() {
                   className="form-input"
                 />
               </div>
+
+              {/* Upload Gambar Header Bidang Layanan */}
+              <ImageUploader
+                label="Gambar Header Bidang Layanan"
+                helperText="Format JPG, PNG, atau WebP, maksimal 5 MB"
+                value={paImage}
+                suggestedAlt={`Bidang Layanan ${paName}`}
+                onUploadSuccess={(asset) => setPaImage(asset.url)}
+                onRemove={() => setPaImage('')}
+                csrfToken={user.csrfToken}
+                mediaAssets={mediaAssets}
+                disabled={busy}
+              />
+
               <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label htmlFor="paScopeInput" className="form-label">
                   Butir Cakupan Advokasi (Satu butir per baris)
@@ -1386,9 +1604,28 @@ export function AdminDashboardClient() {
                   className="form-input"
                 />
               </div>
-              <button type="submit" className="btn-gold" disabled={busy}>
-                Simpan Bidang Layanan
-              </button>
+              <div className="hero-actions-row">
+                <button type="submit" className="btn-gold" disabled={busy}>
+                  Simpan Bidang Layanan
+                </button>
+                {paId ? (
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    onClick={() => {
+                      setPaId('')
+                      setPaSlug('')
+                      setPaName('')
+                      setPaSummary('')
+                      setPaDescription('')
+                      setPaScopeText('')
+                      setPaImage('/images/practice-corporate.webp')
+                    }}
+                  >
+                    Batal Edit
+                  </button>
+                ) : null}
+              </div>
             </form>
           </div>
 
@@ -1396,29 +1633,60 @@ export function AdminDashboardClient() {
             <h3>10 Bidang Layanan ({practiceAreas.length})</h3>
             <div className="stacked-articles-column" style={{ marginTop: '16px' }}>
               {practiceAreas.map((p) => (
-                <div key={p.id} className="cred-box">
-                  <div className="cred-title">
-                    #{p.displayOrder} [{p.label}] {p.name}
-                  </div>
-                  <div className="cred-desc">{p.summary}</div>
-                  <div className="hero-actions-row" style={{ marginTop: '8px' }}>
-                    <button
-                      type="button"
-                      className="btn-outline"
-                      onClick={() => {
-                        setPaId(p.id)
-                        setPaSlug(p.slug)
-                        setPaName(p.name)
-                        setPaLabel(p.label)
-                        setPaSummary(p.summary)
-                        setPaDescription(p.description)
-                        setPaScopeText(p.advocacyScope.join('\n'))
-                        setPaImage(p.image)
-                        setPaOrder(p.displayOrder)
+                <div
+                  key={p.id}
+                  className="cred-box"
+                  style={{
+                    display: 'flex',
+                    gap: '14px',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '76px',
+                      height: '52px',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      background: '#18181b',
+                      flexShrink: 0,
+                      border: '1px solid rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    <img
+                      src={p.image}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        ;(e.currentTarget as HTMLElement).style.display = 'none'
                       }}
-                    >
-                      Edit Bidang
-                    </button>
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="cred-title" style={{ fontSize: '15px' }}>
+                      #{p.displayOrder} [{p.label}] {p.name}
+                    </div>
+                    <div className="cred-desc">{p.summary}</div>
+                    <div className="hero-actions-row" style={{ marginTop: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        style={{ padding: '4px 10px', fontSize: '13px' }}
+                        onClick={() => {
+                          setPaId(p.id)
+                          setPaSlug(p.slug)
+                          setPaName(p.name)
+                          setPaLabel(p.label)
+                          setPaSummary(p.summary)
+                          setPaDescription(p.description)
+                          setPaScopeText(p.advocacyScope.join('\n'))
+                          setPaImage(p.image)
+                          setPaOrder(p.displayOrder)
+                        }}
+                      >
+                        Edit Bidang
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1432,13 +1700,22 @@ export function AdminDashboardClient() {
         <div className="docket-booking-grid">
           <div className="docket-panel-form">
             <h2>{caseId ? 'Edit Rekam Jejak Perkara' : 'Tambah Rekam Jejak Perkara'}</h2>
-            <p className="trust-stat-desc" style={{ marginBottom: '12px' }}>
-              Sesuai SK-14, default tampil adalah <code>anonymous</code> (hanya jenis perkara dan
-              wilayah).
+            <p className="trust-stat-desc" style={{ marginBottom: '14px', lineHeight: 1.5 }}>
+              Demi menjaga kerahasiaan klien, identitas perkara secara otomatis disamarkan (hanya
+              menampilkan jenis perkara dan wilayah). Nama klien hanya dapat ditampilkan jika kantor
+              telah mengantongi catatan persetujuan atau surat izin tertulis dari klien.
             </p>
             <form
               onSubmit={async (e) => {
                 e.preventDefault()
+                const photoPayload = casePhotos
+                  .filter((p) => p.url)
+                  .map((p, idx) => ({
+                    url: p.url,
+                    caption: p.caption || '',
+                    alt: p.alt || p.caption || `Dokumentasi penanganan perkara ${caseType} #${idx + 1}`,
+                  }))
+
                 const ok = await postCmsMutation(
                   {
                     module: 'case_record',
@@ -1449,7 +1726,8 @@ export function AdminDashboardClient() {
                     displayMode: caseMode,
                     clientName: caseMode === 'named' ? caseClientName : null,
                     consentRef: caseMode === 'named' ? caseConsentRef : null,
-                    imageUrl: caseImageUrl,
+                    imageUrl: photoPayload[0]?.url || caseImageUrl,
+                    photos: photoPayload,
                     displayOrder: caseOrder,
                     isPublished: true,
                   },
@@ -1462,6 +1740,8 @@ export function AdminDashboardClient() {
                   setCaseMode('anonymous')
                   setCaseClientName('')
                   setCaseConsentRef('')
+                  setCasePhotos([])
+                  setCaseImageUrl('/images/hero-slide-courtroom.webp')
                 }
               }}
             >
@@ -1476,11 +1756,12 @@ export function AdminDashboardClient() {
                   value={caseType}
                   onChange={(e) => setCaseType(e.target.value)}
                   className="form-input"
+                  placeholder="Contoh: Perselisihan Hubungan Industrial"
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="caseRegionInput" className="form-label">
-                  Wilayah Hukum
+                  Wilayah Yurisdiksi Hukum
                 </label>
                 <input
                   id="caseRegionInput"
@@ -1489,11 +1770,12 @@ export function AdminDashboardClient() {
                   value={caseRegion}
                   onChange={(e) => setCaseRegion(e.target.value)}
                   className="form-input"
+                  placeholder="Contoh: Jakarta Pusat atau Bandung, Jawa Barat"
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="caseModeSelect" className="form-label">
-                  Mode Tampil Publik (SK-14)
+                  Penayangan Identitas Klien
                 </label>
                 <select
                   id="caseModeSelect"
@@ -1503,15 +1785,32 @@ export function AdminDashboardClient() {
                   }
                   className="form-input"
                 >
-                  <option value="anonymous">Anonim (Default — Sesuai Kode Etik Advokat)</option>
-                  <option value="named">Bernama (Wajib Bukti Persetujuan Tertulis)</option>
+                  <option value="anonymous">
+                    Nama Klien Disamarkan (Disarankan &mdash; Sesuai Kode Etik Advokat)
+                  </option>
+                  <option value="named">
+                    Tampilkan Nama Klien (Wajib Memiliki Persetujuan Tertulis)
+                  </option>
                 </select>
               </div>
               {caseMode === 'named' ? (
                 <>
+                  <div
+                    style={{
+                      backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                      borderLeft: '4px solid #eab308',
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      color: '#facc15',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    Untuk menampilkan nama klien, isi dulu catatan persetujuan klien di bawah ini.
+                  </div>
                   <div className="form-group" style={{ marginBottom: '12px' }}>
                     <label htmlFor="caseClientInput" className="form-label">
-                      Nama Klien / Pihak
+                      Nama Lengkap Klien / Instansi
                     </label>
                     <input
                       id="caseClientInput"
@@ -1520,11 +1819,12 @@ export function AdminDashboardClient() {
                       value={caseClientName}
                       onChange={(e) => setCaseClientName(e.target.value)}
                       className="form-input"
+                      placeholder="Nama klien atau perusahaan"
                     />
                   </div>
                   <div className="form-group" style={{ marginBottom: '12px' }}>
                     <label htmlFor="caseConsentInput" className="form-label">
-                      Nomor Referensi Surat Persetujuan Klien (consentRef)
+                      Catatan Dokumen Persetujuan Klien (Nomor izin tertulis atau dokumen persetujuan)
                     </label>
                     <input
                       id="caseConsentInput"
@@ -1533,25 +1833,64 @@ export function AdminDashboardClient() {
                       value={caseConsentRef}
                       onChange={(e) => setCaseConsentRef(e.target.value)}
                       className="form-input"
+                      placeholder="Contoh: Surat Izin No. 014/FS-PST/2026 atau Akta Persetujuan"
                     />
                   </div>
                 </>
               ) : null}
+
+              {/* Komponen Pengelola Banyak Foto Dokumentasi */}
+              <MultiPhotoUploader
+                photos={casePhotos}
+                onChange={(updated) => {
+                  setCasePhotos(updated)
+                  if (updated.length > 0 && updated[0]?.url) {
+                    setCaseImageUrl(updated[0].url)
+                  }
+                }}
+                csrfToken={user.csrfToken}
+                mediaAssets={mediaAssets}
+                disabled={busy}
+              />
+
               <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label htmlFor="caseImgInput" className="form-label">
-                  URL Foto Dokumentasi
+                <label htmlFor="caseOrderInput" className="form-label">
+                  Urutan Tampil
                 </label>
                 <input
-                  id="caseImgInput"
-                  type="text"
-                  value={caseImageUrl}
-                  onChange={(e) => setCaseImageUrl(e.target.value)}
+                  id="caseOrderInput"
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={caseOrder}
+                  onChange={(e) => setCaseOrder(Number(e.target.value) || 1)}
                   className="form-input"
                 />
               </div>
-              <button type="submit" className="btn-gold" disabled={busy}>
-                Simpan Rekam Jejak
-              </button>
+
+              <div className="hero-actions-row">
+                <button type="submit" className="btn-gold" disabled={busy}>
+                  Simpan Rekam Jejak
+                </button>
+                {caseId ? (
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    onClick={() => {
+                      setCaseId('')
+                      setCaseType('')
+                      setCaseRegion('')
+                      setCaseMode('anonymous')
+                      setCaseClientName('')
+                      setCaseConsentRef('')
+                      setCasePhotos([])
+                      setCaseImageUrl('/images/hero-slide-courtroom.webp')
+                    }}
+                  >
+                    Batal Edit
+                  </button>
+                ) : null}
+              </div>
             </form>
           </div>
 
@@ -1559,42 +1898,121 @@ export function AdminDashboardClient() {
             <h3>Daftar Rekam Jejak ({caseRecords.length})</h3>
             <div className="stacked-articles-column" style={{ marginTop: '16px' }}>
               {caseRecords.map((c) => (
-                <div key={c.id} className="cred-box">
-                  <div className="cred-title">
-                    #{c.displayOrder} {c.caseType}
-                  </div>
-                  <div className="cred-desc">
-                    Wilayah: {c.region} &middot; Mode: {c.displayMode}
-                  </div>
-                  <div className="hero-actions-row" style={{ marginTop: '8px' }}>
-                    <button
-                      type="button"
-                      className="btn-outline"
-                      onClick={() => {
-                        setCaseId(c.id)
-                        setCaseType(c.caseType)
-                        setCaseRegion(c.region)
-                        setCaseMode(c.displayMode)
-                        setCaseClientName(c.clientName || '')
-                        setCaseConsentRef(c.consentRef || '')
-                        setCaseImageUrl(c.imageUrl || '/images/hero-slide-courtroom.webp')
-                        setCaseOrder(c.displayOrder)
+                <div
+                  key={c.id}
+                  className="cred-box"
+                  style={{
+                    display: 'flex',
+                    gap: '14px',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '76px',
+                      height: '52px',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      background: '#18181b',
+                      flexShrink: 0,
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      position: 'relative',
+                    }}
+                  >
+                    <img
+                      src={c.photos?.[0]?.url || c.imageUrl || '/images/hero-slide-courtroom.webp'}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        ;(e.currentTarget as HTMLElement).style.display = 'none'
                       }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-outline"
-                      onClick={() =>
-                        postCmsMutation(
-                          { module: 'case_record', action: 'delete', id: c.id },
-                          'Rekam jejak dihapus.',
-                        )
-                      }
-                    >
-                      Hapus
-                    </button>
+                    />
+                    {Array.isArray(c.photos) && c.photos.length > 1 && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: '2px',
+                          right: '2px',
+                          backgroundColor: 'rgba(0,0,0,0.75)',
+                          color: '#fff',
+                          fontSize: '10px',
+                          padding: '1px 4px',
+                          borderRadius: '2px',
+                        }}
+                      >
+                        {c.photos.length} Foto
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="cred-title" style={{ fontSize: '15px' }}>
+                      #{c.displayOrder} {c.caseType}
+                    </div>
+                    <div className="cred-desc">
+                      Wilayah: {c.region} &middot; Status Identitas:{' '}
+                      {c.displayMode === 'named' ? 'Nama Klien Ditampilkan' : 'Nama Disamarkan'}
+                      {c.clientName ? ` &middot; Klien: ${c.clientName}` : ''}
+                    </div>
+                    <div className="hero-actions-row" style={{ marginTop: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        style={{ padding: '4px 10px', fontSize: '13px' }}
+                        onClick={() => {
+                          setCaseId(c.id)
+                          setCaseType(c.caseType)
+                          setCaseRegion(c.region)
+                          setCaseMode(c.displayMode)
+                          setCaseClientName(c.clientName || '')
+                          setCaseConsentRef(c.consentRef || '')
+                          setCaseImageUrl(c.imageUrl || '/images/hero-slide-courtroom.webp')
+                          setCaseOrder(c.displayOrder)
+                          setCasePhotos(
+                            Array.isArray(c.photos) && c.photos.length > 0
+                              ? c.photos.map((p, i) => ({
+                                  id: `existing-${i}-${c.id}`,
+                                  url: p.url,
+                                  caption: p.caption || '',
+                                  alt: p.alt || p.caption || '',
+                                  status: 'success',
+                                }))
+                              : [
+                                  {
+                                    id: `cover-${c.id}`,
+                                    url: c.imageUrl || '/images/hero-slide-courtroom.webp',
+                                    caption: c.imageAlt || '',
+                                    alt: c.imageAlt || '',
+                                    status: 'success',
+                                  },
+                                ],
+                          )
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        style={{
+                          padding: '4px 10px',
+                          fontSize: '13px',
+                          color: '#ef4444',
+                          borderColor: 'rgba(239, 68, 68, 0.4)',
+                        }}
+                        onClick={() => {
+                          setDeleteConfirmItem({
+                            title: `Rekam Jejak "${c.caseType} (${c.region})"`,
+                            onConfirm: () =>
+                              postCmsMutation(
+                                { module: 'case_record', action: 'delete', id: c.id },
+                                'Rekam jejak berhasil dihapus.',
+                              ),
+                          })
+                        }}
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1603,60 +2021,100 @@ export function AdminDashboardClient() {
         </div>
       ) : null}
 
-      {/* TAB 8: MEDIA & UPLOAD */}
+      {/* TAB 8: PUSTAKA FOTO */}
       {activeTab === 'media' ? (
         <div className="docket-booking-grid">
           <div className="docket-panel-form">
-            <h2>Unggah Gambar Baru (JPEG, PNG, WebP — Maks. 5 MB)</h2>
+            <h2>Pustaka Foto</h2>
             <p className="trust-stat-desc" style={{ marginBottom: '16px' }}>
-              File disimpan di folder persisten <code>UPLOAD_DIR</code> di luar folder build dan
-              disajikan melalui route <code>/uploads/...</code> (SVG ditolak sesuai SEC-013).
+              Unggah dan kelola foto untuk artikel, profil tim, layanan, dan dokumentasi perkara. Foto otomatis dioptimalkan sebelum disimpan.
             </p>
-            <form onSubmit={handleUploadImage}>
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label htmlFor="mediaFileInput" className="form-label">
-                  Pilih Berkas Gambar
-                </label>
-                <input
-                  id="mediaFileInput"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  required
-                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label htmlFor="mediaAltInput" className="form-label">
-                  Teks Alternatif (Alt Text Aksesibilitas)
-                </label>
-                <input
-                  id="mediaAltInput"
-                  type="text"
-                  required
-                  value={uploadAlt}
-                  onChange={(e) => setUploadAlt(e.target.value)}
-                  className="form-input"
-                  placeholder="Contoh: Dokumentasi persidangan tim advokat FS dan Rekan"
-                />
-              </div>
-              <button type="submit" className="btn-gold" disabled={busy || !uploadFile}>
-                {busy ? 'Mengunggah...' : 'Unggah Gambar'}
-              </button>
-            </form>
+            <ImageUploader
+              label="Tambah Foto ke Pustaka"
+              helperText="Format JPG, PNG, atau WebP, maksimal 5 MB"
+              value=""
+              onUploadSuccess={async () => {
+                await loadDashboardData()
+                setFeedback({ type: 'ok', text: 'Foto berhasil diunggah ke Pustaka Foto.' })
+              }}
+              csrfToken={user.csrfToken}
+              disabled={busy}
+            />
           </div>
 
           <div className="docket-info-card">
-            <h3>Pustaka Media Terunggah ({mediaAssets.length})</h3>
+            <h3>Daftar Foto Tersimpan ({mediaAssets.length})</h3>
             <div className="stacked-articles-column" style={{ marginTop: '16px' }}>
-              {mediaAssets.map((m) => (
-                <div key={m.id} className="cred-box">
-                  <div className="cred-title">{m.originalName}</div>
+              {mediaAssets.length === 0 ? (
+                <div className="cred-box">
+                  <div className="cred-title">Belum Ada Foto di Pustaka</div>
                   <div className="cred-desc">
-                    URL: <code>{m.url}</code> ({Math.round(m.sizeBytes / 1024)} KB)
+                    Foto yang Anda unggah melalui formulir artikel, tim, layanan, atau rekam jejak akan otomatis tercatat dan dapat digunakan kembali di sini.
                   </div>
                 </div>
-              ))}
+              ) : (
+                mediaAssets.map((m) => (
+                  <div
+                    key={m.id}
+                    className="cred-box"
+                    style={{
+                      display: 'flex',
+                      gap: '14px',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '4px',
+                        overflow: 'hidden',
+                        background: '#18181b',
+                        flexShrink: 0,
+                        border: '1px solid rgba(255,255,255,0.1)',
+                      }}
+                    >
+                      <img
+                        src={m.url}
+                        alt={m.altText || m.originalName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          ;(e.currentTarget as HTMLElement).style.display = 'none'
+                        }}
+                      />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="cred-title" style={{ fontSize: '14px', wordBreak: 'break-all' }}>
+                        {m.originalName}
+                      </div>
+                      <div className="cred-desc">
+                        {Math.round(m.sizeBytes / 1024)} KB &middot;{' '}
+                        {new Date(m.createdAt).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </div>
+                      <div className="hero-actions-row" style={{ marginTop: '8px' }}>
+                        <button
+                          type="button"
+                          className="btn-outline"
+                          style={{ padding: '3px 8px', fontSize: '12px' }}
+                          onClick={() => {
+                            navigator.clipboard.writeText(m.url)
+                            setFeedback({
+                              type: 'ok',
+                              text: `Tautan foto "${m.originalName}" berhasil disalin ke papan klip.`,
+                            })
+                          }}
+                        >
+                          Salin Tautan
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -1765,7 +2223,7 @@ export function AdminDashboardClient() {
       {activeTab === 'security' && user.role === 'admin' ? (
         <div className="docket-booking-grid">
           <div className="docket-panel-form">
-            <h2>Tambah / Perbarui Pengguna Admin &amp; Editor</h2>
+            <h2>Tambah Pengguna Baru</h2>
             <form
               onSubmit={async (e) => {
                 e.preventDefault()
@@ -1798,6 +2256,7 @@ export function AdminDashboardClient() {
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
                   className="form-input"
+                  placeholder="Contoh: Basit Rezki"
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
@@ -1811,11 +2270,12 @@ export function AdminDashboardClient() {
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
                   className="form-input"
+                  placeholder="email@fsdanrekan.com"
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="newUserPassInput" className="form-label">
-                  Kata Sandi Awal (Min. 12 karakter, wajib diganti saat login pertama)
+                  Kata Sandi Awal (Minimal 12 karakter, wajib diganti saat masuk pertama kali)
                 </label>
                 <input
                   id="newUserPassInput"
@@ -1829,7 +2289,7 @@ export function AdminDashboardClient() {
               </div>
               <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label htmlFor="newUserRoleSelect" className="form-label">
-                  Peran (Role)
+                  Hak Akses Akun
                 </label>
                 <select
                   id="newUserRoleSelect"
@@ -1839,8 +2299,8 @@ export function AdminDashboardClient() {
                   }
                   className="form-input"
                 >
-                  <option value="editor">Editor (Artikel, Kategori, Media)</option>
-                  <option value="admin">Admin (Akses Penuh)</option>
+                  <option value="editor">Penyunting (Artikel, Kategori, Pustaka Foto)</option>
+                  <option value="admin">Pengelola (Akses Penuh Seluruh Menu)</option>
                 </select>
               </div>
               <button type="submit" className="btn-gold" disabled={busy}>
@@ -1850,22 +2310,215 @@ export function AdminDashboardClient() {
           </div>
 
           <div className="docket-info-card">
-            <h3>Log Audit Keamanan Terbaru ({auditLogs.length})</h3>
+            <h3>Riwayat Aktivitas Sistem Terbaru ({auditLogs.length})</h3>
             <div className="stacked-articles-column" style={{ marginTop: '16px' }}>
-              {auditLogs.slice(0, 15).map((log) => (
-                <div key={log.id} className="cred-box">
-                  <div className="cred-title">
-                    {log.action} — {log.collectionName}
+              {auditLogs.slice(0, 15).map((log) => {
+                const actionLabels: Record<string, string> = {
+                  login_success: 'Masuk Akun Berhasil',
+                  password_change: 'Perubahan Kata Sandi',
+                  article_upsert: 'Penyimpanan Artikel',
+                  article_delete: 'Penghapusan Artikel',
+                  category_upsert: 'Penyimpanan Kategori',
+                  category_delete: 'Penghapusan Kategori',
+                  team_member_upsert: 'Penyimpanan Profil Tim',
+                  practice_area_upsert: 'Penyimpanan Bidang Layanan',
+                  case_record_upsert: 'Penyimpanan Rekam Jejak',
+                  case_record_delete: 'Penghapusan Rekam Jejak',
+                  inquiry_update: 'Pembaruan Status Permohonan',
+                  inquiry_delete: 'Penghapusan Permohonan',
+                  site_settings_update: 'Pembaruan Pengaturan Situs',
+                  user_create: 'Penambahan Pengguna',
+                  media_upload: 'Unggah Foto',
+                  migrate_seed: 'Sinkronisasi Data Bawaan',
+                }
+                const label = actionLabels[log.action] || log.action
+
+                return (
+                  <div key={log.id} className="cred-box">
+                    <div className="cred-title">
+                      {label} &mdash; {log.collectionName}
+                    </div>
+                    <div className="cred-desc">
+                      Oleh: {log.actor} &middot; {log.detail}
+                    </div>
                   </div>
-                  <div className="cred-desc">
-                    Oleh: {log.actor} &middot; {log.detail}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>
       ) : null}
+
+      {/* MODAL 1: KONFIRMASI DUA LANGKAH MUAT ULANG DATA BAWAAN */}
+      {showDevToolsConfirmModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="devModalTitle"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#121214',
+              border: '1px solid #eab308',
+              borderRadius: '8px',
+              padding: '24px',
+              maxWidth: '480px',
+              width: '100%',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.7)',
+            }}
+          >
+            <h3 id="devModalTitle" style={{ color: '#facc15', margin: '0 0 12px 0', fontSize: '18px' }}>
+              Konfirmasi: Muat Ulang Data Bawaan Sistem
+            </h3>
+            <p style={{ color: '#d4d4d8', fontSize: '14px', lineHeight: 1.6, margin: '0 0 16px 0' }}>
+              Tindakan ini akan memasukkan kembali artikel contoh, profil tim standar, bidang layanan, dan pengaturan situs bawaan.
+            </p>
+            <div
+              style={{
+                backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                borderLeft: '3px solid #eab308',
+                padding: '10px 12px',
+                borderRadius: '4px',
+                fontSize: '13px',
+                color: '#facc15',
+                marginBottom: '16px',
+              }}
+            >
+              <strong>Perhatian:</strong> Data bawaan yang sebelumnya sengaja Anda hapus akan dimuat kembali ke sistem.
+            </div>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#f4f4f5' }}>
+                <input
+                  type="checkbox"
+                  checked={devConfirmChecked}
+                  onChange={(e) => setDevConfirmChecked(e.target.checked)}
+                />
+                Saya memahami data bawaan yang sebelumnya dihapus akan dimuat kembali
+              </label>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label htmlFor="devConfirmInput" style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>
+                Ketik kata <strong>MUAT ULANG</strong> untuk melanjutkan:
+              </label>
+              <input
+                id="devConfirmInput"
+                type="text"
+                className="form-input"
+                value={devConfirmText}
+                onChange={(e) => setDevConfirmText(e.target.value)}
+                placeholder="MUAT ULANG"
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => {
+                  setShowDevToolsConfirmModal(false)
+                  setDevConfirmChecked(false)
+                  setDevConfirmText('')
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="btn-gold"
+                disabled={!devConfirmChecked || devConfirmText.trim().toUpperCase() !== 'MUAT ULANG' || busy}
+                onClick={async () => {
+                  setShowDevToolsConfirmModal(false)
+                  setDevConfirmChecked(false)
+                  setDevConfirmText('')
+                  await postCmsMutation(
+                    { module: 'system', action: 'migrate_seed' },
+                    'Data bawaan sistem berhasil disinkronkan.',
+                  )
+                }}
+              >
+                {busy ? 'Memproses...' : 'Ya, Muat Ulang Data'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: KONFIRMASI HAPUS DATA */}
+      {deleteConfirmItem && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="deleteModalTitle"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#18181b',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              borderRadius: '8px',
+              padding: '24px',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.7)',
+            }}
+          >
+            <h3 id="deleteModalTitle" style={{ color: '#ef4444', margin: '0 0 10px 0', fontSize: '18px' }}>
+              Konfirmasi Penghapusan
+            </h3>
+            <p style={{ color: '#d4d4d8', fontSize: '14px', lineHeight: 1.6, margin: '0 0 20px 0' }}>
+              Apakah Anda yakin ingin menghapus <strong>{deleteConfirmItem.title}</strong>? Data yang dihapus tidak dapat dipulihkan kembali.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => setDeleteConfirmItem(null)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="btn-outline"
+                style={{
+                  color: '#ffffff',
+                  backgroundColor: '#dc2626',
+                  borderColor: '#dc2626',
+                  fontWeight: 600,
+                }}
+                disabled={busy}
+                onClick={async () => {
+                  const onConfirm = deleteConfirmItem.onConfirm
+                  setDeleteConfirmItem(null)
+                  onConfirm()
+                }}
+              >
+                {busy ? 'Menghapus...' : 'Ya, Hapus'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -33,7 +33,7 @@ export async function POST(req: Request): Promise<Response> {
       )
     }
     if (!verifyAdminCsrf(req, session)) {
-      return NextResponse.json({ error: 'Token keamanan CSRF tidak valid.' }, { status: 403 })
+      return NextResponse.json({ error: 'Sesi keamanan telah kedaluwarsa. Silakan muat ulang halaman.' }, { status: 403 })
     }
 
     const contentType = req.headers.get('content-type') || ''

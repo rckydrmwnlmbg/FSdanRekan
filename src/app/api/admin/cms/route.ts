@@ -132,6 +132,10 @@ const TeamMemberUpsertSchema = z
     languages: z.array(z.string().trim().min(1).max(120)).default([]),
     tags: z.array(z.string().trim().min(1).max(120)).default([]),
     photoUrl: z.string().trim().min(1).max(500),
+    photoAlt: z.string().trim().max(255).optional(),
+    photoWidth: z.coerce.number().int().positive().optional(),
+    photoHeight: z.coerce.number().int().positive().optional(),
+    photoMime: z.string().trim().max(64).optional(),
     displayOrder: z.coerce.number().int().min(1).max(99).default(1),
     isPublished: z.boolean().default(true),
   })
@@ -149,6 +153,16 @@ const CaseRecordUpsertSchema = z
     consentRef: z.string().trim().max(255).nullable().optional(),
     imageUrl: z.string().trim().max(500).optional().default('/images/hero-slide-courtroom.webp'),
     imageAlt: z.string().trim().max(255).optional(),
+    photos: z
+      .array(
+        z.object({
+          url: z.string().trim().min(1).max(500),
+          caption: z.string().trim().max(255).optional().default(''),
+          alt: z.string().trim().max(255).optional().default(''),
+        }),
+      )
+      .max(10)
+      .optional(),
     displayOrder: z.coerce.number().int().min(1).max(99).default(1),
     isPublished: z.boolean().default(true),
   })
@@ -504,6 +518,16 @@ export async function GET(req: Request): Promise<Response> {
             consentRef: c.consent_ref ? String(c.consent_ref) : null,
             imageUrl: String(c.image_url || '/images/hero-slide-courtroom.webp'),
             imageAlt: String(c.image_alt || ''),
+            photos: safeJsonParse<Array<{ url: string; caption?: string; alt?: string }>>(
+              c.photos_json,
+              [
+                {
+                  url: String(c.image_url || '/images/hero-slide-courtroom.webp'),
+                  caption: String(c.image_alt || ''),
+                  alt: String(c.image_alt || ''),
+                },
+              ],
+            ),
             displayOrder: Number(c.display_order) || 1,
             isPublished: Boolean(c.is_published),
           }))
@@ -563,7 +587,7 @@ export async function POST(req: Request): Promise<Response> {
       )
     }
     if (!verifyAdminCsrf(req, session)) {
-      return NextResponse.json({ error: 'Token keamanan CSRF tidak valid.' }, { status: 403 })
+      return NextResponse.json({ error: 'Sesi keamanan telah kedaluwarsa. Silakan muat ulang halaman.' }, { status: 403 })
     }
 
     if (!req.headers.get('content-type')?.includes('application/json')) {
@@ -711,7 +735,7 @@ export async function POST(req: Request): Promise<Response> {
           return NextResponse.json(
             {
               error:
-                'Kategori tidak dapat dihapus karena masih digunakan oleh satu atau lebih artikel (FR-6.4).',
+                'Kategori ini belum dapat dihapus karena masih digunakan oleh artikel aktif. Pindahkan atau hapus artikel terlebih dahulu.',
             },
             { status: 400 },
           )
@@ -779,11 +803,11 @@ export async function POST(req: Request): Promise<Response> {
         id: `photo-${slug}`,
         filename: `${slug}.webp`,
         sourceFilename: `${slug}.webp`,
-        mimeType: 'image/webp',
+        mimeType: data.photoMime || 'image/webp',
         size: 24000,
-        width: 640,
-        height: 800,
-        aspectRatio: '4:5',
+        width: data.photoWidth || 640,
+        height: data.photoHeight || 800,
+        aspectRatio: `${data.photoWidth || 640}:${data.photoHeight || 800}`,
         url: data.photoUrl,
         sizes: {
           sm: data.photoUrl,
@@ -791,7 +815,7 @@ export async function POST(req: Request): Promise<Response> {
           lg: data.photoUrl,
         },
         srcSet: `${data.photoUrl} 640w`,
-        alt: `Foto ${displayName}`,
+        alt: data.photoAlt?.trim() || `Foto ${displayName}`,
       }
 
       await pool.query(
@@ -847,28 +871,44 @@ export async function POST(req: Request): Promise<Response> {
         return NextResponse.json({ ok: true })
       }
 
-      // SK-14 Anonymity Guard: named displayMode requires explicit consentRef
+      // Anonymity Guard: named displayMode requires explicit consentRef
       if (data.displayMode === 'named' && (!data.consentRef || data.consentRef.trim().length < 3)) {
         return NextResponse.json(
           {
             error:
-              'Pelanggaran Kerahasiaan Klien (SK-14): Mode tampil "named" wajib disertai nomor referensi persetujuan tertulis klien (consentRef).',
+              'Untuk menampilkan nama klien, harap isi catatan persetujuan atau nomor surat izin tertulis dari klien.',
           },
           { status: 400 },
         )
       }
 
       const id = data.id && data.id.length > 0 ? data.id : `case-record-${Date.now()}`
-      const imageAlt =
+      const defaultAlt =
         data.imageAlt?.trim() ||
         `Dokumentasi penanganan perkara ${data.caseType} di wilayah ${data.region}`
-      const photosJson = JSON.stringify([
-        {
-          url: data.imageUrl,
-          caption: imageAlt,
-          alt: imageAlt,
-        },
-      ])
+
+      const photoList =
+        Array.isArray(data.photos) && data.photos.length > 0
+          ? data.photos.map((p, idx) => ({
+              url: p.url,
+              caption: p.caption?.trim() || '',
+              alt:
+                p.alt?.trim() ||
+                p.caption?.trim() ||
+                `Dokumentasi penanganan perkara ${data.caseType} #${idx + 1}`,
+            }))
+          : [
+              {
+                url: data.imageUrl || '/images/hero-slide-courtroom.webp',
+                caption: defaultAlt,
+                alt: defaultAlt,
+              },
+            ]
+
+      const coverPhoto = photoList[0]
+      const finalImageUrl = coverPhoto?.url || data.imageUrl || '/images/hero-slide-courtroom.webp'
+      const finalImageAlt = coverPhoto?.alt || defaultAlt
+      const photosJson = JSON.stringify(photoList)
 
       await pool.query(
         `INSERT INTO \`case_records\`
@@ -895,8 +935,8 @@ export async function POST(req: Request): Promise<Response> {
           data.displayMode === 'named' ? data.consentRef || null : null,
           data.displayOrder,
           data.isPublished ? 1 : 0,
-          data.imageUrl,
-          imageAlt,
+          finalImageUrl,
+          finalImageAlt,
           photosJson,
         ],
       )

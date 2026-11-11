@@ -154,7 +154,7 @@ export function saveValidatedImageUpload(params: {
 
   const detectedMime = detectImageMimeFromBytes(buffer)
   if (!detectedMime) {
-    throw new Error('Isi file bukan gambar JPEG, PNG, atau WebP yang valid (SVG/script ditolak).')
+    throw new Error('Format gambar tidak didukung atau berkas rusak. Harap gunakan foto JPG, PNG, atau WebP yang valid.')
   }
 
   if (declaredMimeType && declaredMimeType.toLowerCase() !== detectedMime) {

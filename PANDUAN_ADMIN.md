@@ -1,0 +1,142 @@
+# Panduan Pengelolaan Website (Panel Admin)
+**Ferdinan Silalahi dan Rekan Law Firm**
+
+Selamat datang di Panduan Pengelolaan Website Resmi **Ferdinan Silalahi dan Rekan Law Firm**. Dokumen ini disusun khusus dengan bahasa yang praktis dan mudah dipahami untuk membantu staf kantor hukum mengelola artikel, foto dokumentasi, profil tim advokat, serta permohonan janji temu konsultasi klien sehari-hari.
+
+---
+
+## 1. Cara Masuk ke Panel Pengelolaan
+
+1. Buka peramban (browser) di komputer atau laptop Anda, lalu kunjungi alamat:
+   ```text
+   https://fsdanrekan.com/admin
+   ```
+2. Masukkan **Alamat Email Resmi** dan **Kata Sandi** yang telah diberikan kepada Anda.
+3. Klik tombol **Masuk**.
+4. **Bila Masuk Pertama Kali:**  
+   Sistem keamanan kantor akan meminta Anda membuat kata sandi baru. Masukkan kata sandi awal, lalu buat kata sandi baru yang kuat (minimal 12 karakter, gabungan huruf besar, huruf kecil, dan angka). Klik **Simpan Kata Sandi Baru**.
+
+---
+
+## 2. Alur Kerja Harian Staf Kantor Hukum
+
+### A. Memeriksa Permohonan Janji Temu Konsultasi Klien
+Setiap kali ada pengunjung website yang mengisi formulir janji temu konsultasi di halaman depan, notifikasi akan langsung masuk ke email kantor (`konsultasi@fsdanrekan.com`) dan tercatat rapi di panel admin:
+
+1. Buka tab **Janji Temu**.
+2. Anda akan melihat daftar seluruh calon klien yang memohon konsultasi lengkap dengan:
+   - Nama lengkap / instansi
+   - Bidang hukum perkara yang dihadapi
+   - Tanggal dan sesi waktu pilihan (Pagi, Siang, atau Sore)
+   - Metode konsultasi (Tatap Muka di kantor Menteng atau Daring via Zoom/Google Meet)
+   - Nomor WhatsApp dan alamat email calon klien
+   - Uraian singkat duduk perkara
+3. **Menindaklanjuti Permohonan:**
+   - Hubungi calon klien melalui nomor WhatsApp atau email yang tertera untuk konfirmasi jadwal advokat.
+   - Setelah dihubungi, klik tombol **Tandai: dihubungi** agar rekan kerja Anda mengetahui permohonan tersebut sedang diproses.
+   - Jika konsultasi telah selesai terlaksana, klik **Tandai: selesai**.
+   - Jika terdapat pesan spam/iklan, klik **Tandai: spam**.
+
+---
+
+### B. Menulis dan Menerbitkan Artikel Edukasi Hukum
+Menulis artikel bermanfaat sangat baik untuk membangun reputasi firma hukum dan membantu masyarakat memahami hak-hak hukumnya:
+
+1. Buka tab **Artikel**.
+2. Untuk menulis artikel baru, isi formulir di sebelah kiri:
+   - **Judul Artikel:** Tulis judul artikel yang menarik dan jelas (misalnya: *Pentingnya Perjanjian Perkawinan dalam Perlindungan Aset Keluarga*).
+   - **Kategori Artikel:** Pilih bidang hukum yang relevan (misalnya *Perdata Keluarga*, *Hukum Korporasi*, dsb.).
+   - **Ringkasan Singkat:** Tulis 1–2 kalimat rangkuman isi artikel (ringkasan ini akan tampil pada kartu artikel di halaman depan).
+   - **Isi Artikel Lengkap:** Tulis ulasan hukum secara lengkap. Anda dapat membuat paragraf baru, poin-poin butir, maupun subjudul.
+   - **Foto Sampul Artikel:** Klik tombol **Pilih Foto** untuk memasukkan gambar ilustrasi artikel (lihat panduan upload di Bagian 3).
+   - **Status Publikasi:**
+     - Pilih **Konsep** jika artikel masih ditulis/disunting dan belum ingin ditampilkan ke publik.
+     - Pilih **Tayang** jika artikel sudah selesai ditinjau dan siap dibaca pengunjung website.
+3. Klik tombol **Simpan Artikel**.
+4. Di sebelah kanan, Anda dapat melihat daftar artikel yang sudah tersimpan, melihat alamat tautannya, mengubah kembali (Edit), atau menghapus artikel yang tidak dibutuhkan.
+
+---
+
+## 3. Cara Mengunggah Foto & Pengoptimalan Otomatis
+
+Kotak pengunggah foto baru kini dirancang sangat mudah dan menyatu di setiap formulir:
+
+### Langkah Mengunggah Foto:
+1. Klik tombol emas **Pilih Foto** (atau seret langsung berkas gambar dari komputer Anda ke dalam kotak bergaris putus-putus).
+2. Pilih foto dari komputer Anda (format JPG, PNG, atau WebP, ukuran maksimal 5 MB).
+3. **Pengoptimalan Otomatis oleh Sistem:**  
+   Anda tidak perlu mengecilkan foto sendiri dengan aplikasi edit foto. Sistem secara otomatis akan:
+   - Menyesuaikan ukuran foto agar tidak terlalu berat sehingga website tetap kencang dibuka dari handphone.
+   - Mengoreksi orientasi foto agar tidak miring/terbalik jika diambil dari kamera handphone.
+   - **Menghapus seluruh metadata lokasi (GPS)** yang tersimpan di kamera foto secara otomatis demi menjaga privasi dan kerahasiaan kantor.
+4. Begitu foto selesai diproses, pratinjau foto akan langsung tampil.
+5. Tersedia tombol **Ganti Foto** jika ingin memilih berkas lain, atau tombol **Hapus** untuk mengosongkan foto.
+
+### Memilih Foto dari Pustaka:
+Jika foto yang ingin digunakan sudah pernah diunggah sebelumnya (misalnya logo atau gambar ilustrasi umum):
+- Klik tombol **Pilih dari Pustaka**.
+- Jendela galeri foto kantor akan terbuka.
+- Klik foto yang Anda inginkan, maka foto tersebut akan langsung terpasang pada formulir tanpa perlu diunggah ulang.
+
+---
+
+## 4. Mengelola Rekam Jejak Perkara & Menambah Banyak Foto
+
+Pada menu **Rekam Jejak**, kantor hukum dapat menampilkan ringkasan keberhasilan penanganan perkara hukum beserta dokumentasi persidangan atau mediasi.
+
+### Menambahkan Hingga 10 Foto Dokumentasi:
+1. Buka tab **Rekam Jejak**.
+2. Masukkan **Jenis Perkara** (contoh: *Sengketa Hubungan Industrial* atau *Sengketa Pengadaan Lahan Properti*).
+3. Masukkan **Wilayah Yurisdiksi Hukum** (contoh: *Pengadilan Negeri Jakarta Pusat* atau *Bandung, Jawa Barat*).
+4. Pada bagian **Dokumentasi Foto Penanganan Perkara**, klik tombol **Pilih Foto**:
+   - Anda dapat memilih beberapa foto sekaligus dari komputer Anda (maksimal 10 foto).
+   - Seluruh foto akan masuk ke daftar antrean dan diproses secara aman satu per satu.
+5. **Mengatur Keterangan & Urutan Foto:**
+   - **Foto Urutan Pertama (#1 Sampul):** Foto nomor 1 otomatis menjadi foto sampul kartu perkara yang dilihat pengunjung di halaman beranda.
+   - **Mengubah Urutan:** Gunakan tombol panah **Naik** atau **Turun** untuk memindahkan urutan foto.
+   - **Memberi Keterangan:** Tulis keterangan singkat di bawah tiap foto (misalnya: *Penyerahan berkas mediasi*, *Sidang pembacaan putusan*).
+   - **Menghapus Foto Tertentu:** Klik tombol **Hapus** pada foto yang tidak diinginkan.
+
+---
+
+## 5. Pedoman Etika & Perlindungan Privasi Data Klien (Sangat Penting)
+
+Sebagai kantor hukum profesional yang menjunjung tinggi Undang-Undang Advokat dan Kode Etik Advokat Indonesia, perlindungan kerahasiaan klien adalah prioritas utama:
+
+### 1. Wajib Menyamarkan Wajah & Dokumen Pembuktian
+Sebelum mengunggah foto dokumentasi penanganan perkara:
+- **Wajah Klien & Pihak Terkait:** Pastikan wajah klien, pihak lawan, saksi, atau keluarga telah diburamkan/disamarkan, kecuali klien telah memberikan persetujuan tertulis resmi untuk penayangan publik.
+- **Dokumen Pembuktian:** Nomor KTP/NIK, nomor rekening bank, alamat rumah pribadi, nilai transaksi rahasia perusahaan, dan nomor register perkara wajib disamarkan sebelum diunggah.
+
+### 2. Pengaturan Penayangan Identitas Klien
+Pada formulir Rekam Jejak Perkara, terdapat menu pilihan **Penayangan Identitas Klien**:
+- **Nama Klien Disamarkan (Disarankan):**  
+  Pilihan bawaan sistem. Di website publik, nama klien tidak akan pernah dimunculkan (hanya jenis perkara dan wilayah pengadilan). Ini adalah standar aman yang dianjurkan kode etik advokat.
+- **Tampilkan Nama Klien (Wajib Memiliki Izin Tertulis):**  
+  Hanya boleh dipilih jika klien adalah perusahaan/instansi yang secara tertulis menyetujui namanya dicantumkan dalam rekam jejak kantor.
+  - Jika opsi ini dipilih, Anda **wajib** mengisi kolom *Catatan Dokumen Persetujuan Klien* dengan nomor surat izin atau akta persetujuan resmi dari klien. Jika kolom ini kosong, sistem akan menolak penyimpanan demi melindungi kantor dari sengketa kerahasiaan.
+
+---
+
+## 6. Pengelolaan Pengguna & Alat Pengembang
+
+### Hak Akses Akun (Tab Pengguna & Riwayat)
+Terdapat dua jenis akun staf di kantor hukum:
+1. **Penyunting:** Ditujukan untuk staf sekretariat dan staf hukum harian. Memiliki wewenang mengelola artikel, kategori artikel, permohonan janji temu, dan pustaka foto.
+2. **Pengelola (Admin):** Ditujukan untuk pimpinan kantor atau staf kepercayaan penuh. Memiliki akses tambahan untuk mengelola profil advokat, bidang layanan, rekam jejak perkara, pengaturan situs global, dan penambahan akun pengguna baru.
+
+### Alat Pengembang (Khusus Pengelola)
+Di tab **Ringkasan (Beranda Admin)**, bagian paling bawah terdapat menu lipat bernama **Alat Pengembang**:
+- Bagian ini memuat tombol *Muat Ulang Data Bawaan*.
+- Fitur ini hanya digunakan saat awal konfigurasi sistem untuk memasukkan kembali artikel dan data contoh kantor.
+- Tombol ini telah dilindungi **konfirmasi 2 langkah**: Anda wajib mencentang persetujuan dan mengetik kata `"MUAT ULANG"` agar data asli kantor yang sudah ada tidak tertimpa tanpa sengaja.
+
+---
+
+## 7. Bantuan dan Kontak Darurat
+
+Jika Anda mengalami kendala saat masuk ke panel, lupa kata sandi, atau memerlukan bantuan teknis:
+- **Email Administrator Teknis:** `admin@fsdanrekan.com`
+- **Penerima Konsultasi Kantor:** `konsultasi@fsdanrekan.com`
+- **Alamat Kantor Resmi:** Gedung Mandira Lt. 4, Jl. RP Soeroso No. 33, RT 002 RW 002, Gondangdia, Menteng, Jakarta Pusat.
+

@@ -1,3 +1,4 @@
+
 import type { CollectionConfig } from 'payload'
 import { getUserRole, isAdmin, isPublishedPublic } from '@/lib/access'
 

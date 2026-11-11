@@ -290,7 +290,7 @@ export function CaseRecordsSection({ records }: CaseRecordsSectionProps) {
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
                 <div>
-                  <strong>Kerahasiaan Advokat (SK-14):</strong> Dokumentasi ditampilkan semata untuk keperluan informasi bidang penanganan perkara. Identitas para pihak, nomor register perkara, dan berkas pembuktian dirahasiakan sepenuhnya.
+                  <strong>Kerahasiaan Advokat:</strong> Dokumentasi ditampilkan semata untuk keperluan informasi bidang penanganan perkara. Identitas para pihak, nomor register perkara, dan berkas pembuktian dirahasiakan sepenuhnya.
                 </div>
               </div>
               <div className="case-modal-actions-row">

@@ -25,7 +25,7 @@ export const CaseRecords: CollectionConfig = {
           ) as Record<string, unknown>
           const ref = sib.consentRef
           if (typeof ref !== 'string' || ref.trim().length === 0) {
-            return 'Mode "named" wajib disertai bukti persetujuan tertulis pada consentRef (SK-14).'
+            return 'Penayangan nama klien wajib disertai nomor izin tertulis atau dokumen persetujuan.'
           }
         }
         return true

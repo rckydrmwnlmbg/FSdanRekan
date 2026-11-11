@@ -49,7 +49,7 @@ export const Users: CollectionConfig = {
           siblingData && typeof siblingData === 'object' ? siblingData : {}
         ) as Record<string, unknown>
         if (sib.role === 'admin' && value !== true) {
-          return 'Peran admin wajib mengaktifkan MFA (FR-6.1 / SEC-001).'
+          return 'Pengelola wajib mengaktifkan verifikasi keamanan dua langkah.'
         }
         return true
       },

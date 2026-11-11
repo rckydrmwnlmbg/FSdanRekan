@@ -152,3 +152,4 @@ export async function processClientImageForUpload(file: File): Promise<Processed
     height: targetHeight,
   }
 }
+

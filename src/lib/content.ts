@@ -543,7 +543,7 @@ export const INITIAL_ARTICLES: ArticlePublicData[] = [
     id: 'article-draft-internal',
     slug: 'draf-internal-belum-terbit',
     title: 'Draf Internal: Catatan Kajian Belum Terbit',
-    excerpt: 'Artikel ini berstatus draf dan tidak boleh tampil di publik (SEC-008 / FR-5.3).',
+    excerpt: 'Artikel ini masih berstatus konsep dan belum dipublikasikan.',
     bodyHtml: '<p>Draf rahasia belum diterbitkan.</p>',
     coverImage: {
       url: '/images/practice-corporate.webp',

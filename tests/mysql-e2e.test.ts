@@ -21,6 +21,7 @@ import {
 } from '../src/lib/db'
 import {
   fetchPracticeAreaBySlugFromDb,
+  fetchPublicCaseRecordsFromDb,
   fetchPublishedArticleBySlugFromDb,
   fetchSiteSettingsFromDb,
   fetchTeamMemberBySlugFromDb,
@@ -690,6 +691,152 @@ describe('Real MariaDB End-to-End Integration Suite (Migrations, Auth, CRUD, Upl
     expect(userRowsAfter.length).toBe(1)
     expect(userRowsAfter[0]?.email).toBe('admin@fsdanrekan.com')
     expect(Number(userRowsAfter[0]?.must_change_password)).toBe(1)
+  })
+
+  it('Step 8: tests multi-photo case records, cover auto-selection, reordering, deletion, and legacy single-image backward compatibility', async () => {
+    process.env.DATABASE_URL = e2eDatabaseUrl
+    await resetDbPoolForTest()
+    const pool = getDbPool()!
+
+    // Verify /api/health detects photos_json column
+    const healthRes = await healthGet()
+    const healthData = (await healthRes.json()) as {
+      ok: boolean
+      database: {
+        migrations?: { photosJsonReady?: boolean }
+      }
+    }
+    expect(healthRes.status).toBe(200)
+    expect(healthData.ok).toBe(true)
+    expect(healthData.database.migrations?.photosJsonReady).toBe(true)
+
+    const callCms = async (payload: Record<string, unknown>) => {
+      const req = new Request('https://fsdanrekan.com/api/admin/cms', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'https://fsdanrekan.com',
+          cookie: sessionCookie,
+          'x-csrf-token': csrfToken,
+        },
+        body: JSON.stringify(payload),
+      })
+      return adminCmsPost(req)
+    }
+
+    // 1. Upsert multi-photo case record with 3 photos
+    const multiPhotoPayload = [
+      { url: '/uploads/case-doc-1.webp', caption: 'Dokumentasi Sidang Perdana', alt: 'Sidang Perdana' },
+      { url: '/uploads/case-doc-2.webp', caption: 'Penyerahan Bukti Dokumen', alt: 'Penyerahan Bukti' },
+      { url: '/uploads/case-doc-3.webp', caption: 'Pembacaan Putusan Akhir', alt: 'Pembacaan Putusan' },
+    ]
+
+    const upsertRes1 = await callCms({
+      module: 'case_record',
+      action: 'upsert',
+      id: 'case-multi-e2e',
+      caseType: 'Sengketa Saham Perusahaan',
+      region: 'Jakarta Selatan',
+      displayMode: 'anonymous',
+      photos: multiPhotoPayload,
+      displayOrder: 15,
+      isPublished: true,
+    })
+    expect(upsertRes1.status).toBe(200)
+
+    // Direct database verification
+    const [rows1] = await pool.query<RowDataPacket[]>(
+      'SELECT image_url, photos_json FROM `case_records` WHERE `id` = ?',
+      ['case-multi-e2e'],
+    )
+    expect(rows1.length).toBe(1)
+    expect(rows1[0]?.image_url).toBe('/uploads/case-doc-1.webp')
+    const parsedPhotos1 = JSON.parse(rows1[0]?.photos_json as string)
+    expect(parsedPhotos1.length).toBe(3)
+    expect(parsedPhotos1[0].caption).toBe('Dokumentasi Sidang Perdana')
+
+    // 2. Test reordering: swap photo 2 to position 0 -> cover image_url must update automatically
+    const reorderedPhotos = [
+      multiPhotoPayload[2], // Photo 3 becomes first
+      multiPhotoPayload[0],
+      multiPhotoPayload[1],
+    ]
+
+    const upsertRes2 = await callCms({
+      module: 'case_record',
+      action: 'upsert',
+      id: 'case-multi-e2e',
+      caseType: 'Sengketa Saham Perusahaan',
+      region: 'Jakarta Selatan',
+      displayMode: 'anonymous',
+      photos: reorderedPhotos,
+      displayOrder: 15,
+      isPublished: true,
+    })
+    expect(upsertRes2.status).toBe(200)
+
+    const [rows2] = await pool.query<RowDataPacket[]>(
+      'SELECT image_url, photos_json FROM `case_records` WHERE `id` = ?',
+      ['case-multi-e2e'],
+    )
+    expect(rows2[0]?.image_url).toBe('/uploads/case-doc-3.webp')
+    const parsedPhotos2 = JSON.parse(rows2[0]?.photos_json as string)
+    expect(parsedPhotos2[0].url).toBe('/uploads/case-doc-3.webp')
+
+    // 3. Test deleting a photo: remove 1 photo from array
+    const reducedPhotos = [reorderedPhotos[0], reorderedPhotos[1]]
+    const upsertRes3 = await callCms({
+      module: 'case_record',
+      action: 'upsert',
+      id: 'case-multi-e2e',
+      caseType: 'Sengketa Saham Perusahaan',
+      region: 'Jakarta Selatan',
+      displayMode: 'anonymous',
+      photos: reducedPhotos,
+      displayOrder: 15,
+      isPublished: true,
+    })
+    expect(upsertRes3.status).toBe(200)
+
+    const [rows3] = await pool.query<RowDataPacket[]>(
+      'SELECT photos_json FROM `case_records` WHERE `id` = ?',
+      ['case-multi-e2e'],
+    )
+    const parsedPhotos3 = JSON.parse(rows3[0]?.photos_json as string)
+    expect(parsedPhotos3.length).toBe(2)
+
+    // 4. Test legacy backward compatibility: insert legacy record with photos_json = NULL
+    await pool.query(
+      `INSERT INTO \`case_records\`
+        (\`id\`, \`case_type\`, \`region\`, \`display_mode\`, \`image_url\`, \`image_alt\`, \`photos_json\`, \`display_order\`, \`is_published\`)
+       VALUES (?, ?, ?, ?, ?, ?, NULL, ?, 1)`,
+      [
+        'case-legacy-compat',
+        'Arbitrase Dagang Internasional',
+        'BANI Jakarta',
+        'anonymous',
+        '/images/hero-slide-courtroom.webp',
+        'Ruang Sidang Arbitrase',
+        98,
+      ],
+    )
+
+    const allRecords = await fetchPublicCaseRecordsFromDb()
+    const legacyRecord = allRecords.find((r) => r.id === 'case-legacy-compat')
+    expect(legacyRecord).toBeDefined()
+    if (!legacyRecord || !legacyRecord.photos) {
+      throw new Error('legacyRecord or photos is undefined')
+    }
+    expect(Array.isArray(legacyRecord.photos)).toBe(true)
+    expect(legacyRecord.photos.length).toBe(1)
+    expect(legacyRecord.photos[0]?.url).toBe('/images/hero-slide-courtroom.webp')
+    expect(legacyRecord.photos[0]?.caption).toBe(
+      'Dokumentasi penanganan perkara Arbitrase Dagang Internasional wilayah BANI Jakarta',
+    )
+
+    // Cleanup
+    await callCms({ module: 'case_record', action: 'delete', id: 'case-multi-e2e' })
+    await callCms({ module: 'case_record', action: 'delete', id: 'case-legacy-compat' })
   })
 })
 

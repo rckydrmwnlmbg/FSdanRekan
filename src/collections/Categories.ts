@@ -21,7 +21,7 @@ export const Categories: CollectionConfig = {
         })
         if (referenced.totalDocs > 0) {
           throw new Error(
-            'Kategori ini masih digunakan oleh artikel dan tidak dapat dihapus (FR-6.4).',
+            'Kategori ini masih digunakan oleh artikel dan tidak dapat dihapus.',
           )
         }
       },

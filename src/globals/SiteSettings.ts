@@ -29,7 +29,7 @@ export const SiteSettings: GlobalConfig = {
       defaultValue: '62811830991',
       validate: (value: unknown) => {
         if (typeof value !== 'string' || !isValidIndonesianWaNumber(value)) {
-          return 'Nomor WhatsApp harus berformat internasional Indonesia 62... (hanya angka, 9-15 digit) sesuai SK-05.'
+          return 'Nomor WhatsApp harus berformat internasional Indonesia diawali 62 (hanya angka, 9-15 digit).'
         }
         return true
       },

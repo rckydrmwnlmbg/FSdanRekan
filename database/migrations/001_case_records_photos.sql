@@ -39,3 +39,4 @@ SET `photos_json` = JSON_ARRAY(
 WHERE (`photos_json` IS NULL OR TRIM(`photos_json`) = '' OR TRIM(`photos_json`) = '[]')
   AND `image_url` IS NOT NULL
   AND TRIM(`image_url`) != '';
+

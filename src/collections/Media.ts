@@ -29,7 +29,7 @@ export const Media: CollectionConfig = {
         if ((operation === 'create' || operation === 'update') && reqObj?.file) {
           const file = reqObj.file
           if (file.size > MAX_UPLOAD_BYTES) {
-            throw new Error('Ukuran berkas melebihi batas maksimal 5 MB (FR-6.8 / SEC-013).')
+            throw new Error('Ukuran berkas melebihi batas maksimal 5 MB.')
           }
           const ext = path.extname(file.name || '').toLowerCase()
           const safeExt = ['.jpg', '.jpeg', '.png', '.webp'].includes(ext) ? ext : '.webp'

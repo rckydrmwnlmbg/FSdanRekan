@@ -617,7 +617,7 @@ export async function POST(req: Request): Promise<Response> {
     ])
     if (session.role !== 'admin' && adminOnlyModules.has(data.module)) {
       return NextResponse.json(
-        { error: 'Akses ditolak. Peran Editor hanya diizinkan mengelola Artikel dan Kategori.' },
+        { error: 'Akses ditolak. Hak akses Penyunting hanya diizinkan mengelola Artikel, Kategori, dan Pustaka Foto.' },
         { status: 403 },
       )
     }
@@ -625,7 +625,7 @@ export async function POST(req: Request): Promise<Response> {
     const pool = getDbPool()
     if (!pool) {
       return NextResponse.json(
-        { error: 'Koneksi database MySQL (DATABASE_URL) belum dikonfigurasi.' },
+        { error: 'Koneksi database server belum dikonfigurasi.' },
         { status: 503 },
       )
     }
@@ -637,7 +637,7 @@ export async function POST(req: Request): Promise<Response> {
         'MIGRATE_SEED',
         'system',
         'database',
-        `Migrasi idempoten dijalankan (${summary.articlesUpserted} artikel, ${summary.teamMembersUpserted} tim)`,
+        `Sinkronisasi data bawaan selesai (${summary.articlesUpserted} artikel, ${summary.teamMembersUpserted} tim)`,
       )
       return NextResponse.json({ ok: true, summary })
     }
@@ -666,7 +666,7 @@ export async function POST(req: Request): Promise<Response> {
           counter += 1
         }
         finalSlug = `${baseSlug}-${counter}`
-        slugWarning = `Slug disesuaikan otomatis menjadi "${finalSlug}" karena sudah digunakan.`
+        slugWarning = `Alamat tautan artikel disesuaikan otomatis menjadi "${finalSlug}" karena alamat sebelumnya sudah digunakan.`
       }
 
       // SEC-004 / FR-5.4: Sanitize rich text HTML before saving

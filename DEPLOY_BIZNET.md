@@ -379,3 +379,114 @@ Sebelum atau saat melakukan setup pertama kali, Anda dapat mengirimkan tiket/cha
 5. **Konfirmasi Python Tidak Dibutuhkan di Produksi:**  
    *"Kami menggunakan Next.js Node.js standalone penuh di produksi (skrip Python di repositori kami hanya untuk alat pratinjau lokal). Mohon konfirmasi bahwa tidak ada layanan Python yang perlu diaktifkan di cPanel."*
 
+---
+
+## K. Prosedur Pembaruan Aplikasi Live & Migrasi Inkremental (Admin UX Update)
+
+Ketika website sudah berjalan live di cPanel Biznet dan database sudah memuat data asli, ikuti langkah berurutan di bawah ini untuk memperbarui aplikasi tanpa downtime dan tanpa kehilangan data:
+
+### Langkah 1 — Cadangkan (Backup) Database & Berkas Aplikasi
+1. **Ekspor Database Live via phpMyAdmin:**
+   - Masuk ke **cPanel -> Databases -> phpMyAdmin**.
+   - Pilih database aplikasi (`cpaneluser_fsdanrekan`).
+   - Klik tab **Export** -> pilih metode **Quick** (atau **Custom** dengan *Add DROP TABLE*) -> klik **Export** dan simpan file `.sql` di laptop Anda.
+2. **Cadangkan Folder Kode Aplikasi:**
+   - Masuk ke **cPanel -> Files -> File Manager**.
+   - Masuk ke folder `/home/<user_cpanel>/`.
+   - Klik kanan pada `fsdanrekan_app`, pilih **Compress** -> simpan sebagai `fsdanrekan_app_backup.zip`.
+3. **Pastikan Folder Upload Aman:**
+   - Folder `/home/<user_cpanel>/fsdanrekan_uploads` berada di luar `fsdanrekan_app` dan **TIDAK PERLU disentuh atau dihapus**. Seluruh gambar yang sudah diunggah klien tetap aman di tempatnya.
+
+---
+
+### Langkah 2 — Impor SQL Migrasi Inkremental via phpMyAdmin
+File migrasi inkremental tersedia di:
+- `database/migrations/001_case_records_photos.sql` (Universal untuk MySQL 5.7+ & MariaDB 10.3+)
+- `database/migrations/001_case_records_photos_mariadb.sql` (Sintaks khusus MariaDB `ADD COLUMN IF NOT EXISTS`)
+
+**Cara Impor:**
+1. Di phpMyAdmin, pastikan database `cpaneluser_fsdanrekan` sedang aktif terpilih.
+2. Klik tab **Import** di bagian atas.
+3. Klik **Choose File**, pilih file `database/migrations/001_case_records_photos.sql`.
+4. Klik tombol **Import / Go** di bagian bawah.
+5. Pesan hijau akan muncul: *Import has been successfully finished*.
+   > **Keamanan Data:** Skrip migrasi ini dirancang dinamis dan idempoten: memeriksa keberadaan kolom `photos_json` terlebih dahulu sebelum melakukan penambahan, dan melakukan backfill data gambar lama ke format galeri hanya jika kolom masih kosong. Data lama Anda dijamin tidak tertimpa dan tidak terhapus.
+
+---
+
+### Langkah 3 — Buat Paket Deploy di Komputer Lokal & Unggah ke cPanel
+1. Di komputer lokal Anda (cabang `admin-ux`), jalankan:
+   ```bash
+   npm run package:deploy
+   ```
+2. Salin atau unggah file **`fsdanrekan-deploy.zip`** ke cPanel via **File Manager** ke dalam folder `/home/<user_cpanel>/fsdanrekan_app`.
+3. Klik kanan pada `fsdanrekan-deploy.zip` -> pilih **Extract** ke `/fsdanrekan_app`.
+4. Hapus file `fsdanrekan-deploy.zip` setelah selesai diekstrak.
+
+---
+
+### Langkah 4 — Muat Ulang (Restart) Aplikasi Node.js
+1. Masuk ke cPanel -> bagian **Software** -> klik **Setup Node.js App**.
+2. Pada baris aplikasi `fsdanrekan_app`, klik tombol **Restart**.
+3. Tunggu 5–10 detik hingga status kembali hijau.
+
+---
+
+### Langkah 5 — Verifikasi Hasil Migrasi & Status Sistem
+Buka tautan health check di peramban Anda:
+```text
+https://fsdanrekan.com/api/health
+```
+Pastikan respons berstatus `200 OK` dengan format:
+```json
+{
+  "ok": true,
+  "status": "healthy",
+  "database": {
+    "configured": true,
+    "connected": true,
+    "latencyMs": 5,
+    "migrations": {
+      "photosJsonReady": true
+    }
+  }
+}
+```
+Indikator `"photosJsonReady": true` membuktikan database telah mengenali fitur galeri banyak foto secara penuh. Jika migrasi SQL belum diimpor, aplikasi tetap berjalan normal dengan fallback tanpa error.
+
+---
+
+## L. Panduan Klien: Cara Cek Hasil Pembaruan Panel Admin (10 Langkah Sederhana)
+
+Berikan panduan singkat ini kepada tim staf kantor hukum untuk memeriksa dan membiasakan diri dengan antarmuka baru:
+
+1. **Masuk ke Panel Pengelolaan (`/admin`):**
+   Buka `https://fsdanrekan.com/admin` dan masuk menggunakan akun email serta kata sandi Anda seperti biasa.
+
+2. **Periksa Beranda Panel Pengelolaan:**
+   Perhatikan ringkasan data kantor hukum dan status penyimpanan. Istilah teknis asing dan kode internal telah dibersihkan menjadi Bahasa Indonesia yang mudah dipahami.
+
+3. **Uji Pengunggahan Foto pada Formulir Artikel:**
+   Buka tab **Artikel** -> klik artikel atau buat baru. Gunakan tombol **Pilih Foto** atau tarik foto langsung ke kotak dropzone. Foto akan otomatis diperkecil agar cepat dibuka di ponsel dan metadata lokasi (GPS) langsung disamarkan demi privasi.
+
+4. **Uji Fitur Banyak Foto pada Rekam Jejak Perkara:**
+   Buka tab **Rekam Jejak** -> buat atau edit perkara. Anda kini dapat memilih **hingga 10 foto dokumentasi sekaligus**. Setiap foto memiliki kolom keterangan, tombol urutkan naik/turun, dan foto pertama otomatis menjadi foto sampul.
+
+5. **Periksa Peringatan Kerahasiaan Klien di Formulir Perkara:**
+   Perhatikan pengingat ramah di atas formulir: *"Demi menjaga kerahasiaan klien, identitas perkara secara otomatis disamarkan..."*. Jika opsi "Tampilkan Nama Klien" dipilih, sistem mengingatkan staf untuk mengisi nomor dokumen izin tertulis dari klien.
+
+6. **Uji Pengunggahan Foto Profil Tim:**
+   Buka tab **Profil Tim** -> buat atau edit profil advokat. Unggah foto profil, sistem otomatis mencocokkan teks penjelas foto (alt text) sesuai nama advokat.
+
+7. **Buka Pustaka Foto:**
+   Buka tab **Pustaka Foto**. Seluruh foto yang pernah diunggah kini tersusun rapi dengan pratinjau gambar, ukuran berkas, dan tombol satu klik **Salin Tautan** untuk memudahkan penggunaan ulang.
+
+8. **Periksa Hak Akses Pengguna & Riwayat Aktivitas:**
+   Buka tab **Pengguna & Riwayat**. Pilihan hak akses akun kini jelas: **Pengelola (Akses Penuh Seluruh Menu)** dan **Penyunting (Artikel, Kategori, Pustaka Foto)**. Riwayat aktivitas mencatat tindakan dalam bahasa sehari-hari.
+
+9. **Periksa Keamanan Alat Pengembang (Khusus Pengelola):**
+   Pada tab Beranda, bagian **Alat Pengembang** kini dilipat rapi. Jika tombol "Muat Ulang Data Bawaan" ditekan, muncul jendela konfirmasi 2 langkah yang aman (wajib mencentang pemahaman dan mengetik kata "MUAT ULANG") agar data asli kantor tidak terhapus tanpa sengaja.
+
+10. **Periksa Tampilan Galeri Foto di Halaman Publik:**
+    Buka beranda publik `https://fsdanrekan.com` dan gulir ke bagian **Rekam Jejak Perkara**. Klik salah satu perkara untuk membuka galeri dokumentasi foto interaktif lengkap dengan navigasi foto, keterangan, serta komitmen perlindungan kerahasiaan advokat.
+

@@ -21,6 +21,7 @@ export async function GET(): Promise<Response> {
         configured: dbHealth.configured,
         connected: dbHealth.connected,
         latencyMs: dbHealth.latencyMs,
+        ...(dbHealth.migrations ? { migrations: dbHealth.migrations } : {}),
       },
     },
     { status: isHealthy ? 200 : 503 },

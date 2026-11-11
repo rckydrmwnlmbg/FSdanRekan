@@ -213,6 +213,11 @@ function main() {
     if (existsSync(bootstrapSqlFile)) {
       cpSync(bootstrapSqlFile, join(DIST_DIR, 'database', 'phpmyadmin_bootstrap.sql'))
     }
+    const migrationsDir = join(ROOT, 'database', 'migrations')
+    if (existsSync(migrationsDir)) {
+      console.log('[package:deploy] Menyalin database/migrations/...')
+      cpSync(migrationsDir, join(DIST_DIR, 'database', 'migrations'), { recursive: true })
+    }
   }
 
   // Copy scripts/migrate_mysql.mjs -> dist-deploy/scripts/migrate_mysql.mjs

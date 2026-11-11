@@ -192,6 +192,10 @@ export async function checkDatabaseHealth(): Promise<{
   connected: boolean
   latencyMs: number | null
   error?: string
+  migrations?: {
+    photosJsonReady: boolean
+    message?: string
+  }
 }> {
   const pool = getDbPool()
   if (!pool) {
@@ -205,10 +209,32 @@ export async function checkDatabaseHealth(): Promise<{
   const start = Date.now()
   try {
     await pool.query('SELECT 1 AS ok')
+
+    // Check if photos_json column exists in case_records if table exists
+    let photosJsonReady = true
+    let migrationMessage: string | undefined
+    try {
+      const [cols] = await pool.query<RowDataPacket[]>(
+        "SHOW COLUMNS FROM `case_records` LIKE 'photos_json'",
+      )
+      if (!Array.isArray(cols) || cols.length === 0) {
+        photosJsonReady = false
+        migrationMessage =
+          'Kolom photos_json belum aktif di tabel case_records. Silakan impor berkas database/migrations/001_case_records_photos.sql lewat phpMyAdmin.'
+      }
+    } catch {
+      // Table might not exist yet on fresh installations
+      photosJsonReady = true
+    }
+
     return {
       configured: true,
       connected: true,
       latencyMs: Date.now() - start,
+      migrations: {
+        photosJsonReady,
+        ...(migrationMessage ? { message: migrationMessage } : {}),
+      },
     }
   } catch (err) {
     return {

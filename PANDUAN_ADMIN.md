@@ -40,15 +40,38 @@ Setiap kali ada pengunjung website yang mengisi formulir janji temu konsultasi d
 ---
 
 ### B. Menulis dan Menerbitkan Artikel Edukasi Hukum
-Menulis artikel bermanfaat sangat baik untuk membangun reputasi firma hukum dan membantu masyarakat memahami hak-hak hukumnya:
+Menulis artikel bermanfaat sangat baik untuk membangun reputasi firma hukum dan membantu masyarakat memahami hak-hak hukumnya. Kini Anda dapat menulis seperti menggunakan aplikasi pengolah kata biasa **tanpa perlu mengetik kode HTML**:
 
 1. Buka tab **Artikel**.
 2. Untuk menulis artikel baru, isi formulir di sebelah kiri:
    - **Judul Artikel:** Tulis judul artikel yang menarik dan jelas (misalnya: *Pentingnya Perjanjian Perkawinan dalam Perlindungan Aset Keluarga*).
    - **Kategori Artikel:** Pilih bidang hukum yang relevan (misalnya *Perdata Keluarga*, *Hukum Korporasi*, dsb.).
    - **Ringkasan Singkat:** Tulis 1–2 kalimat rangkuman isi artikel (ringkasan ini akan tampil pada kartu artikel di halaman depan).
-   - **Isi Artikel Lengkap:** Tulis ulasan hukum secara lengkap. Anda dapat membuat paragraf baru, poin-poin butir, maupun subjudul.
+   - **Isi Artikel Lengkap (Editor Visual Baru):**  
+     Gunakan area pengetikan visual di bawah bilah tombol. Anda tidak perlu lagi mengetik tanda kurung siku atau kode apa pun.
+     - **Bilah Tombol Format:**
+       - **Tebal:** Menebalkan kata atau kalimat penting.
+       - **Miring:** Memiringkan istilah hukum atau bahasa asing (Latin/Inggris).
+       - **Judul Bagian:** Membuat bab atau pokok pembahasan utama (*Heading 2*).
+       - **Sub-judul:** Membuat rincian sub-pembahasan di bawah judul utama (*Heading 3*).
+       - **Daftar Poin:** Membuat daftar butir memakai simbol bulat.
+       - **Daftar Angka:** Membuat daftar berurutan nomor 1, 2, 3...
+       - **Kutipan:** Membuat kotak sorotan untuk kutipan pasal undang-undang atau yurisprudensi.
+       - **Tautan:** Menambahkan link ke situs resmi rujukan.
+       - **Hapus Format:** Membersihkan format font yang tidak diinginkan.
+     - **Menempelkan Tulisan dari Word atau Google Docs:**  
+       Anda dapat langsung menyalin (*copy*) naskah dari Microsoft Word atau Google Docs lalu menempelkannya (*paste*) ke dalam editor. Sistem secara cerdas akan membersihkan kode bawaan Word yang berantakan, mempertahankan paragraf, judul, poin-poin penting, serta cetak tebal/miring secara rapi.
+     - **Format Otomatis Teks Polos Hukum:**  
+       Jika Anda menempelkan teks biasa, sistem otomatis memisahkan baris menjadi paragraf. Baris yang diawali angka Romawi (seperti *"I. PENDAHULUAN"* atau *"BAB I"*) akan otomatis dijadikan **Judul Bagian**, dan baris angka (seperti *"1."*, *"2."*) otomatis dijadikan **Daftar Angka**.
+     - **Lihat Kode (Lanjutan):**  
+       Tersedia tombol kecil *"Lihat kode (lanjutan)"* di sudut editor jika staf teknis sewaktu-waktu ingin melihat susunan kode HTML asli.
+   - **Simpan Otomatis Konsep (Autosave):**  
+     Setiap beberapa detik saat Anda mengetik, sistem secara otomatis menyimpan draf tulisan Anda ke peramban. Jika komputer tiba-tiba mati atau tab peramban tidak sengaja tertutup, saat membuka kembali formulir artikel baru akan muncul kotak emas bertuliskan *"Ditemukan Konsep Artikel Tersimpan"* dengan tombol **Pulihkan Konsep Ini**.
+   - **Tombol "Pratinjau Artikel":**  
+     Sebelum artikel disimpan atau ditayangkan, Anda dapat mengklik tombol **Pratinjau Artikel** untuk melihat simulasi tampilan artikel persis seperti yang akan dibaca oleh pengunjung website di komputer maupun handphone.
    - **Foto Sampul Artikel:** Klik tombol **Pilih Foto** untuk memasukkan gambar ilustrasi artikel (lihat panduan upload di Bagian 3).
+   - **Pengaturan Tampilan di Google / SEO (Opsional):**  
+     Bagian ini dapat dikosongkan. Jika dikosongkan, sistem secara otomatis akan menggunakan judul dan ringkasan artikel Anda sebagai keterangan yang muncul saat dicari di Google.
    - **Status Publikasi:**
      - Pilih **Konsep** jika artikel masih ditulis/disunting dan belum ingin ditampilkan ke publik.
      - Pilih **Tayang** jika artikel sudah selesai ditinjau dan siap dibaca pengunjung website.

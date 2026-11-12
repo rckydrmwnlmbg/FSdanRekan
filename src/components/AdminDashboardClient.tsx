@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ImageUploader } from '@/components/admin/ImageUploader'
 import { MultiPhotoUploader, type CasePhotoEntry } from '@/components/admin/MultiPhotoUploader'
+import { VisualArticleEditor } from '@/components/admin/VisualArticleEditor'
+import { ArticleBody } from '@/components/ArticleBody'
 
 interface AdminUserSession {
   id: string
@@ -237,6 +239,11 @@ export function AdminDashboardClient() {
   const [devConfirmChecked, setDevConfirmChecked] = useState(false)
   const [devConfirmText, setDevConfirmText] = useState('')
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<{ title: string; onConfirm: () => void } | null>(null)
+  const [showArticlePreviewModal, setShowArticlePreviewModal] = useState(false)
+
+  // Article autosave draft state
+  const [lastAutosavedTime, setLastAutosavedTime] = useState<string | null>(null)
+  const [hasRestorableDraft, setHasRestorableDraft] = useState(false)
 
   // New user form state
   const [newUserName, setNewUserName] = useState('')
@@ -303,6 +310,71 @@ export function AdminDashboardClient() {
       active = false
     }
   }, [loadDashboardData])
+
+  // Check for restorable article draft in browser storage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('fs_article_draft_active')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.title || (parsed.bodyHtml && parsed.bodyHtml !== '<p></p>')) {
+          setHasRestorableDraft(true)
+        }
+      }
+    } catch {
+      // localStorage unavailable or disabled
+    }
+  }, [])
+
+  // Autosave article draft periodically
+  useEffect(() => {
+    if (artId) return // Only autosave when authoring new articles
+    const isMeaningful = Boolean(
+      (artTitle && artTitle.trim().length > 3) ||
+      (artExcerpt && artExcerpt.trim().length > 5) ||
+      (artBodyHtml && artBodyHtml !== '<p></p>' && artBodyHtml.trim().length > 10)
+    )
+    if (!isMeaningful) return
+
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          'fs_article_draft_active',
+          JSON.stringify({
+            title: artTitle,
+            slug: artSlug,
+            categorySlug: artCategorySlug,
+            status: artStatus,
+            excerpt: artExcerpt,
+            bodyHtml: artBodyHtml,
+            coverUrl: artCoverUrl,
+            coverAlt: artCoverAlt,
+            seoTitle: artSeoTitle,
+            seoDesc: artSeoDesc,
+            timestamp: Date.now(),
+          }),
+        )
+        const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        setLastAutosavedTime(nowStr)
+      } catch {
+        // quota exceeded or disabled
+      }
+    }, 2000)
+
+    return () => clearTimeout(timer)
+  }, [
+    artId,
+    artTitle,
+    artSlug,
+    artCategorySlug,
+    artStatus,
+    artExcerpt,
+    artBodyHtml,
+    artCoverUrl,
+    artCoverAlt,
+    artSeoTitle,
+    artSeoDesc,
+  ])
 
   useEffect(() => {
     const isDirty = Boolean(
@@ -759,10 +831,81 @@ export function AdminDashboardClient() {
         <div className="docket-booking-grid">
           <div className="docket-panel-form">
             <h2>{artId ? 'Edit Artikel Hukum' : 'Tulis Artikel Hukum Baru'}</h2>
+
+            {/* Banner Pemulihan Konsep Tersimpan Otomatis */}
+            {hasRestorableDraft && !artId && (
+              <div
+                style={{
+                  backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                  border: '1px solid #eab308',
+                  borderRadius: '6px',
+                  padding: '12px 16px',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ color: '#facc15', fontSize: '13px' }}>
+                  <strong>Ditemukan konsep tersimpan otomatis:</strong> Ada draf tulisan artikel yang belum sempat Anda simpan ke server.
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="btn-gold"
+                    style={{ padding: '4px 10px', fontSize: '12px' }}
+                    onClick={() => {
+                      try {
+                        const saved = localStorage.getItem('fs_article_draft_active')
+                        if (saved) {
+                          const p = JSON.parse(saved)
+                          if (p.title) setArtTitle(p.title)
+                          if (p.slug) setArtSlug(p.slug)
+                          if (p.categorySlug) setArtCategorySlug(p.categorySlug)
+                          if (p.status) setArtStatus(p.status)
+                          if (p.excerpt) setArtExcerpt(p.excerpt)
+                          if (p.bodyHtml) setArtBodyHtml(p.bodyHtml)
+                          if (p.coverUrl) setArtCoverUrl(p.coverUrl)
+                          if (p.coverAlt) setArtCoverAlt(p.coverAlt)
+                          if (p.seoTitle) setArtSeoTitle(p.seoTitle)
+                          if (p.seoDesc) setArtSeoDesc(p.seoDesc)
+                          setFeedback({
+                            type: 'ok',
+                            text: 'Konsep tulisan berhasil dipulihkan dari penyimpanan peramban.',
+                          })
+                        }
+                      } catch {}
+                      setHasRestorableDraft(false)
+                    }}
+                  >
+                    Pulihkan Tulisan
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    style={{ padding: '4px 10px', fontSize: '12px' }}
+                    onClick={() => {
+                      try {
+                        localStorage.removeItem('fs_article_draft_active')
+                      } catch {}
+                      setHasRestorableDraft(false)
+                    }}
+                  >
+                    Abaikan
+                  </button>
+                </div>
+              </div>
+            )}
+
             <form
               onSubmit={async (e) => {
                 e.preventDefault()
                 const selectedCat = categories.find((c) => c.slug === artCategorySlug)
+                const finalSeoTitle = artSeoTitle.trim() || `${artTitle.trim()} | FS dan Rekan`
+                const finalSeoDesc = artSeoDesc.trim() || artExcerpt.trim().slice(0, 155)
+
                 const ok = await postCmsMutation(
                   {
                     module: 'article',
@@ -777,12 +920,17 @@ export function AdminDashboardClient() {
                     categorySlug: artCategorySlug,
                     categoryName: selectedCat?.name || 'Hukum Korporasi & Bisnis',
                     status: artStatus,
-                    seoTitle: artSeoTitle || artTitle,
-                    seoDescription: artSeoDesc || artExcerpt.slice(0, 155),
+                    seoTitle: finalSeoTitle,
+                    seoDescription: finalSeoDesc,
                   },
                   'Artikel berhasil disimpan.',
                 )
                 if (ok) {
+                  try {
+                    localStorage.removeItem('fs_article_draft_active')
+                  } catch {}
+                  setLastAutosavedTime(null)
+                  setHasRestorableDraft(false)
                   setArtId('')
                   setArtSlug('')
                   setArtTitle('')
@@ -790,6 +938,8 @@ export function AdminDashboardClient() {
                   setArtBodyHtml('<p></p>')
                   setArtCoverUrl('/images/practice-corporate.webp')
                   setArtCoverAlt('')
+                  setArtSeoTitle('')
+                  setArtSeoDesc('')
                 }
               }}
             >
@@ -888,22 +1038,27 @@ export function AdminDashboardClient() {
                   placeholder="Tulis ringkasan singkat artikel yang akan tampil pada kartu..."
                 />
               </div>
-              <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label htmlFor="artBodyInput" className="form-label">
-                  Isi Artikel Lengkap (Format HTML/Teks)
-                </label>
-                <textarea
-                  id="artBodyInput"
-                  rows={7}
-                  required
+
+              {/* Editor Visual Baru Menggantikan Textarea HTML */}
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <div className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span>Isi Artikel Lengkap</span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                    Bisa mengetik langsung atau menempel tulisan dari Word / Google Docs
+                  </span>
+                </div>
+                <VisualArticleEditor
                   value={artBodyHtml}
-                  onChange={(e) => setArtBodyHtml(e.target.value)}
-                  className="form-input"
+                  onChange={(html) => setArtBodyHtml(html)}
+                  disabled={busy}
                 />
               </div>
+
+              {/* Kolom SEO Opsional dengan Bahasa Awam */}
               <div className="form-group" style={{ marginBottom: '12px' }}>
-                <label htmlFor="artSeoTitleInput" className="form-label">
-                  Judul untuk Mesin Pencari (SEO Title — {artSeoTitle.length}/60 karakter)
+                <label htmlFor="artSeoTitleInput" className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Judul untuk Mesin Pencari (SEO Title)</span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Opsional</span>
                 </label>
                 <input
                   id="artSeoTitleInput"
@@ -912,11 +1067,16 @@ export function AdminDashboardClient() {
                   value={artSeoTitle}
                   onChange={(e) => setArtSeoTitle(e.target.value)}
                   className="form-input"
+                  placeholder={artTitle ? `${artTitle} | FS dan Rekan` : 'Teks yang tampil di Google. Boleh dikosongkan.'}
                 />
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
+                  Teks yang tampil di Google. Boleh dikosongkan (otomatis diisi dari judul artikel bila kosong).
+                </span>
               </div>
               <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label htmlFor="artSeoDescInput" className="form-label">
-                  Deskripsi untuk Mesin Pencari (SEO Description — {artSeoDesc.length}/155 karakter)
+                <label htmlFor="artSeoDescInput" className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Deskripsi untuk Mesin Pencari (SEO Description)</span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Opsional</span>
                 </label>
                 <textarea
                   id="artSeoDescInput"
@@ -925,11 +1085,32 @@ export function AdminDashboardClient() {
                   value={artSeoDesc}
                   onChange={(e) => setArtSeoDesc(e.target.value)}
                   className="form-input"
+                  placeholder={artExcerpt ? artExcerpt.slice(0, 155) : 'Teks yang tampil di Google. Boleh dikosongkan.'}
                 />
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
+                  Teks ringkasan di hasil pencarian Google. Boleh dikosongkan (otomatis diisi dari ringkasan artikel bila kosong).
+                </span>
               </div>
+
+              {/* Indikator Konsep Tersimpan Otomatis */}
+              {lastAutosavedTime && !artId && (
+                <div style={{ fontSize: '12px', color: '#4ade80', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>✓</span>
+                  <span>Konsep tersimpan otomatis di peramban pada pukul {lastAutosavedTime} WIB.</span>
+                </div>
+              )}
+
               <div className="hero-actions-row">
                 <button type="submit" className="btn-gold" disabled={busy}>
                   Simpan Artikel
+                </button>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => setShowArticlePreviewModal(true)}
+                  disabled={!artTitle && !artExcerpt && (!artBodyHtml || artBodyHtml === '<p></p>')}
+                >
+                  Pratinjau Artikel
                 </button>
                 {artId ? (
                   <button
@@ -943,6 +1124,8 @@ export function AdminDashboardClient() {
                       setArtBodyHtml('<p></p>')
                       setArtCoverUrl('/images/practice-corporate.webp')
                       setArtCoverAlt('')
+                      setArtSeoTitle('')
+                      setArtSeoDesc('')
                     }}
                   >
                     Batal Edit
@@ -2514,6 +2697,164 @@ export function AdminDashboardClient() {
                 }}
               >
                 {busy ? 'Menghapus...' : 'Ya, Hapus'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: PRATINJAU ARTIKEL */}
+      {showArticlePreviewModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="previewModalTitle"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowArticlePreviewModal(false)
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#0a0a0c',
+              border: '1px solid rgba(212, 175, 55, 0.4)',
+              borderRadius: '12px',
+              maxWidth: '860px',
+              width: '100%',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 24px',
+                borderBottom: '1px solid #27272a',
+                backgroundColor: '#121216',
+              }}
+            >
+              <div>
+                <h3 id="previewModalTitle" style={{ margin: 0, color: 'var(--color-gold, #d4af37)', fontSize: '16px', fontWeight: 600 }}>
+                  Pratinjau Tampilan Artikel di Situs
+                </h3>
+                <p style={{ margin: '4px 0 0 0', color: '#71717a', fontSize: '12px' }}>
+                  Ini adalah simulasi tampilan artikel seperti yang akan dibaca oleh pengunjung situs.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn-outline"
+                style={{ padding: '6px 14px', fontSize: '13px' }}
+                onClick={() => setShowArticlePreviewModal(false)}
+              >
+                ✕ Tutup
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div
+              style={{
+                padding: '32px 28px',
+                overflowY: 'auto',
+                flex: 1,
+                backgroundColor: 'var(--color-bg, #0d0d11)',
+              }}
+            >
+              <div className="container" style={{ maxWidth: '720px', margin: '0 auto', padding: 0 }}>
+                {/* Category Badge */}
+                <div className="article-category-badge" style={{ marginBottom: '12px' }}>
+                  {categories.find((c) => c.slug === artCategorySlug)?.name || 'Kategori Artikel'}
+                </div>
+
+                {/* Title */}
+                <h1 style={{ fontSize: '28px', lineHeight: 1.3, marginBottom: '12px' }}>
+                  {artTitle || '(Judul artikel belum diisi)'}
+                </h1>
+
+                {/* Metadata */}
+                <div className="trust-stat-desc" style={{ marginBottom: '24px' }}>
+                  Diterbitkan pada{' '}
+                  {new Date().toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}{' '}
+                  &middot; Penulis: {user.name || 'Tim Redaksi FS dan Rekan'}
+                </div>
+
+                {/* Excerpt Lead if available */}
+                {artExcerpt && (
+                  <p
+                    style={{
+                      fontSize: '17px',
+                      lineHeight: 1.6,
+                      color: '#e4e4e7',
+                      fontStyle: 'italic',
+                      borderLeft: '3px solid var(--color-gold, #d4af37)',
+                      paddingLeft: '16px',
+                      marginBottom: '24px',
+                    }}
+                  >
+                    {artExcerpt}
+                  </p>
+                )}
+
+                {/* Cover Image */}
+                {artCoverUrl && (
+                  <div className="featured-article-thumb" style={{ marginBottom: '28px' }}>
+                    <img
+                      src={artCoverUrl}
+                      alt={artCoverAlt || artTitle || 'Foto Sampul Artikel'}
+                      style={{ width: '100%', maxHeight: '420px', objectFit: 'cover', borderRadius: '8px' }}
+                    />
+                  </div>
+                )}
+
+                {/* Body Html */}
+                {artBodyHtml && artBodyHtml.trim() && artBodyHtml !== '<p></p>' ? (
+                  <ArticleBody html={artBodyHtml} />
+                ) : (
+                  <p style={{ color: '#71717a', fontStyle: 'italic', padding: '32px 0', textAlign: 'center' }}>
+                    (Isi artikel masih kosong. Ketik naskah di editor untuk melihat hasilnya di sini.)
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                padding: '12px 24px',
+                borderTop: '1px solid #27272a',
+                backgroundColor: '#121216',
+                gap: '12px',
+              }}
+            >
+              <button
+                type="button"
+                className="btn-gold"
+                style={{ padding: '8px 20px', fontSize: '13px' }}
+                onClick={() => setShowArticlePreviewModal(false)}
+              >
+                Kembali ke Editor
               </button>
             </div>
           </div>

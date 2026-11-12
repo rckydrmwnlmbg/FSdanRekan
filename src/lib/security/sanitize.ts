@@ -19,7 +19,7 @@ export const cleanHtml = (dirty: string): string =>
       'hr',
     ],
     allowedAttributes: {
-      a: ['href', 'title'],
+      a: ['href', 'title', 'target', 'rel'],
       img: ['src', 'alt', 'width', 'height'],
     },
     allowedSchemes: ['https', 'mailto'],

@@ -84,16 +84,25 @@ Menulis artikel bermanfaat sangat baik untuk membangun reputasi firma hukum dan 
 
 Kotak pengunggah foto baru kini dirancang sangat mudah dan menyatu di setiap formulir:
 
-### Langkah Mengunggah Foto:
+### Langkah Mengunggah & Mengatur Posisi Foto:
 1. Klik tombol emas **Pilih Foto** (atau seret langsung berkas gambar dari komputer Anda ke dalam kotak bergaris putus-putus).
-2. Pilih foto dari komputer Anda (format JPG, PNG, atau WebP, ukuran maksimal 5 MB).
-3. **Pengoptimalan Otomatis oleh Sistem:**  
+2. Pilih foto dari komputer atau handphone Anda (format JPG, PNG, atau WebP, ukuran maksimal 5 MB).
+3. **Jendela Penyesuaian Foto (Potong / Crop Otomatis Sesuai Bingkai):**
+   Setelah memilih foto, jendela penyesuaian foto akan terbuka agar posisi gambar pas dengan bingkai di website (misalnya 16:9 untuk artikel atau 4:5 tegak untuk foto advokat):
+   - **Geser Posisi:** Klik dan tahan lalu geser foto dengan mouse (atau sentuh dengan satu jari di layar HP) untuk memusatkan bagian foto yang penting.
+   - **Perbesar / Perkecil (Zoom):** Gunakan penggeser **Perbesar**, tombol **− / +**, roda mouse, atau cubit dua jari di layar HP.
+   - **Garis Bantu Area Aman:** Perhatikan garis putus-putus sebagai panduan agar wajah atau objek penting tidak terpotong (misalnya pada kartu kecil Beranda atau area label nama). Anda dapat menyembunyikan atau menampilkannya kembali lewat tombol **Sembunyikan Garis Bantu**.
+   - **Pratinjau Bingkai Situs:** Lihat kotak pratinjau kecil di bagian bawah untuk memastikan hasil potongan tampak rapi.
+   - Klik **Terapkan** untuk mengunggah hasil potongan, **Atur Ulang** untuk mengembalikan posisi awal, atau **Gunakan foto apa adanya (tanpa potong)** bila foto sudah pas.
+4. **Mengubah Posisi Foto yang Sudah Terpasang:**
+   - Pada foto yang sudah ada, klik tombol **Atur Posisi Foto** untuk memotong ulang posisinya.
+   - *Catatan:* Memotong ulang hanya menyesuaikan gambar yang tersimpan saat ini dan tidak dapat mengembalikan bagian yang sudah terbuang. Unggah ulang foto asli dari perangkat jika Anda membutuhkan area yang lebih luas.
+5. **Pengoptimalan Otomatis oleh Sistem:**  
    Anda tidak perlu mengecilkan foto sendiri dengan aplikasi edit foto. Sistem secara otomatis akan:
    - Menyesuaikan ukuran foto agar tidak terlalu berat sehingga website tetap kencang dibuka dari handphone.
    - Mengoreksi orientasi foto agar tidak miring/terbalik jika diambil dari kamera handphone.
    - **Menghapus seluruh metadata lokasi (GPS)** yang tersimpan di kamera foto secara otomatis demi menjaga privasi dan kerahasiaan kantor.
-4. Begitu foto selesai diproses, pratinjau foto akan langsung tampil.
-5. Tersedia tombol **Ganti Foto** jika ingin memilih berkas lain, atau tombol **Hapus** untuk mengosongkan foto.
+6. Begitu foto selesai diproses, pratinjau foto akan langsung tampil. Tersedia tombol **Ganti Foto** jika ingin memilih berkas lain, atau tombol **Hapus** untuk mengosongkan foto.
 
 ### Memilih Foto dari Pustaka:
 Jika foto yang ingin digunakan sudah pernah diunggah sebelumnya (misalnya logo atau gambar ilustrasi umum):

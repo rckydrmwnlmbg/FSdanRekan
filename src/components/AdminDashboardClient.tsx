@@ -1008,6 +1008,7 @@ export function AdminDashboardClient() {
               <ImageUploader
                 label="Foto Sampul Artikel"
                 helperText="Format JPG, PNG, atau WebP, maksimal 5 MB"
+                cropPreset="article-cover"
                 value={artCoverUrl}
                 altText={artCoverAlt || `Ilustrasi ${artTitle}`}
                 suggestedAlt={`Ilustrasi ${artTitle}`}
@@ -1507,6 +1508,7 @@ export function AdminDashboardClient() {
               <ImageUploader
                 label="Foto Profil Anggota Tim"
                 helperText="Format JPG, PNG, atau WebP, maksimal 5 MB (Rasio tegak 4:5 disarankan)"
+                cropPreset="team-photo"
                 value={teamPhotoUrl}
                 altText={`Foto ${teamFullName}${teamHonorific ? `, ${teamHonorific}` : ''}`}
                 suggestedAlt={`Foto ${teamFullName}`}
@@ -1765,6 +1767,7 @@ export function AdminDashboardClient() {
               <ImageUploader
                 label="Gambar Header Bidang Layanan"
                 helperText="Format JPG, PNG, atau WebP, maksimal 5 MB"
+                cropPreset="practice-header"
                 value={paImage}
                 suggestedAlt={`Bidang Layanan ${paName}`}
                 onUploadSuccess={(asset) => setPaImage(asset.url)}
@@ -2215,6 +2218,7 @@ export function AdminDashboardClient() {
             <ImageUploader
               label="Tambah Foto ke Pustaka"
               helperText="Format JPG, PNG, atau WebP, maksimal 5 MB"
+              cropPreset="media-library"
               value=""
               onUploadSuccess={async () => {
                 await loadDashboardData()

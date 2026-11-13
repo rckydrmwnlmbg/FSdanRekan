@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
-import { processClientImageForUpload } from '@/lib/client-image'
+import { validateClientImageFile, type ProcessedImageResult } from '@/lib/client-image'
+import type { ImageCropPreset } from '@/lib/crop-math'
+import { ImageCropModal } from '@/components/admin/ImageCropModal'
 
 export interface UploadedAssetData {
   url: string
@@ -32,6 +34,7 @@ export interface ImageUploaderProps {
   disabled?: boolean
   mediaAssets?: MediaAssetItem[]
   suggestedAlt?: string
+  cropPreset?: ImageCropPreset
 }
 
 export function ImageUploader({
@@ -46,6 +49,7 @@ export function ImageUploader({
   disabled = false,
   mediaAssets = [],
   suggestedAlt = '',
+  cropPreset = 'media-library',
 }: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -55,23 +59,24 @@ export function ImageUploader({
   const [showMediaPicker, setShowMediaPicker] = useState(false)
   const [imageLoadError, setImageLoadError] = useState(false)
   const [manualUrlInput, setManualUrlInput] = useState(value)
+  const [cropModalState, setCropModalState] = useState<{
+    source: File | string
+    isRecrop: boolean
+  } | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const handleFile = useCallback(
-    async (file: File) => {
+  const uploadProcessedImage = useCallback(
+    async (processed: ProcessedImageResult, fallbackName?: string) => {
       setErrorMessage(null)
       setIsProcessing(true)
       setUploadProgress(0)
 
       try {
-        // 1. Proses foto di browser: resize ke max 1600px, hapus GPS/EXIF, kompresi
-        const processed = await processClientImageForUpload(file)
-
-        // 2. Unggah menggunakan XMLHttpRequest untuk progress 0-100%
         const formData = new FormData()
         formData.append('file', processed.blob, processed.filename)
-        const finalAlt = altText || suggestedAlt || file.name.replace(/\.[^/.]+$/, '')
+        const baseFallback = (fallbackName || processed.filename).replace(/\.[^/.]+$/, '')
+        const finalAlt = altText || suggestedAlt || baseFallback
         formData.append('altText', finalAlt)
 
         await new Promise<UploadedAssetData>((resolve, reject) => {
@@ -141,6 +146,18 @@ export function ImageUploader({
     },
     [altText, csrfToken, onUploadSuccess, suggestedAlt],
   )
+
+  const handleFile = useCallback((file: File) => {
+    setErrorMessage(null)
+    try {
+      validateClientImageFile(file)
+      setCropModalState({ source: file, isRecrop: false })
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : 'Format atau ukuran foto tidak dapat diproses.',
+      )
+    }
+  }, [])
 
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -328,7 +345,18 @@ export function ImageUploader({
                   onClick={() => fileInputRef.current?.click()}
                   disabled={disabled || isProcessing}
                 >
-                  Ganti Foto
+                  {isProcessing
+                    ? `Mengunggah${uploadProgress !== null ? ` (${uploadProgress}%)` : '...'}`
+                    : 'Ganti Foto'}
+                </button>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{ padding: '6px 12px', fontSize: '13px', borderColor: 'var(--color-gold)', color: 'var(--color-gold)' }}
+                  onClick={() => setCropModalState({ source: value, isRecrop: true })}
+                  disabled={disabled || isProcessing || imageLoadError}
+                >
+                  Atur Posisi Foto
                 </button>
                 {mediaAssets && mediaAssets.length > 0 && (
                   <button
@@ -362,6 +390,9 @@ export function ImageUploader({
                   </button>
                 )}
               </div>
+              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+                Tombol &ldquo;Atur Posisi Foto&rdquo; tidak mengembalikan bagian yang sudah terbuang. Unggah ulang foto asli bila ingin area lebih luas.
+              </p>
             </div>
           </div>
         </div>
@@ -674,6 +705,25 @@ export function ImageUploader({
           </div>
         </div>
       )}
+
+      {/* Modal Pemotongan Foto */}
+      <ImageCropModal
+        isOpen={Boolean(cropModalState)}
+        source={cropModalState?.source ?? null}
+        preset={cropPreset}
+        isRecrop={Boolean(cropModalState?.isRecrop)}
+        onCancel={() => setCropModalState(null)}
+        onApplyCrop={(processed) => {
+          const srcName = cropModalState?.source instanceof File ? cropModalState.source.name : undefined
+          setCropModalState(null)
+          uploadProcessedImage(processed, srcName)
+        }}
+        onUseOriginal={(processed) => {
+          const srcName = cropModalState?.source instanceof File ? cropModalState.source.name : undefined
+          setCropModalState(null)
+          uploadProcessedImage(processed, srcName)
+        }}
+      />
     </div>
   )
 }

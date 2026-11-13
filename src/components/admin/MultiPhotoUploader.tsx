@@ -1,8 +1,13 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
-import { processClientImageForUpload } from '@/lib/client-image'
+import {
+  processClientImageForUpload,
+  validateClientImageFile,
+  type ProcessedImageResult,
+} from '@/lib/client-image'
 import type { MediaAssetItem } from './ImageUploader'
+import { ImageCropModal } from '@/components/admin/ImageCropModal'
 
 export interface CasePhotoEntry {
   url: string
@@ -36,6 +41,11 @@ export function MultiPhotoUploader({
   const [isDragging, setIsDragging] = useState(false)
   const [showMediaPicker, setShowMediaPicker] = useState(false)
   const [generalError, setGeneralError] = useState<string | null>(null)
+  const [cropModalTarget, setCropModalTarget] = useState<{
+    photoId?: string
+    source: File | string
+    isRecrop: boolean
+  } | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   // Pastikan setiap foto memiliki id unik untuk tracking React key
@@ -45,15 +55,15 @@ export function MultiPhotoUploader({
     status: p.status || 'success',
   }))
 
-  const uploadSingleFile = useCallback(
-    async (file: File, photoId: string): Promise<string> => {
-      // 1. Resize di browser & bersihkan metadata GPS/EXIF
-      const processed = await processClientImageForUpload(file)
-
-      // 2. Upload via XMLHttpRequest untuk pelacakan progress
+  const uploadProcessedBlob = useCallback(
+    async (
+      processed: ProcessedImageResult,
+      altText: string,
+      onProgress?: (pct: number) => void,
+    ): Promise<string> => {
       const formData = new FormData()
       formData.append('file', processed.blob, processed.filename)
-      formData.append('altText', file.name.replace(/\.[^/.]+$/, ''))
+      formData.append('altText', altText)
 
       return new Promise<string>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
@@ -61,13 +71,8 @@ export function MultiPhotoUploader({
         xhr.setRequestHeader('x-csrf-token', csrfToken)
 
         xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            const pct = Math.round((e.loaded / e.total) * 100)
-            onChange(
-              normalizedPhotos.map((item) =>
-                item.id === photoId ? { ...item, progress: pct } : item,
-              ),
-            )
+          if (e.lengthComputable && onProgress) {
+            onProgress(Math.round((e.loaded / e.total) * 100))
           }
         }
 
@@ -100,8 +105,28 @@ export function MultiPhotoUploader({
         xhr.send(formData)
       })
     },
+    [csrfToken],
+  )
+
+  const uploadSingleFile = useCallback(
+    async (file: File, photoId: string): Promise<string> => {
+      // 1. Resize di browser & bersihkan metadata GPS/EXIF
+      const processed = await processClientImageForUpload(file)
+      // 2. Upload via XMLHttpRequest untuk pelacakan progress
+      return uploadProcessedBlob(
+        processed,
+        file.name.replace(/\.[^/.]+$/, ''),
+        (pct) => {
+          onChange(
+            normalizedPhotos.map((item) =>
+              item.id === photoId ? { ...item, progress: pct } : item,
+            ),
+          )
+        },
+      )
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [csrfToken, photos],
+    [uploadProcessedBlob, photos],
   )
 
   const processQueue = useCallback(
@@ -168,6 +193,20 @@ export function MultiPhotoUploader({
         )
       }
 
+      // Jika hanya 1 foto dipilih, buka jendela potong terlebih dahulu
+      if (filesToProcess.length === 1 && filesToProcess[0]) {
+        try {
+          validateClientImageFile(filesToProcess[0])
+          setCropModalTarget({ source: filesToProcess[0], isRecrop: false })
+          return
+        } catch (err) {
+          setGeneralError(
+            err instanceof Error ? err.message : 'Format atau ukuran foto tidak dapat diproses.',
+          )
+          return
+        }
+      }
+
       const newEntries: CasePhotoEntry[] = filesToProcess.map((file, idx) => ({
         id: `upload-${Date.now()}-${idx}`,
         url: '',
@@ -181,6 +220,56 @@ export function MultiPhotoUploader({
       processQueue(newEntries, normalizedPhotos)
     },
     [maxPhotos, normalizedPhotos, processQueue],
+  )
+
+  const handleCroppedUpload = useCallback(
+    async (processed: ProcessedImageResult, targetPhotoId?: string) => {
+      const targetId = targetPhotoId || `upload-${Date.now()}-0`
+      const baseAlt = processed.filename.replace(/\.[^/.]+$/, '')
+
+      let workingList: CasePhotoEntry[]
+      if (targetPhotoId) {
+        workingList = normalizedPhotos.map((p) =>
+          p.id === targetPhotoId ? { ...p, status: 'uploading', progress: 0, errorMessage: undefined } : p,
+        )
+      } else {
+        workingList = [
+          ...normalizedPhotos,
+          {
+            id: targetId,
+            url: '',
+            caption: '',
+            alt: baseAlt,
+            status: 'uploading',
+            progress: 0,
+          },
+        ]
+      }
+      onChange(workingList)
+
+      try {
+        const finalUrl = await uploadProcessedBlob(processed, baseAlt, (pct) => {
+          onChange(
+            workingList.map((p) => (p.id === targetId ? { ...p, progress: pct } : p)),
+          )
+        })
+        onChange(
+          workingList.map((p) =>
+            p.id === targetId
+              ? { ...p, url: finalUrl, status: 'success', progress: 100, errorMessage: undefined }
+              : p,
+          ),
+        )
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : 'Gagal mengunggah hasil potongan.'
+        onChange(
+          workingList.map((p) =>
+            p.id === targetId ? { ...p, status: 'error', errorMessage: errMsg } : p,
+          ),
+        )
+      }
+    },
+    [normalizedPhotos, onChange, uploadProcessedBlob],
   )
 
   const handleRetrySingle = async (photoId: string) => {
@@ -507,6 +596,29 @@ export function MultiPhotoUploader({
                       >
                         ▼
                       </button>
+                      {photo.url && !isUploading && (
+                        <button
+                          type="button"
+                          className="btn-outline"
+                          style={{
+                            padding: '2px 8px',
+                            fontSize: '11px',
+                            borderColor: 'var(--color-gold)',
+                            color: 'var(--color-gold)',
+                          }}
+                          onClick={() =>
+                            setCropModalTarget({
+                              photoId: photo.id,
+                              source: photo.url,
+                              isRecrop: true,
+                            })
+                          }
+                          disabled={disabled}
+                          title="Memotong ulang tidak mengembalikan bagian yang sudah terbuang. Unggah ulang foto asli bila ingin area lebih luas."
+                        >
+                          Atur Posisi
+                        </button>
+                      )}
                     </div>
 
                     <button
@@ -755,6 +867,25 @@ export function MultiPhotoUploader({
           </div>
         </div>
       )}
+
+      {/* Modal Pemotongan Foto Rekam Jejak */}
+      <ImageCropModal
+        isOpen={Boolean(cropModalTarget)}
+        source={cropModalTarget?.source ?? null}
+        preset="case-record"
+        isRecrop={Boolean(cropModalTarget?.isRecrop)}
+        onCancel={() => setCropModalTarget(null)}
+        onApplyCrop={(processed) => {
+          const targetId = cropModalTarget?.photoId
+          setCropModalTarget(null)
+          handleCroppedUpload(processed, targetId)
+        }}
+        onUseOriginal={(processed) => {
+          const targetId = cropModalTarget?.photoId
+          setCropModalTarget(null)
+          handleCroppedUpload(processed, targetId)
+        }}
+      />
     </div>
   )
 }

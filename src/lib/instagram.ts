@@ -1,4 +1,65 @@
 import { InstagramGalleryItem, INITIAL_INSTAGRAM_GALLERY } from './content'
+import {
+  DEFAULT_INSTAGRAM_PROFILE_URL,
+  normalizeInstagramHandleMentions,
+} from './instagram-helpers'
+
+const EMBED_PROBE_TTL_MS = 10 * 60 * 1000
+let embedAvailabilityCache: { available: boolean; checkedAt: number } | null = null
+
+export function resetInstagramEmbedCacheForTest(): void {
+  embedAvailabilityCache = null
+}
+
+/**
+ * Probes Instagram's public /embed/ endpoint without following login redirects or
+ * bypassing protections. When Instagram redirects to accounts/login or sends
+ * X-Frame-Options: DENY, the UI falls back to native curated cards instead of
+ * mounting broken browser iframe error boxes.
+ */
+export async function checkInstagramEmbedAvailable(
+  sampleShortcode: string = 'DbTC57rEjrA',
+  options?: { bypassCache?: boolean },
+): Promise<boolean> {
+  const now = Date.now()
+  if (
+    !options?.bypassCache &&
+    embedAvailabilityCache &&
+    now - embedAvailabilityCache.checkedAt < EMBED_PROBE_TTL_MS
+  ) {
+    return embedAvailabilityCache.available
+  }
+
+  const safeCode = /^[a-zA-Z0-9_-]+$/.test(sampleShortcode) ? sampleShortcode : 'DbTC57rEjrA'
+  try {
+    const res = await fetch(`https://www.instagram.com/p/${safeCode}/embed/`, {
+      method: 'GET',
+      redirect: 'manual',
+      signal: AbortSignal.timeout(2500),
+      headers: {
+        Accept: 'text/html',
+      },
+    })
+
+    const xfo = res.headers.get('x-frame-options')?.toLowerCase() ?? ''
+    const csp = res.headers.get('content-security-policy')?.toLowerCase() ?? ''
+    const location = res.headers.get('location')?.toLowerCase() ?? ''
+    const blocksFraming =
+      res.status !== 200 ||
+      xfo.includes('deny') ||
+      xfo.includes('sameorigin') ||
+      csp.includes("frame-ancestors 'none'") ||
+      csp.includes("frame-ancestors 'self'") ||
+      location.includes('accounts/login')
+
+    const available = !blocksFraming
+    embedAvailabilityCache = { available, checkedAt: now }
+    return available
+  } catch {
+    embedAvailabilityCache = { available: false, checkedAt: now }
+    return false
+  }
+}
 
 export interface InstagramMediaItem {
   id: string
@@ -50,6 +111,7 @@ export async function fetchLiveInstagramMedia(
     const url = `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=6&access_token=${encodeURIComponent(token)}`
     const res = await fetch(url, {
       next: { revalidate: 3600 }, // Cache 1 hour (SK-13)
+      signal: AbortSignal.timeout(3500),
     })
 
     if (!res.ok) {
@@ -80,7 +142,8 @@ export async function fetchLiveInstagramMedia(
         month: 'short',
         year: 'numeric',
       })
-      const fullCaption = item.caption?.trim() || 'Publikasi resmi Ferdinan Silalahi dan Rekan Law Firm.'
+      const rawCaption = item.caption?.trim() || 'Publikasi resmi Ferdinan Silalahi dan Rekan Law Firm.'
+      const fullCaption = normalizeInstagramHandleMentions(rawCaption)
       const image = item.media_type === 'VIDEO' ? item.thumbnail_url || item.media_url : item.media_url
 
       // Auto-detect legal category from caption keywords
@@ -107,7 +170,7 @@ export async function fetchLiveInstagramMedia(
         category,
         caption: fullCaption.length > 180 ? `${fullCaption.slice(0, 180)}...` : fullCaption,
         publishedDate: formattedDate,
-        permalink: item.permalink || 'https://instagram.com/',
+        permalink: item.permalink || DEFAULT_INSTAGRAM_PROFILE_URL,
         displayOrder: index + 1,
         isPublished: true,
       }

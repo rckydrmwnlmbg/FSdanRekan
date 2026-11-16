@@ -1,4 +1,8 @@
 import type { Metadata } from 'next'
+import {
+  DEFAULT_INSTAGRAM_PROFILE_URL,
+  normalizeInstagramProfileUrl,
+} from '@/lib/instagram-helpers'
 
 export const OFFICIAL_FIRM_NAME = 'Ferdinan Silalahi dan Rekan Law Firm'
 export const SHORT_BRAND_NAME = 'FS dan Rekan'
@@ -50,7 +54,14 @@ export function buildPageMetadata({
   }
 }
 
-export function buildLegalServiceJsonLd(siteUrl = 'https://fsdanrekan.com') {
+export function buildLegalServiceJsonLd(
+  siteUrl = 'https://fsdanrekan.com',
+  instagramUrl?: string,
+) {
+  const canonicalInstagramUrl = normalizeInstagramProfileUrl(
+    instagramUrl || process.env.INSTAGRAM_PROFILE_URL,
+    DEFAULT_INSTAGRAM_PROFILE_URL,
+  )
   return {
     '@context': 'https://schema.org',
     '@type': 'LegalService',
@@ -93,7 +104,7 @@ export function buildLegalServiceJsonLd(siteUrl = 'https://fsdanrekan.com') {
         closes: '18:00',
       },
     ],
-    sameAs: ['https://instagram.com/fhspartners'],
+    sameAs: [canonicalInstagramUrl],
     areaServed: [
       { '@type': 'AdministrativeArea', name: 'Jakarta Pusat' },
       { '@type': 'AdministrativeArea', name: 'DKI Jakarta' },

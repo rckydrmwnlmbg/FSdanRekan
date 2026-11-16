@@ -25,6 +25,7 @@ interface HomePageClientProps {
   caseRecords: PublicCaseRecord[]
   latestArticles: ArticlePublicData[]
   instagramItems: InstagramGalleryItem[]
+  instagramEmbedAvailable?: boolean
 }
 
 export function HomePageClient({
@@ -34,6 +35,7 @@ export function HomePageClient({
   caseRecords,
   latestArticles,
   instagramItems,
+  instagramEmbedAvailable = true,
 }: HomePageClientProps) {
   const [activeProfile, setActiveProfile] = useState<TeamMemberData | null>(null)
   const [selectedPracticeName, setSelectedPracticeName] = useState<string>(
@@ -99,6 +101,7 @@ export function HomePageClient({
       <InstagramGallerySection
         items={instagramItems}
         instagramUrl={settings.instagramUrl}
+        embedAvailable={instagramEmbedAvailable}
       />
 
       <InquirySection

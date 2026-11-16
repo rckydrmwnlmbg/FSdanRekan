@@ -6,6 +6,10 @@ import { ImageUploader } from '@/components/admin/ImageUploader'
 import { MultiPhotoUploader, type CasePhotoEntry } from '@/components/admin/MultiPhotoUploader'
 import { VisualArticleEditor } from '@/components/admin/VisualArticleEditor'
 import { ArticleBody } from '@/components/ArticleBody'
+import {
+  DEFAULT_INSTAGRAM_PROFILE_URL,
+  normalizeInstagramProfileUrl,
+} from '@/lib/instagram-helpers'
 
 interface AdminUserSession {
   id: string
@@ -176,7 +180,7 @@ export function AdminDashboardClient() {
   const [whatsappDisplay, setWhatsappDisplay] = useState('+62 811-830-991')
   const [defaultWaMessage, setDefaultWaMessage] = useState('')
   const [inquiryRecipientEmail, setInquiryRecipientEmail] = useState('konsultasi@fsdanrekan.com')
-  const [instagramUrl, setInstagramUrl] = useState('https://instagram.com/fhspartners')
+  const [instagramUrl, setInstagramUrl] = useState(DEFAULT_INSTAGRAM_PROFILE_URL)
   const [officeHoursPagi, setOfficeHoursPagi] = useState('Pagi (09.30 – 12.00 WIB)')
   const [officeHoursSiang, setOfficeHoursSiang] = useState('Siang (13.30 – 15.30 WIB)')
   const [officeHoursSore, setOfficeHoursSore] = useState('Sore (16.00 – 18.00 WIB)')
@@ -282,7 +286,12 @@ export function AdminDashboardClient() {
         setWhatsappDisplay(data.siteSettings.whatsappDisplay || '')
         setDefaultWaMessage(data.siteSettings.defaultWaMessage || '')
         setInquiryRecipientEmail(data.siteSettings.inquiryRecipientEmail || '')
-        setInstagramUrl(data.siteSettings.instagramUrl || '')
+        setInstagramUrl(
+          normalizeInstagramProfileUrl(
+            data.siteSettings.instagramUrl,
+            DEFAULT_INSTAGRAM_PROFILE_URL,
+          ),
+        )
         setOfficeHoursPagi(data.siteSettings.officeHours?.pagi || '')
         setOfficeHoursSiang(data.siteSettings.officeHours?.siang || '')
         setOfficeHoursSore(data.siteSettings.officeHours?.sore || '')
@@ -2325,7 +2334,10 @@ export function AdminDashboardClient() {
                   whatsappDisplay,
                   defaultWaMessage,
                   inquiryRecipientEmail,
-                  instagramUrl,
+                  instagramUrl: normalizeInstagramProfileUrl(
+                    instagramUrl,
+                    DEFAULT_INSTAGRAM_PROFILE_URL,
+                  ),
                   officeHoursPagi,
                   officeHoursSiang,
                   officeHoursSore,
@@ -2386,7 +2398,7 @@ export function AdminDashboardClient() {
                 className="form-input"
               />
             </div>
-            <div className="form-group" style={{ marginBottom: '16px' }}>
+            <div className="form-group" style={{ marginBottom: '12px' }}>
               <label htmlFor="setInqEmail" className="form-label">
                 Email Penerima Formulir Konsultasi
               </label>
@@ -2398,6 +2410,23 @@ export function AdminDashboardClient() {
                 onChange={(e) => setInquiryRecipientEmail(e.target.value)}
                 className="form-input"
               />
+            </div>
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label htmlFor="setInstagramUrl" className="form-label">
+                URL atau Username Akun Resmi Instagram
+              </label>
+              <input
+                id="setInstagramUrl"
+                type="text"
+                required
+                placeholder="https://www.instagram.com/fsdanrekan/"
+                value={instagramUrl}
+                onChange={(e) => setInstagramUrl(e.target.value)}
+                className="form-input"
+              />
+              <small style={{ display: 'block', marginTop: '4px', color: 'var(--color-text-muted)' }}>
+                Contoh: https://www.instagram.com/fsdanrekan/ atau @fsdanrekan
+              </small>
             </div>
             <button type="submit" className="btn-gold" disabled={busy}>
               Simpan Pengaturan Situs

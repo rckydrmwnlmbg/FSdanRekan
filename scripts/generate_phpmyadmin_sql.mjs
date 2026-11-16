@@ -337,7 +337,7 @@ function main() {
     const id = String(ig.id || '')
     if (!id) continue
     lines.push(
-      `INSERT INTO \`instagram_gallery\` (\`id\`, \`shortcode\`, \`permalink\`, \`embed_url\`, \`alt_text\`, \`category\`, \`caption\`, \`published_date\`, \`image_url\`, \`display_order\`, \`is_published\`) VALUES (${sqlVal(id)}, ${sqlVal(String(ig.shortcode || ''))}, ${sqlVal(String(ig.permalink || ''))}, ${sqlVal(String(ig.embedUrl || ''))}, ${sqlVal(String(ig.alt || ''))}, ${sqlVal(String(ig.category || 'Publikasi Resmi'))}, ${sqlVal(String(ig.caption || ''))}, ${sqlVal(String(ig.publishedDate || 'Instagram Live'))}, ${sqlVal(String(ig.imageUrl || ''))}, ${sqlVal(Number(ig.displayOrder) || 1)}, ${sqlVal(ig.isPublished === false ? 0 : 1)}) ON DUPLICATE KEY UPDATE \`caption\` = VALUES(\`caption\`);`,
+      `INSERT INTO \`instagram_gallery\` (\`id\`, \`shortcode\`, \`permalink\`, \`embed_url\`, \`alt_text\`, \`category\`, \`caption\`, \`published_date\`, \`image_url\`, \`display_order\`, \`is_published\`) VALUES (${sqlVal(id)}, ${sqlVal(String(ig.shortcode || ''))}, ${sqlVal(String(ig.permalink || ''))}, ${sqlVal(String(ig.embedUrl || ''))}, ${sqlVal(String(ig.alt || ''))}, ${sqlVal(String(ig.category || 'Publikasi Resmi'))}, ${sqlVal(String(ig.caption || ''))}, ${sqlVal(String(ig.publishedDate || 'Instagram Live'))}, ${sqlVal(String(ig.imageUrl || ''))}, ${sqlVal(Number(ig.displayOrder) || 1)}, ${sqlVal(ig.isPublished === false ? 0 : 1)}) ON DUPLICATE KEY UPDATE \`permalink\` = VALUES(\`permalink\`), \`embed_url\` = VALUES(\`embed_url\`), \`alt_text\` = VALUES(\`alt_text\`), \`caption\` = VALUES(\`caption\`);`,
     )
   }
   lines.push('')

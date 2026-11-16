@@ -4,6 +4,13 @@ import practiceAreasSeed from '../../content/practice_areas.json'
 import caseRecordsSeed from '../../content/case_records.json'
 import articlesSeed from '../../content/articles.json'
 import { getDbPool } from '@/lib/db'
+import {
+  DEFAULT_INSTAGRAM_PROFILE_URL,
+  INITIAL_INSTAGRAM_GALLERY,
+  normalizeInstagramHandleMentions,
+  normalizeInstagramProfileUrl,
+  type InstagramGalleryItem,
+} from '@/lib/instagram-helpers'
 import { OFFICIAL_ADDRESS, OFFICIAL_FIRM_NAME, SHORT_BRAND_NAME } from '@/lib/seo'
 
 export interface TeamPhotoData {
@@ -261,7 +268,10 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
   whatsappDisplay: '+62 811-830-991',
   defaultWaMessage: 'Halo FS dan Rekan, saya ingin konsultasi hukum.',
   inquiryRecipientEmail: 'kontak@fsdanrekan.id',
-  instagramUrl: 'https://instagram.com/fhspartners',
+  instagramUrl: normalizeInstagramProfileUrl(
+    process.env.INSTAGRAM_PROFILE_URL,
+    DEFAULT_INSTAGRAM_PROFILE_URL,
+  ),
   mapEmbedUrl:
     'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5357334624136!2d106.83636290000001!3d-6.192815!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43e979ba7b9%3A0x367501a082936e59!2sJl.%20RP.%20Soeroso%20No.33%2C%20RT.2%2FRW.2%2C%20Cikini%2C%20Kec.%20Menteng%2C%20Kota%20Jakarta%20Pusat%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2010350!5e0!3m2!1sen!2sid!4v1793080293609!5m2!1sen!2sid',
   mapsDirectUrl:
@@ -333,75 +343,7 @@ export function getPracticeAreaBySlug(slug: string): PracticeAreaData | null {
   return found ?? null
 }
 
-export interface InstagramGalleryItem {
-  id: string
-  imageUrl: string
-  alt: string
-  category: string
-  caption: string
-  publishedDate: string
-  permalink: string
-  displayOrder: number
-  isPublished: boolean
-}
-
-export const INITIAL_INSTAGRAM_GALLERY: InstagramGalleryItem[] = [
-  {
-    id: 'ig-real-1',
-    imageUrl: 'https://www.instagram.com/p/DbTC57rEjrA/media/?size=l',
-    alt: 'Postingan Instagram Resmi @fhspartners (DbTC57rEjrA)',
-    category: 'Publikasi Resmi',
-    caption: 'Lobby dan mediasi sebagai langkah penyelesaian sengketa dari akun resmi @fhspartners.',
-    publishedDate: 'Instagram Live',
-    permalink: 'https://www.instagram.com/p/DbTC57rEjrA/',
-    displayOrder: 1,
-    isPublished: true,
-  },
-  {
-    id: 'ig-real-2',
-    imageUrl: 'https://www.instagram.com/p/DdGbn5YyKb_/media/?size=l',
-    alt: 'Postingan Instagram Resmi @fhspartners (DdGbn5YyKb_)',
-    category: 'Publikasi Resmi',
-    caption: 'Ucapan ulang tahun kepada Managing Partner dari akun resmi @fhspartners.',
-    publishedDate: 'Instagram Live',
-    permalink: 'https://www.instagram.com/p/DdGbn5YyKb_/',
-    displayOrder: 2,
-    isPublished: true,
-  },
-  {
-    id: 'ig-real-3',
-    imageUrl: 'https://www.instagram.com/p/Dbp3d5PEuLe/media/?size=l',
-    alt: 'Postingan Instagram Resmi @fhspartners (Dbp3d5PEuLe)',
-    category: 'Publikasi Resmi',
-    caption: 'Pembahasan materi praperadilan dalam KUHAP baru dari akun resmi @fhspartners.',
-    publishedDate: 'Instagram Live',
-    permalink: 'https://www.instagram.com/p/Dbp3d5PEuLe/',
-    displayOrder: 3,
-    isPublished: true,
-  },
-  {
-    id: 'ig-real-4',
-    imageUrl: 'https://www.instagram.com/p/Dc3H8MaGM_D/media/?size=l',
-    alt: 'Postingan Instagram Resmi @fhspartners (Dc3H8MaGM_D)',
-    category: 'Publikasi Resmi',
-    caption: 'Pembahasan mekanisme Plea Bargaining dalam hukum acara pidana dari akun resmi @fhspartners.',
-    publishedDate: 'Instagram Live',
-    permalink: 'https://www.instagram.com/p/Dc3H8MaGM_D/',
-    displayOrder: 4,
-    isPublished: true,
-  },
-  {
-    id: 'ig-real-5',
-    imageUrl: 'https://www.instagram.com/p/DawrpvRxxY7/media/?size=l',
-    alt: 'Postingan Instagram Resmi @fhspartners (DawrpvRxxY7)',
-    category: 'Publikasi Resmi',
-    caption: 'Advokasi dan wawasan kepemimpinan dari akun resmi @fhspartners.',
-    publishedDate: 'Instagram Live',
-    permalink: 'https://www.instagram.com/p/DawrpvRxxY7/',
-    displayOrder: 5,
-    isPublished: true,
-  },
-]
+export { INITIAL_INSTAGRAM_GALLERY, type InstagramGalleryItem }
 
 export function getInstagramGalleryItems(): InstagramGalleryItem[] {
   return INITIAL_INSTAGRAM_GALLERY.filter((item) => item.isPublished).sort(
@@ -424,12 +366,12 @@ export function serializePublicCaseRecord(record: CaseRecordInternal): PublicCas
     Array.isArray(record.photos) && record.photos.length > 0
       ? record.photos
       : [
-          {
-            url: defaultPhotoUrl,
-            caption: `Dokumentasi penanganan perkara ${record.caseType} wilayah ${record.region}`,
-            alt: defaultPhotoAlt,
-          },
-        ]
+        {
+          url: defaultPhotoUrl,
+          caption: `Dokumentasi penanganan perkara ${record.caseType} wilayah ${record.region}`,
+          alt: defaultPhotoAlt,
+        },
+      ]
 
   const pub: PublicCaseRecord = {
     id: record.id,
@@ -682,7 +624,10 @@ export async function fetchSiteSettingsFromDb(): Promise<SiteSettingsData> {
       inquiryRecipientEmail: String(
         raw.inquiryRecipientEmail || DEFAULT_SITE_SETTINGS.inquiryRecipientEmail,
       ),
-      instagramUrl: String(raw.instagramUrl || DEFAULT_SITE_SETTINGS.instagramUrl),
+      instagramUrl: normalizeInstagramProfileUrl(
+        raw.instagramUrl || process.env.INSTAGRAM_PROFILE_URL,
+        DEFAULT_SITE_SETTINGS.instagramUrl,
+      ),
       mapEmbedUrl: String(raw.mapEmbedUrl || DEFAULT_SITE_SETTINGS.mapEmbedUrl),
       mapsDirectUrl: String(raw.mapsDirectUrl || DEFAULT_SITE_SETTINGS.mapsDirectUrl),
       officeHours: {
@@ -1012,9 +957,9 @@ export async function fetchInstagramGalleryFromDb(): Promise<InstagramGalleryIte
     return rows.map((r) => ({
       id: String(r.id),
       imageUrl: String(r.image_url || ''),
-      alt: String(r.alt_text || ''),
+      alt: normalizeInstagramHandleMentions(String(r.alt_text || '')),
       category: String(r.category || 'Publikasi Resmi'),
-      caption: String(r.caption || ''),
+      caption: normalizeInstagramHandleMentions(String(r.caption || '')),
       publishedDate: String(r.published_date || 'Instagram Live'),
       permalink: String(r.permalink || ''),
       displayOrder: Number(r.display_order) || 1,

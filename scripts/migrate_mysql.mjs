@@ -527,6 +527,9 @@ async function main() {
            \`caption\`, \`published_date\`, \`image_url\`, \`display_order\`, \`is_published\`)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
+           \`permalink\` = VALUES(\`permalink\`),
+           \`embed_url\` = VALUES(\`embed_url\`),
+           \`alt_text\` = VALUES(\`alt_text\`),
            \`caption\` = VALUES(\`caption\`),
            \`image_url\` = VALUES(\`image_url\`),
            \`display_order\` = VALUES(\`display_order\`),

@@ -29,6 +29,7 @@ const schema = z.object({
   WHATSAPP_ACCESS_TOKEN: z.string().min(1).optional(),
   WHATSAPP_PHONE_NUMBER_ID: z.string().min(1).optional(),
   INSTAGRAM_ACCESS_TOKEN: z.string().min(1).optional(),
+  INSTAGRAM_PROFILE_URL: z.string().trim().optional(),
 })
 
 export const env = schema.parse(process.env)

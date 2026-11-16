@@ -40,7 +40,7 @@ DEFAULT_SITE_SETTINGS = {
     "whatsappDisplay": "+62 811-830-991",
     "defaultWaMessage": "Halo FS dan Rekan, saya ingin konsultasi hukum.",
     "inquiryRecipientEmail": "konsultasi@fsdanrekan.id",
-    "instagramUrl": "https://instagram.com/fhspartners",
+    "instagramUrl": "https://www.instagram.com/fsdanrekan/",
     "instagramAccessToken": "",
     "mapsDirectUrl": "https://www.google.com/maps/search/?api=1&query=Gedung+Mandira+Jl.+RP+Soeroso+No.+33+Menteng+Jakarta+Pusat",
     "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5357334624136!2d106.83636290000001!3d-6.192815!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43e979ba7b9%3A0x367501a082936e59!2sJl.%20RP.%20Soeroso%20No.33%2C%20RT.2%2FRW.2%2C%20Cikini%2C%20Kec.%20Menteng%2C%20Kota%20Jakarta%20Pusat%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2010350!5e0!3m2!1sen!2sid!4v1793080293609!5m2!1sen!2sid",
@@ -103,9 +103,9 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "shortcode": "DbTC57rEjrA",
         "permalink": "https://www.instagram.com/p/DbTC57rEjrA/",
         "embedUrl": "https://www.instagram.com/p/DbTC57rEjrA/embed/",
-        "alt": "Postingan Instagram Resmi @fhspartners (DbTC57rEjrA)",
+        "alt": "Postingan Instagram Resmi @fsdanrekan (DbTC57rEjrA)",
         "category": "Publikasi Resmi",
-        "caption": "Lobby dan mediasi sebagai langkah penyelesaian sengketa dari akun resmi @fhspartners.",
+        "caption": "Lobby dan mediasi sebagai langkah penyelesaian sengketa dari akun resmi @fsdanrekan.",
         "publishedDate": "Instagram Live",
         "imageUrl": "https://www.instagram.com/p/DbTC57rEjrA/media/?size=l",
         "displayOrder": 1,
@@ -116,9 +116,9 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "shortcode": "DdGbn5YyKb_",
         "permalink": "https://www.instagram.com/p/DdGbn5YyKb_/",
         "embedUrl": "https://www.instagram.com/p/DdGbn5YyKb_/embed/",
-        "alt": "Postingan Instagram Resmi @fhspartners (DdGbn5YyKb_)",
+        "alt": "Postingan Instagram Resmi @fsdanrekan (DdGbn5YyKb_)",
         "category": "Publikasi Resmi",
-        "caption": "Ucapan ulang tahun kepada Managing Partner dari akun resmi @fhspartners.",
+        "caption": "Ucapan ulang tahun kepada Managing Partner dari akun resmi @fsdanrekan.",
         "publishedDate": "Instagram Live",
         "imageUrl": "https://www.instagram.com/p/DdGbn5YyKb_/media/?size=l",
         "displayOrder": 2,
@@ -129,9 +129,9 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "shortcode": "Dbp3d5PEuLe",
         "permalink": "https://www.instagram.com/p/Dbp3d5PEuLe/",
         "embedUrl": "https://www.instagram.com/p/Dbp3d5PEuLe/embed/",
-        "alt": "Postingan Instagram Resmi @fhspartners (Dbp3d5PEuLe)",
+        "alt": "Postingan Instagram Resmi @fsdanrekan (Dbp3d5PEuLe)",
         "category": "Publikasi Resmi",
-        "caption": "Pembahasan materi praperadilan dalam KUHAP baru dari akun resmi @fhspartners.",
+        "caption": "Pembahasan materi praperadilan dalam KUHAP baru dari akun resmi @fsdanrekan.",
         "publishedDate": "Instagram Live",
         "imageUrl": "https://www.instagram.com/p/Dbp3d5PEuLe/media/?size=l",
         "displayOrder": 3,
@@ -142,9 +142,9 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "shortcode": "Dc3H8MaGM_D",
         "permalink": "https://www.instagram.com/p/Dc3H8MaGM_D/",
         "embedUrl": "https://www.instagram.com/p/Dc3H8MaGM_D/embed/",
-        "alt": "Postingan Instagram Resmi @fhspartners (Dc3H8MaGM_D)",
+        "alt": "Postingan Instagram Resmi @fsdanrekan (Dc3H8MaGM_D)",
         "category": "Publikasi Resmi",
-        "caption": "Pembahasan mekanisme Plea Bargaining dalam hukum acara pidana dari akun resmi @fhspartners.",
+        "caption": "Pembahasan mekanisme Plea Bargaining dalam hukum acara pidana dari akun resmi @fsdanrekan.",
         "publishedDate": "Instagram Live",
         "imageUrl": "https://www.instagram.com/p/Dc3H8MaGM_D/media/?size=l",
         "displayOrder": 4,
@@ -155,9 +155,9 @@ DEFAULT_INSTAGRAM_GALLERY = [
         "shortcode": "DawrpvRxxY7",
         "permalink": "https://www.instagram.com/p/DawrpvRxxY7/",
         "embedUrl": "https://www.instagram.com/p/DawrpvRxxY7/embed/",
-        "alt": "Postingan Instagram Resmi @fhspartners (DawrpvRxxY7)",
+        "alt": "Postingan Instagram Resmi @fsdanrekan (DawrpvRxxY7)",
         "category": "Publikasi Resmi",
-        "caption": "Advokasi dan wawasan kepemimpinan dari akun resmi @fhspartners.",
+        "caption": "Advokasi dan wawasan kepemimpinan dari akun resmi @fsdanrekan.",
         "publishedDate": "Instagram Live",
         "imageUrl": "https://www.instagram.com/p/DawrpvRxxY7/media/?size=l",
         "displayOrder": 5,
@@ -1793,7 +1793,7 @@ def render_enterprise_admin_dashboard(
           <form onsubmit="saveInstagramLiveConfig(event)" style="display:grid;grid-template-columns:1fr 1.5fr auto;gap:14px;align-items:flex-end;">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label" style="font-size:12px;">URL Profil Akun Instagram Resmi</label>
-              <input type="url" id="cmsInstagramProfileUrl" class="form-input" placeholder="https://instagram.com/fhspartners" value="{html.escape(settings.get('instagramUrl', 'https://instagram.com/fhspartners'))}" required>
+              <input type="url" id="cmsInstagramProfileUrl" class="form-input" placeholder="https://www.instagram.com/fsdanrekan/" value="{html.escape(settings.get('instagramUrl', 'https://www.instagram.com/fsdanrekan/'))}" required>
             </div>
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label" style="font-size:12px;">

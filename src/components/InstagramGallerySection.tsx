@@ -1,64 +1,68 @@
-import React from 'react'
-import type { InstagramGalleryItem } from '@/lib/content'
+'use client'
+
+import React, { useState } from 'react'
+import {
+  DEFAULT_INSTAGRAM_HANDLE,
+  DEFAULT_INSTAGRAM_PROFILE_URL,
+  INITIAL_INSTAGRAM_GALLERY,
+  extractInstagramHandle,
+  normalizeInstagramHandleMentions,
+  normalizeInstagramProfileUrl,
+  parseInstagramEmbedTarget,
+  type InstagramGalleryItem,
+} from '@/lib/instagram-helpers'
 import { OFFICIAL_FIRM_NAME, SHORT_BRAND_NAME } from '@/lib/seo'
 
 interface InstagramGallerySectionProps {
   items: InstagramGalleryItem[]
   instagramUrl: string
+  embedAvailable?: boolean
 }
-
-const OFFICIAL_EMBED_POSTS = [
-  {
-    id: 'embed-1',
-    shortcode: 'DbTC57rEjrA',
-    url: 'https://www.instagram.com/p/DbTC57rEjrA/',
-  },
-  {
-    id: 'embed-2',
-    shortcode: 'DdGbn5YyKb_',
-    url: 'https://www.instagram.com/p/DdGbn5YyKb_/',
-  },
-  {
-    id: 'embed-3',
-    shortcode: 'Dbp3d5PEuLe',
-    url: 'https://www.instagram.com/p/Dbp3d5PEuLe/',
-  },
-  {
-    id: 'embed-4',
-    shortcode: 'Dc3H8MaGM_D',
-    url: 'https://www.instagram.com/p/Dc3H8MaGM_D/',
-  },
-  {
-    id: 'embed-5',
-    shortcode: 'DawrpvRxxY7',
-    url: 'https://www.instagram.com/p/DawrpvRxxY7/',
-  },
-]
 
 /**
  * SK-13 & PRD V3 (Phase 2):
- * Official Instagram Gallery section for @fhspartners with direct live Instagram post embeds,
- * profile spotlight, and direct links without mock data.
+ * Official Instagram Gallery section with live post embeds, profile spotlight,
+ * and curated dark-gold cards when Instagram /embed/ framing is unavailable.
  */
 export function InstagramGallerySection({
   items,
   instagramUrl,
+  embedAvailable = true,
 }: InstagramGallerySectionProps) {
-  const cleanUrl = instagramUrl || 'https://instagram.com/fhspartners'
-  const handleMatch = cleanUrl.match(/instagram\.com\/([^/?#]+)/i)
-  const igHandle = handleMatch && handleMatch[1] ? `@${handleMatch[1]}` : '@fhspartners'
+  const cleanUrl = normalizeInstagramProfileUrl(instagramUrl, DEFAULT_INSTAGRAM_PROFILE_URL)
+  const igHandle = extractInstagramHandle(cleanUrl) || DEFAULT_INSTAGRAM_HANDLE
+  const [loadedFrames, setLoadedFrames] = useState<Record<string, boolean>>({})
 
-  // Use CMS items if available, or official @fhspartners live post embeds
-  const activePosts = items.length > 0
-    ? items.map((it) => {
-        const m = it.permalink?.match(/\/p\/([^/?#]+)/)
-        return {
-          id: it.id,
-          shortcode: m && m[1] ? m[1] : 'DbTC57rEjrA',
-          url: it.permalink || cleanUrl,
-        }
-      })
-    : OFFICIAL_EMBED_POSTS
+  const sourceItems = items.length > 0 ? items : INITIAL_INSTAGRAM_GALLERY
+
+  const activePosts = sourceItems.map((it, idx) => {
+    const fallbackItem = INITIAL_INSTAGRAM_GALLERY[idx % INITIAL_INSTAGRAM_GALLERY.length]
+    const parsed =
+      parseInstagramEmbedTarget(it.permalink) ?? parseInstagramEmbedTarget(fallbackItem?.permalink)
+    const shortcode = parsed?.shortcode ?? 'DbTC57rEjrA'
+    const postType = parsed?.type ?? 'p'
+    const postUrl = parsed?.postUrl ?? cleanUrl
+    const embedUrl = parsed?.embedUrl ?? `https://www.instagram.com/p/${shortcode}/embed/`
+    const rawLocalImg = typeof it.imageUrl === 'string' ? it.imageUrl.trim() : ''
+    const localImageUrl =
+      rawLocalImg.startsWith('/') && !rawLocalImg.startsWith('//') ? rawLocalImg : null
+
+    return {
+      id: it.id,
+      shortcode,
+      type: postType,
+      url: postUrl,
+      embedUrl,
+      alt: it.alt,
+      localImageUrl,
+      category: it.category || 'Publikasi Resmi',
+      publishedDate: it.publishedDate || 'Publikasi Resmi',
+      caption: normalizeInstagramHandleMentions(
+        it.caption || `Publikasi resmi akun Instagram ${igHandle}.`,
+        igHandle,
+      ),
+    }
+  })
 
   return (
     <section
@@ -72,7 +76,7 @@ export function InstagramGallerySection({
             <div className="eyebrow-tag">PUBLIKASI &amp; MEDIA SOSIAL RESMI — {SHORT_BRAND_NAME}</div>
             <h2 id="instagram-gallery-heading">Publikasi &amp; Dokumentasi Media Sosial</h2>
             <p className="section-subtitle">
-              Sematkan langsung publikasi resmi, wawasan yuridis, dan dokumentasi advokasi dari akun Instagram {igHandle}.
+              Ikuti publikasi resmi, wawasan yuridis, dan dokumentasi advokasi dari akun Instagram {igHandle}.
             </p>
           </div>
           <a
@@ -135,7 +139,9 @@ export function InstagramGallerySection({
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#FFFFFF', fontWeight: 600 }}>{igHandle}</h3>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#FFFFFF', fontWeight: 600 }}>
+                  {igHandle}
+                </h3>
                 <span
                   style={{
                     fontSize: '11px',
@@ -171,73 +177,215 @@ export function InstagramGallerySection({
               className="btn-gold"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              <span>Ikuti {igHandle} di Instagram</span> &nearr;
+              <span>Ikuti {igHandle} di Instagram</span> {'\u2197'}
             </a>
           </div>
         </div>
 
-        {/* Live Instagram Embed Feed Grid (Direct from Instagram Servers) */}
+        {/* Official Instagram Feed Grid (Live Embeds or Curated Editorial Fallback Cards) */}
         <div
           className="instagram-embed-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
             gap: '24px',
             justifyContent: 'center',
           }}
         >
-          {activePosts.map((post) => (
-            <div
-              key={post.id}
-              className="instagram-embed-card"
-              style={{
-                background: 'var(--color-bg)',
-                border: '1px solid var(--color-border-subtle)',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: '520px',
-              }}
-            >
-              <iframe
-                src={`https://www.instagram.com/p/${post.shortcode}/embed/`}
+          {activePosts.map((post) => {
+            const isLoaded = Boolean(loadedFrames[post.id])
+            return (
+              <article
+                key={post.id}
+                className="instagram-embed-card"
+                data-instagram-shortcode={post.shortcode}
                 style={{
-                  width: '100%',
-                  height: '520px',
-                  border: 'none',
-                  overflow: 'hidden',
                   background: 'var(--color-bg)',
-                }}
-                loading="lazy"
-                allowTransparency={true}
-                title={`Postingan Instagram ${igHandle} - ${post.shortcode}`}
-              />
-              <div
-                style={{
-                  padding: '12px 16px',
-                  background: 'var(--color-surface)',
-                  borderTop: '1px solid var(--color-border-subtle)',
+                  border: '1px solid var(--color-border-subtle)',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  flexDirection: 'column',
+                  minHeight: embedAvailable ? '540px' : '300px',
                 }}
               >
-                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                  Unggahan Resmi {igHandle}
-                </span>
-                <a
-                  href={post.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="link-gold"
-                  style={{ fontSize: '12.5px' }}
+                {embedAvailable ? (
+                  <div style={{ position: 'relative', width: '100%', height: '540px', background: 'var(--color-bg)' }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        padding: '28px 24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        background: 'linear-gradient(160deg, #0E131D 0%, #090C12 100%)',
+                        color: 'var(--color-text-secondary)',
+                      }}
+                    >
+                      <div>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: 'var(--color-gold-strong)',
+                            borderLeft: '2px solid var(--color-gold)',
+                            paddingLeft: '8px',
+                            marginBottom: '12px',
+                          }}
+                        >
+                          {post.category} · {igHandle}
+                        </span>
+                        <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.6, color: '#F1F5F9' }}>
+                          {post.caption}
+                        </p>
+                      </div>
+                      <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+                        Memuat pratinjau Instagram {igHandle}...
+                      </div>
+                    </div>
+                    <iframe
+                      src={post.embedUrl}
+                      style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        width: '100%',
+                        height: '540px',
+                        border: 'none',
+                        overflow: 'hidden',
+                        background: 'transparent',
+                        opacity: isLoaded ? 1 : 0,
+                        transition: 'opacity 0.25s ease',
+                      }}
+                      loading="eager"
+                      onLoad={() =>
+                        setLoadedFrames((prev) => (prev[post.id] ? prev : { ...prev, [post.id]: true }))
+                      }
+                      title={`Postingan Instagram ${igHandle} - ${post.shortcode}`}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      flex: 1,
+                      padding: '24px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '18px',
+                      background: 'linear-gradient(160deg, #101521 0%, #080B10 100%)',
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '10px',
+                          marginBottom: '16px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: 'var(--color-gold-strong)',
+                            background: 'rgba(201,168,111,0.12)',
+                            border: '1px solid rgba(201,168,111,0.28)',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          {post.category}
+                        </span>
+                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                          {post.publishedDate}
+                        </span>
+                      </div>
+
+                      {post.localImageUrl ? (
+                        <div
+                          style={{
+                            marginBottom: '16px',
+                            borderRadius: '4px',
+                            overflow: 'hidden',
+                            aspectRatio: '16 / 10',
+                            background: '#08090C',
+                            border: '1px solid var(--color-border-subtle)',
+                          }}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={post.localImageUrl}
+                            alt={post.alt}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          />
+                        </div>
+                      ) : null}
+
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: '16px',
+                          lineHeight: 1.65,
+                          color: '#F1F5F9',
+                          borderLeft: '2px solid var(--color-gold)',
+                          paddingLeft: '14px',
+                        }}
+                      >
+                        {post.caption}
+                      </p>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                        fontSize: '12.5px',
+                        color: 'var(--color-text-muted)',
+                      }}
+                    >
+                      <span>{post.type === 'reel' ? 'Reels Instagram' : 'Kiriman Instagram'}</span>
+                      <span>Kode: {post.shortcode}</span>
+                    </div>
+                  </div>
+                )}
+                <div
+                  style={{
+                    padding: '12px 16px',
+                    background: 'var(--color-surface)',
+                    borderTop: '1px solid var(--color-border-subtle)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
                 >
-                  Buka di Instagram &rarr;
-                </a>
-              </div>
-            </div>
-          ))}
+                  <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+                    Unggahan Resmi {igHandle}
+                  </span>
+                  <a
+                    href={post.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-gold"
+                    style={{ fontSize: '13px', whiteSpace: 'nowrap' }}
+                    aria-label={`Buka di Instagram: ${post.category} (${post.shortcode})`}
+                  >
+                    Buka di Instagram &rarr;
+                  </a>
+                </div>
+              </article>
+            )
+          })}
         </div>
       </div>
     </section>

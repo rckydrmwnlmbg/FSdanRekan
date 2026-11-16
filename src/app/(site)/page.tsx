@@ -8,7 +8,8 @@ import {
   fetchPublishedTeamMembersFromDb,
   fetchSiteSettingsFromDb,
 } from '@/lib/content'
-import { fetchLiveInstagramMedia } from '@/lib/instagram'
+import { checkInstagramEmbedAvailable, fetchLiveInstagramMedia } from '@/lib/instagram'
+import { parseInstagramEmbedTarget } from '@/lib/instagram-helpers'
 import { buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
 import { HeroSection } from '@/components/HeroSection'
 import { HomePageClient } from '@/components/HomePageClient'
@@ -40,6 +41,8 @@ export default async function HomePage() {
     instagramResult.source === 'live' || instagramResult.source === 'cache'
       ? instagramResult.items
       : dbIgItems
+  const firstPostTarget = parseInstagramEmbedTarget(instagramItems[0]?.permalink)
+  const instagramEmbedAvailable = await checkInstagramEmbedAvailable(firstPostTarget?.shortcode)
 
   return (
     <>
@@ -54,6 +57,7 @@ export default async function HomePage() {
         caseRecords={caseRecords}
         latestArticles={latestArticles}
         instagramItems={instagramItems}
+        instagramEmbedAvailable={instagramEmbedAvailable}
       />
     </>
   )

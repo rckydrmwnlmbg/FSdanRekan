@@ -39,6 +39,15 @@ test.describe('Ferdinan Silalahi dan Rekan Law Firm — E2E & Accessibility Suit
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
 
+    // Instagram Gallery uses active @fsdanrekan handle & 5 post cards/links without legacy @fhspartners handle
+    const igSection = page.locator('#galeri-instagram')
+    await expect(igSection).toContainText('@fsdanrekan')
+    await expect(igSection).not.toContainText('@fhspartners')
+    await expect(igSection).not.toContainText('&nearr;')
+    await expect(igSection.locator('a[href="https://www.instagram.com/fsdanrekan/"]')).toHaveCount(2)
+    await expect(igSection.locator('.instagram-embed-card')).toHaveCount(5)
+    await expect(igSection.locator('.instagram-embed-card a[href^="https://www.instagram.com/p/"]')).toHaveCount(5)
+
     // Check WCAG AA accessibility via axe (excluding 3rd-party embedded iframes)
     const accessibilityScanResults = await new AxeBuilder({ page })
       .exclude('iframe')

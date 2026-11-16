@@ -9,6 +9,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const settings = DEFAULT_SITE_SETTINGS
   const jsonLd = buildLegalServiceJsonLd(
     process.env.NEXT_PUBLIC_SITE_URL || 'https://fsdanrekan.id',
+    settings.instagramUrl,
   )
 
   return (

@@ -10,6 +10,7 @@ import {
   getPublishedTeamMembers,
 } from '@/lib/content'
 import { checkDatabaseHealth, getDbPool, runIdempotentDataMigration } from '@/lib/db'
+import { normalizeInstagramProfileUrl } from '@/lib/instagram-helpers'
 import { assertSameOrigin } from '@/lib/security/origin'
 import { hashPassword, validatePasswordStrength } from '@/lib/security/password'
 import { cleanHtml } from '@/lib/security/sanitize'
@@ -205,7 +206,29 @@ const SiteSettingsUpdateSchema = z
     whatsappDisplay: z.string().trim().min(6).max(32),
     defaultWaMessage: z.string().trim().min(5).max(300),
     inquiryRecipientEmail: z.string().trim().email().max(190),
-    instagramUrl: z.string().trim().url().max(300),
+    instagramUrl: z
+      .string()
+      .trim()
+      .min(2)
+      .max(300)
+      .refine(
+        (val) => {
+          if (!val.includes('://') && !val.includes('.')) {
+            return /^@?[a-zA-Z0-9._]{1,30}$/.test(val)
+          }
+          try {
+            const u = new URL(val)
+            const h = u.hostname.toLowerCase()
+            return (
+              (u.protocol === 'https:' || u.protocol === 'http:') &&
+              (h === 'instagram.com' || h === 'www.instagram.com' || h === 'instagr.am')
+            )
+          } catch {
+            return false
+          }
+        },
+        { message: 'URL atau username Instagram tidak valid.' },
+      ),
     officeHoursPagi: z.string().trim().min(3).max(120),
     officeHoursSiang: z.string().trim().min(3).max(120),
     officeHoursSore: z.string().trim().min(3).max(120),
@@ -411,7 +434,10 @@ export async function GET(req: Request): Promise<Response> {
       inquiryRecipientEmail: String(
         rawSettings.inquiryRecipientEmail || DEFAULT_SITE_SETTINGS.inquiryRecipientEmail,
       ),
-      instagramUrl: String(rawSettings.instagramUrl || DEFAULT_SITE_SETTINGS.instagramUrl),
+      instagramUrl: normalizeInstagramProfileUrl(
+        rawSettings.instagramUrl,
+        DEFAULT_SITE_SETTINGS.instagramUrl,
+      ),
       officeHours: {
         pagi: String(rawSettings.officeHoursPagi || DEFAULT_SITE_SETTINGS.officeHours.pagi),
         siang: String(rawSettings.officeHoursSiang || DEFAULT_SITE_SETTINGS.officeHours.siang),
@@ -996,7 +1022,10 @@ export async function POST(req: Request): Promise<Response> {
         whatsappDisplay: data.whatsappDisplay,
         defaultWaMessage: data.defaultWaMessage,
         inquiryRecipientEmail: data.inquiryRecipientEmail,
-        instagramUrl: data.instagramUrl,
+        instagramUrl: normalizeInstagramProfileUrl(
+          data.instagramUrl,
+          DEFAULT_SITE_SETTINGS.instagramUrl,
+        ),
         officeHoursPagi: data.officeHoursPagi,
         officeHoursSiang: data.officeHoursSiang,
         officeHoursSore: data.officeHoursSore,

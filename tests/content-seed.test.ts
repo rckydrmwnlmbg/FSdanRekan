@@ -1,6 +1,6 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   fetchPublicCaseRecordsFromDb,
   fetchPublishedArticleBySlugFromDb,
@@ -13,7 +13,19 @@ import {
   getTeamMemberBySlug,
   getPublishedArticles,
 } from '../src/lib/content'
-import { fetchLiveInstagramMedia } from '../src/lib/instagram'
+import {
+  checkInstagramEmbedAvailable,
+  fetchLiveInstagramMedia,
+  resetInstagramEmbedCacheForTest,
+} from '../src/lib/instagram'
+import {
+  DEFAULT_INSTAGRAM_HANDLE,
+  DEFAULT_INSTAGRAM_PROFILE_URL,
+  extractInstagramHandle,
+  normalizeInstagramHandleMentions,
+  normalizeInstagramProfileUrl,
+  parseInstagramEmbedTarget,
+} from '../src/lib/instagram-helpers'
 
 interface TeamPhoto {
   id: string
@@ -184,8 +196,43 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
     expect(result.items[0]?.permalink).toBeDefined()
     expect(
       result.items[0]?.alt.includes('Ferdinan Silalahi dan Rekan Law Firm') ||
-      result.items[0]?.alt.includes('@fhspartners')
+      result.items[0]?.alt.includes(DEFAULT_INSTAGRAM_HANDLE),
     ).toBe(true)
+    expect(result.items.some((it) => it.alt.includes('@fhspartners') || it.caption.includes('@fhspartners'))).toBe(
+      false,
+    )
+  })
+
+  it('SK-13: normalizes legacy @fhspartners references and parses post/reel embeds for @fsdanrekan', () => {
+    expect(normalizeInstagramProfileUrl('https://instagram.com/fhspartners')).toBe(
+      DEFAULT_INSTAGRAM_PROFILE_URL,
+    )
+    expect(normalizeInstagramProfileUrl('https://www.instagram.com/fhspartners/?hl=id')).toBe(
+      DEFAULT_INSTAGRAM_PROFILE_URL,
+    )
+    expect(normalizeInstagramProfileUrl('@fsdanrekan')).toBe(DEFAULT_INSTAGRAM_PROFILE_URL)
+    expect(normalizeInstagramProfileUrl('https://www.instagram.com/fsdanrekan/?igsh=abc')).toBe(
+      DEFAULT_INSTAGRAM_PROFILE_URL,
+    )
+    expect(extractInstagramHandle('https://instagram.com/fhspartners')).toBe('@fsdanrekan')
+    expect(extractInstagramHandle('https://www.instagram.com/fsdanrekan/')).toBe('@fsdanrekan')
+    expect(normalizeInstagramHandleMentions('Dari @fhspartners resmi')).toBe('Dari @fsdanrekan resmi')
+
+    expect(parseInstagramEmbedTarget('https://www.instagram.com/p/DbTC57rEjrA/')).toEqual({
+      type: 'p',
+      shortcode: 'DbTC57rEjrA',
+      postUrl: 'https://www.instagram.com/p/DbTC57rEjrA/',
+      embedUrl: 'https://www.instagram.com/p/DbTC57rEjrA/embed/',
+    })
+    expect(parseInstagramEmbedTarget('https://www.instagram.com/fsdanrekan/reel/XYZ987/?igsh=1')).toEqual({
+      type: 'reel',
+      shortcode: 'XYZ987',
+      postUrl: 'https://www.instagram.com/reel/XYZ987/',
+      embedUrl: 'https://www.instagram.com/reel/XYZ987/embed/',
+    })
+    expect(parseInstagramEmbedTarget('https://evil.example/p/fake')).toBeNull()
+    expect(parseInstagramEmbedTarget('https://evil.example/?x=instagram.com/p/fake')).toBeNull()
+    expect(parseInstagramEmbedTarget('javascript:alert(1)')).toBeNull()
   })
 
   it('SK-13: fetchLiveInstagramMedia() gracefully recovers on network/API failure', async () => {
@@ -194,9 +241,56 @@ describe('SK-01 Content Seed (content/team.json & content/practice_areas.json)',
     expect(result.items.length).toBeGreaterThanOrEqual(1)
   })
 
+  it('SK-13: checkInstagramEmbedAvailable() detects login redirects, XFO deny, 200 OK, and network errors', async () => {
+    try {
+      resetInstagramEmbedCacheForTest()
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue(
+          new Response('', {
+            status: 302,
+            headers: {
+              location: 'https://www.instagram.com/accounts/login/?next=/p/DbTC57rEjrA/embed/',
+            },
+          }),
+        ),
+      )
+      expect(await checkInstagramEmbedAvailable('DbTC57rEjrA', { bypassCache: true })).toBe(false)
+
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue(
+          new Response('<html>denied</html>', {
+            status: 200,
+            headers: { 'x-frame-options': 'DENY' },
+          }),
+        ),
+      )
+      expect(await checkInstagramEmbedAvailable('DbTC57rEjrA', { bypassCache: true })).toBe(false)
+
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue(
+          new Response('<html>embed ok</html>', {
+            status: 200,
+            headers: { 'content-type': 'text/html' },
+          }),
+        ),
+      )
+      expect(await checkInstagramEmbedAvailable('DbTC57rEjrA', { bypassCache: true })).toBe(true)
+
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network timeout')))
+      expect(await checkInstagramEmbedAvailable('DbTC57rEjrA', { bypassCache: true })).toBe(false)
+    } finally {
+      vi.unstubAllGlobals()
+      resetInstagramEmbedCacheForTest()
+    }
+  })
+
   it('Tahap (b): async DB content fetchers return published content and hide drafts when DB is unconfigured', async () => {
     const settings = await fetchSiteSettingsFromDb()
     expect(settings.firmName).toBe('Ferdinan Silalahi dan Rekan Law Firm')
+    expect(settings.instagramUrl).toBe('https://www.instagram.com/fsdanrekan/')
 
     const dbTeam = await fetchPublishedTeamMembersFromDb()
     expect(dbTeam).toHaveLength(7)

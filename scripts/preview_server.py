@@ -271,7 +271,7 @@ def render_shell(title: str, description: str, body_html: str, path: str = "/") 
                     "closes": "18:00",
                 }
             ],
-            "sameAs": ["https://instagram.com/fhspartners"],
+            "sameAs": ["https://www.instagram.com/fsdanrekan/"],
             "areaServed": [
                 {"@type": "AdministrativeArea", "name": "Jakarta Pusat"},
                 {"@type": "AdministrativeArea", "name": "DKI Jakarta"},
@@ -614,9 +614,9 @@ def render_home_page() -> str:
         delay = f"{idx * 0.1:.2f}s"
         ig_embeds_html += f"""
         <div class="instagram-embed-card" data-reveal="up" style="--reveal-delay:{delay};background:var(--color-bg);border:1px solid var(--color-border-subtle);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;min-height:520px;">
-          <iframe src="https://www.instagram.com/p/{sc}/embed/" style="width:100%;height:520px;border:none;overflow:hidden;background:var(--color-bg);" loading="lazy" allowtransparency="true" title="Postingan Instagram @fhspartners - {sc}"></iframe>
+          <iframe src="https://www.instagram.com/p/{sc}/embed/" style="width:100%;height:540px;border:none;overflow:hidden;background:var(--color-bg);" loading="eager" allowtransparency="true" title="Postingan Instagram @fsdanrekan - {sc}"></iframe>
           <div style="padding:12px 16px;background:var(--color-surface);border-top:1px solid var(--color-border-subtle);display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:12px;color:var(--color-text-muted);">Unggahan Resmi @fhspartners</span>
+            <span style="font-size:12px;color:var(--color-text-muted);">Unggahan Resmi @fsdanrekan</span>
             <a href="https://www.instagram.com/p/{sc}/" target="_blank" rel="noopener noreferrer" class="link-gold" style="font-size:12.5px;">Buka di Instagram &rarr;</a>
           </div>
         </div>"""
@@ -894,10 +894,10 @@ def render_home_page() -> str:
           <div>
             <div class="eyebrow-tag">PUBLIKASI &amp; MEDIA SOSIAL RESMI — {SHORT_BRAND_NAME}</div>
             <h2 id="instagram-heading">Publikasi &amp; Dokumentasi Media Sosial</h2>
-            <p class="section-subtitle">Sematkan langsung publikasi resmi, wawasan yuridis, dan dokumentasi advokasi dari akun Instagram @fhspartners.</p>
+            <p class="section-subtitle">Sematkan langsung publikasi resmi, wawasan yuridis, dan dokumentasi advokasi dari akun Instagram @fsdanrekan.</p>
           </div>
-          <a href="{html.escape(cms_settings.get('instagramUrl', 'https://instagram.com/fhspartners'))}" target="_blank" rel="noopener noreferrer" class="btn-outline">
-            Ikuti @fhspartners di Instagram &nearr;
+          <a href="{html.escape(cms_settings.get('instagramUrl', 'https://www.instagram.com/fsdanrekan/'))}" target="_blank" rel="noopener noreferrer" class="btn-outline">
+            Ikuti @fsdanrekan di Instagram &nearr;
           </a>
         </div>
 
@@ -911,7 +911,7 @@ def render_home_page() -> str:
             </div>
             <div>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <h3 style="margin:0;font-size:1.25rem;color:#FFFFFF;font-weight:600;">@fhspartners</h3>
+                <h3 style="margin:0;font-size:1.25rem;color:#FFFFFF;font-weight:600;">@fsdanrekan</h3>
                 <span style="font-size:11px;background:rgba(201,168,111,0.15);color:var(--color-gold-strong);border:1px solid rgba(201,168,111,0.3);padding:2px 8px;border-radius:2px;font-weight:600;">Akun Resmi Instagram</span>
               </div>
               <p style="margin:4px 0 0 0;font-size:13.5px;color:var(--color-text-secondary);max-width:580px;line-height:1.5;">
@@ -920,8 +920,8 @@ def render_home_page() -> str:
             </div>
           </div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            <a href="{html.escape(cms_settings.get('instagramUrl', 'https://instagram.com/fhspartners'))}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;gap:6px;">
-              <span>Buka Instagram @fhspartners</span> &nearr;
+            <a href="{html.escape(cms_settings.get('instagramUrl', 'https://www.instagram.com/fsdanrekan/'))}" target="_blank" rel="noopener noreferrer" class="btn-gold" style="display:inline-flex;align-items:center;gap:6px;">
+              <span>Buka Instagram @fsdanrekan</span> &nearr;
             </a>
           </div>
         </div>

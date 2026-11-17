@@ -9,6 +9,7 @@ import { waLink } from '@/lib/whatsapp'
 import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const MAX_CHAT_BODY_BYTES = 16 * 1024 // 16 KB limit (SEC-006)
 

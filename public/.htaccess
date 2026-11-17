@@ -1,0 +1,8 @@
+# Minimal static-asset cache headers when LiteSpeed/Apache serves public/ directly.
+# Deliberately omits `immutable` so replaced images with reused filenames refresh on revalidation.
+# Applies only to image/icon/font files; never affects HTML, /admin, or /api/*.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(webp|png|jpe?g|ico|woff2)$">
+    Header set Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
+  </FilesMatch>
+</IfModule>

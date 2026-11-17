@@ -7,6 +7,7 @@ import { InquiryBodySchema } from '@/lib/validation/inquiry'
 import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const MAX_BODY_BYTES = 100 * 1024 // 100 KB limit (SEC-006)
 

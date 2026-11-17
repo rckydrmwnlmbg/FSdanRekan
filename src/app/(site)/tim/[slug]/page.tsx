@@ -8,10 +8,15 @@ import {
   fetchTeamMemberBySlugFromDb,
   getPublishedTeamMembers,
 } from '@/lib/content'
-import { buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
+import {
+  buildPageMetadata,
+  buildTeamSeoDescription,
+  buildTeamSeoTitle,
+  SHORT_BRAND_NAME,
+} from '@/lib/seo'
 import { waLink } from '@/lib/whatsapp'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 interface TeamDetailProps {
   params: Promise<{
@@ -30,14 +35,15 @@ export async function generateMetadata({ params }: TeamDetailProps): Promise<Met
   const member = await fetchTeamMemberBySlugFromDb(slug)
   if (!member) {
     return {
-      title: `Profil Tim Tidak Ditemukan | ${OFFICIAL_FIRM_NAME}`,
+      title: `Profil Tim Tidak Ditemukan | ${SHORT_BRAND_NAME}`,
     }
   }
   return buildPageMetadata({
-    title: `${member.displayName} — ${member.roleTitle} | ${OFFICIAL_FIRM_NAME}`,
-    description: member.shortBio,
+    title: buildTeamSeoTitle(member.displayName, member.roleTitle),
+    description: buildTeamSeoDescription(member.shortBio),
     path: `/tim/${member.slug}`,
     ogImage: member.photo.url,
+    ogImageAlt: member.photo.alt || `Foto ${member.displayName}`,
   })
 }
 

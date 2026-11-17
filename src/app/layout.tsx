@@ -2,15 +2,13 @@ import React from 'react'
 import '@/styles/globals.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
-import { DEFAULT_SITE_SETTINGS } from '@/lib/content'
-import { buildLegalServiceJsonLd } from '@/lib/seo'
+import { fetchSiteSettingsFromDb } from '@/lib/content'
+import { buildLegalServiceJsonLd, resolvePublicSiteUrl } from '@/lib/seo'
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const settings = DEFAULT_SITE_SETTINGS
-  const jsonLd = buildLegalServiceJsonLd(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://fsdanrekan.id',
-    settings.instagramUrl,
-  )
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const settings = await fetchSiteSettingsFromDb()
+  const siteUrl = resolvePublicSiteUrl()
+  const jsonLd = buildLegalServiceJsonLd({ siteUrl, settings })
 
   return (
     <html lang="id">

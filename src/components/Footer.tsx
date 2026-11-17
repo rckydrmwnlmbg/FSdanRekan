@@ -58,9 +58,15 @@ export function Footer({ settings }: FooterProps) {
     }
   }, [menuOpen])
 
+  const cleanLinkedinUrl = (settings.linkedinUrl || '').trim()
+  const cleanMapsProfileUrl = (settings.mapsProfileUrl || '').trim()
+  const telDigits = (settings.whatsappNumber || '').replace(/\D/g, '')
+  const firmDisplayName = settings.firmName?.trim() || OFFICIAL_FIRM_NAME
+  const shortDisplayName = settings.shortBrandName?.trim() || SHORT_BRAND_NAME
+
   const floatingWaUrl = waLink(
     settings.whatsappNumber,
-    `${settings.defaultWaMessage} (Sumber: Website Resmi ${OFFICIAL_FIRM_NAME})`,
+    `${settings.defaultWaMessage} (Sumber: Website Resmi ${firmDisplayName})`,
   )
 
   const handleScrollToAppointment = (e: React.MouseEvent) => {
@@ -85,25 +91,59 @@ export function Footer({ settings }: FooterProps) {
           <div className="footer-top-row">
             <div className="footer-brand">
               <img
-                src="/logo-seal-transparent.png"
-                alt={`Logo ${OFFICIAL_FIRM_NAME}`}
+                src="/logo-seal.webp"
+                alt={`Logo ${firmDisplayName}`}
                 width={44}
                 height={44}
                 className="brand-logo-img"
               />
               <div>
-                <div className="footer-firm-name">{OFFICIAL_FIRM_NAME}</div>
-                <div className="footer-brand-short">{SHORT_BRAND_NAME}</div>
+                <div className="footer-firm-name">{firmDisplayName}</div>
+                <div className="footer-brand-short">{shortDisplayName}</div>
               </div>
             </div>
-            <div className="footer-address-block">{settings.address}</div>
+            <div className="footer-address-block">
+              <div>{settings.address}</div>
+              {settings.whatsappDisplay ? (
+                <div>
+                  Telepon / WhatsApp:{' '}
+                  <a
+                    href={telDigits ? `tel:+${telDigits}` : undefined}
+                    className="footer-link"
+                    style={{ minHeight: 'auto' }}
+                  >
+                    {settings.whatsappDisplay}
+                  </a>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           <div className="footer-bottom-row">
             <div>
-              &copy; {currentYear} {OFFICIAL_FIRM_NAME}. Hak Cipta Dilindungi Undang-Undang.
+              &copy; {currentYear} {firmDisplayName}. Hak Cipta Dilindungi Undang-Undang.
             </div>
             <div className="footer-links-row">
+              {cleanLinkedinUrl ? (
+                <a
+                  href={cleanLinkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-link"
+                >
+                  LinkedIn
+                </a>
+              ) : null}
+              {cleanMapsProfileUrl ? (
+                <a
+                  href={cleanMapsProfileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-link"
+                >
+                  Google Maps
+                </a>
+              ) : null}
               <Link href="/kebijakan-privasi" className="footer-link">
                 Kebijakan Privasi
               </Link>

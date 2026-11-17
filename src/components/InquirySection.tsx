@@ -32,11 +32,13 @@ export function InquirySection({
   const [websiteHoneypot, setWebsiteHoneypot] = useState('')
   const [turnstileToken, setTurnstileToken] = useState('turnstile-client-token')
 
-  const [mapLoaded, setMapLoaded] = useState(true)
+  const [mapLoaded, setMapLoaded] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+
+  const resolvedMapsDirectUrl = settings.mapsProfileUrl?.trim() || settings.mapsDirectUrl
 
   const activePracticeArea = selectedPracticeAreaName || practiceAreaId
 
@@ -155,7 +157,7 @@ export function InquirySection({
                       Muat Peta Interaktif
                     </button>
                     <a
-                      href={settings.mapsDirectUrl}
+                      href={resolvedMapsDirectUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="link-gold"
@@ -169,7 +171,7 @@ export function InquirySection({
 
             <div className="map-external-row">
               <a
-                href={settings.mapsDirectUrl}
+                href={resolvedMapsDirectUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="link-gold"
@@ -487,7 +489,7 @@ export function InquirySection({
             aria-labelledby="success-modal-title"
           >
             <img
-              src="/logo-seal-transparent.png"
+              src="/logo-seal.webp"
               alt={`Logo ${OFFICIAL_FIRM_NAME}`}
               width={56}
               height={56}

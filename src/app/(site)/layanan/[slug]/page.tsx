@@ -12,12 +12,15 @@ import {
 import {
   buildBreadcrumbJsonLd,
   buildPageMetadata,
+  buildPracticeSeoDescription,
+  buildPracticeSeoTitle,
   OFFICIAL_ADDRESS,
   OFFICIAL_FIRM_NAME,
+  SHORT_BRAND_NAME,
 } from '@/lib/seo'
 import { waLink } from '@/lib/whatsapp'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 interface PracticeDetailProps {
   params: Promise<{
@@ -36,14 +39,15 @@ export async function generateMetadata({ params }: PracticeDetailProps): Promise
   const area = await fetchPracticeAreaBySlugFromDb(slug)
   if (!area) {
     return {
-      title: `Bidang Layanan Tidak Ditemukan | ${OFFICIAL_FIRM_NAME}`,
+      title: `Bidang Layanan Tidak Ditemukan | ${SHORT_BRAND_NAME}`,
     }
   }
   return buildPageMetadata({
-    title: `${area.name} | Layanan Hukum ${OFFICIAL_FIRM_NAME}`,
-    description: `${area.summary} Konsultasikan kebutuhan hukum ${area.name} bersama tim advokat ${OFFICIAL_FIRM_NAME} di Jakarta Pusat.`,
+    title: buildPracticeSeoTitle(area.name, area.slug),
+    description: buildPracticeSeoDescription(area.name, area.summary, area.slug),
     path: `/layanan/${area.slug}`,
     ogImage: area.image ?? '/og-default.webp',
+    ogImageAlt: `Ilustrasi layanan ${area.name} — ${OFFICIAL_FIRM_NAME}`,
   })
 }
 

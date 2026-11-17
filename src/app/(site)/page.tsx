@@ -8,18 +8,16 @@ import {
   fetchPublishedTeamMembersFromDb,
   fetchSiteSettingsFromDb,
 } from '@/lib/content'
-import { checkInstagramEmbedAvailable, fetchLiveInstagramMedia } from '@/lib/instagram'
-import { parseInstagramEmbedTarget } from '@/lib/instagram-helpers'
-import { buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
+import { fetchLiveInstagramMedia } from '@/lib/instagram'
+import { buildPageMetadata, HOME_SEO } from '@/lib/seo'
 import { HeroSection } from '@/components/HeroSection'
 import { HomePageClient } from '@/components/HomePageClient'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export const metadata: Metadata = buildPageMetadata({
-  title: `${OFFICIAL_FIRM_NAME} | Kantor Hukum & Advokat Jakarta Pusat`,
-  description:
-    'Website resmi Ferdinan Silalahi dan Rekan Law Firm (FS dan Rekan), Gedung Mandira Lt. 4, Menteng, Jakarta Pusat. Layanan konsultasi hukum, korporasi, perdata, pertanahan, PKPU, dan litigasi.',
+  title: HOME_SEO.title,
+  description: HOME_SEO.description,
   path: '/',
 })
 
@@ -35,14 +33,12 @@ export default async function HomePage() {
     ])
   const latestArticles = allPublishedArticles.slice(0, 3)
 
-  // SK-13 / Phase 2: Live Instagram Graph API integration with graceful fallback to DB curated gallery
+  // SK-13: Curated or cached live items; never run blocking external embed probes during SSR
   const instagramResult = await fetchLiveInstagramMedia()
   const instagramItems =
     instagramResult.source === 'live' || instagramResult.source === 'cache'
       ? instagramResult.items
       : dbIgItems
-  const firstPostTarget = parseInstagramEmbedTarget(instagramItems[0]?.permalink)
-  const instagramEmbedAvailable = await checkInstagramEmbedAvailable(firstPostTarget?.shortcode)
 
   return (
     <>
@@ -57,7 +53,7 @@ export default async function HomePage() {
         caseRecords={caseRecords}
         latestArticles={latestArticles}
         instagramItems={instagramItems}
-        instagramEmbedAvailable={instagramEmbedAvailable}
+        instagramEmbedAvailable={true}
       />
     </>
   )

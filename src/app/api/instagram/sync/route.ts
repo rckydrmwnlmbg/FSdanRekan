@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateCmsPublicPages } from '@/lib/cache'
 import { fetchLiveInstagramMedia } from '@/lib/instagram'
+
+export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/instagram/sync
@@ -11,6 +14,9 @@ export async function POST(req: NextRequest) {
     const providedToken = typeof body.accessToken === 'string' ? body.accessToken.trim() : undefined
 
     const result = await fetchLiveInstagramMedia(providedToken)
+    if (result.success) {
+      revalidateCmsPublicPages('instagram')
+    }
 
     return NextResponse.json({
       ok: result.success,

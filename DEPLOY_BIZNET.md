@@ -490,3 +490,59 @@ Berikan panduan singkat ini kepada tim staf kantor hukum untuk memeriksa dan mem
 10. **Periksa Tampilan Galeri Foto di Halaman Publik:**
     Buka beranda publik `https://fsdanrekan.com` dan gulir ke bagian **Rekam Jejak Perkara**. Klik salah satu perkara untuk membuka galeri dokumentasi foto interaktif lengkap dengan navigasi foto, keterangan, serta komitmen perlindungan kerahasiaan advokat.
 
+---
+
+## M. Cache Aset Statis, Pengujian Header, dan Cara Membatalkan (`.htaccess` & `next.config.ts`)
+
+Pada hosting cPanel Biznet Gio berbasis LiteSpeed + CloudLinux Passenger, sebagian aset statis di `public/` dapat dilayani langsung oleh LiteSpeed sebelum mencapai proses Node.js. Karena itu, aturan cache aset statis diterapkan pada dua lapis yang saling melengkapi:
+
+1. **Lapis Next.js (`next.config.ts`):**
+   - `/_next/static/:path*` → `Cache-Control: public, max-age=31536000, immutable` (aman memakai `immutable` karena nama berkas mengandung hash isi).
+   - `/images/:path*`, `/team/:path*`, `/logo-seal.webp`, `/logo-seal-transparent.png`, `/og-default.webp`, `/favicon.ico`, `/icon.png` → `Cache-Control: public, max-age=2592000, stale-while-revalidate=86400` (**tanpa `immutable`**, karena nama berkas statis ini bisa dipakai ulang jika gambar diganti).
+   - `/uploads/:path*` → sudah dilayani oleh route handler khusus dengan nama berkas unik berbasis timestamp + hash acak (`immutable`).
+   - `/admin`, `/admin/:path*`, `/api/admin/:path*`, `/api/inquiry`, `/api/chat`, `/api/instagram/sync` → dipaksa `Cache-Control: private, no-store, no-cache, must-revalidate` dan `Pragma: no-cache` agar panel admin dan formulir konsultasi tidak pernah di-cache.
+
+2. **Lapis LiteSpeed / Apache (`public/.htaccess`):**
+   - Berkas minimal `public/.htaccess` hanya mengatur `Cache-Control: public, max-age=2592000, stale-while-revalidate=86400` untuk ekstensi gambar/ikon/font (`webp|png|jpe?g|ico|woff2`) tanpa `immutable` dan tanpa aturan rewrite apa pun agar tidak bentrok dengan Passenger.
+   - **Catatan cPanel:** Apabila hasil uji `curl -I` terhadap `/images/hero-bg.webp` di server produksi belum menampilkan header `Cache-Control` (karena konfigurasi VirtualHost LiteSpeed hanya membaca `.htaccess` di `public_html`), tambahkan blok minimal berikut di **paling atas** `public_html/.htaccess` (tepat **di atas** `# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION`):
+
+```apache
+<IfModule mod_headers.c>
+  SetEnvIfNoCase Request_URI "^/(images/|team/|logo-seal\.webp|logo-seal-transparent\.png|og-default\.webp|favicon\.ico|icon\.png)" FS_STATIC_ASSET=1
+  Header set Cache-Control "public, max-age=2592000, stale-while-revalidate=86400" env=FS_STATIC_ASSET
+</IfModule>
+```
+
+### Cara Menguji Header Setelah Deploy
+
+Jalankan perintah berikut dari terminal lokal atau SSH cPanel:
+
+```bash
+# 1. Aset gambar statis (harus ada max-age=2592000 dan TANPA immutable)
+curl -sI https://fsdanrekan.com/images/hero-bg.webp | grep -i "cache-control"
+curl -sI https://fsdanrekan.com/team/ferdinan-hasiholan-silalahi.webp | grep -i "cache-control"
+
+# 2. Bundle Next.js ber-hash (harus max-age=31536000, immutable)
+STATIC_CSS=$(curl -s https://fsdanrekan.com/ | grep -o '/_next/static/[^"]*\.css' | head -n 1)
+curl -sI "https://fsdanrekan.com${STATIC_CSS}" | grep -i "cache-control"
+
+# 3. Halaman publik (ISR cache aktif, berubah cepat setelah simpan di /admin)
+curl -sI https://fsdanrekan.com/ | grep -iE "cache-control|x-nextjs-cache"
+
+# 4. Panel admin dan API form (wajib no-store, tidak boleh public cache)
+curl -sI https://fsdanrekan.com/admin | grep -i "cache-control"
+```
+
+### Cara Membatalkan (Rollback) Bila Terjadi Kendala
+
+Jika ada aset lama yang tertahan cache atau ada perilaku header yang tidak sesuai:
+
+1. **Membatalkan `.htaccess` (langsung aktif tanpa restart Node.js):**
+   - Hapus atau ubah nama `/home/<user_cpanel>/apps/fsdanrekan/public/.htaccess` menjadi `.htaccess.bak` melalui File Manager cPanel.
+   - Jika Anda menambahkan blok `FS_STATIC_ASSET` di `public_html/.htaccess`, hapus 4 baris blok tersebut (biarkan blok `# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION` tetap utuh).
+2. **Membatalkan sementara lewat peramban:**
+   - Lakukan hard refresh (`Ctrl+Shift+R`) atau ganti nama file aset jika ingin memaksa semua pengunjung mengambil gambar terbaru seketika.
+3. **Membatalkan perubahan `next.config.ts`:**
+   - Kembalikan fungsi `headers()` di `next.config.ts` agar hanya mengembalikan `securityHeaders`, jalankan ulang `npm run build`, unggah hasil build, lalu klik **Restart** di menu **Setup Node.js App** cPanel.
+
+

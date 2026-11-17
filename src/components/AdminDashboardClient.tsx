@@ -10,6 +10,7 @@ import {
   DEFAULT_INSTAGRAM_PROFILE_URL,
   normalizeInstagramProfileUrl,
 } from '@/lib/instagram-helpers'
+import { buildArticleSeoTitle, truncateAtWordBoundary } from '@/lib/seo'
 
 interface AdminUserSession {
   id: string
@@ -175,12 +176,15 @@ export function AdminDashboardClient() {
   // Site settings form state
   const [firmName, setFirmName] = useState('Ferdinan Silalahi dan Rekan Law Firm')
   const [shortBrandName, setShortBrandName] = useState('FS dan Rekan')
+  const [formerFirmName, setFormerFirmName] = useState('')
   const [address, setAddress] = useState('')
   const [whatsappNumber, setWhatsappNumber] = useState('62811830991')
   const [whatsappDisplay, setWhatsappDisplay] = useState('+62 811-830-991')
   const [defaultWaMessage, setDefaultWaMessage] = useState('')
   const [inquiryRecipientEmail, setInquiryRecipientEmail] = useState('konsultasi@fsdanrekan.com')
   const [instagramUrl, setInstagramUrl] = useState(DEFAULT_INSTAGRAM_PROFILE_URL)
+  const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [mapsProfileUrl, setMapsProfileUrl] = useState('')
   const [officeHoursPagi, setOfficeHoursPagi] = useState('Pagi (09.30 – 12.00 WIB)')
   const [officeHoursSiang, setOfficeHoursSiang] = useState('Siang (13.30 – 15.30 WIB)')
   const [officeHoursSore, setOfficeHoursSore] = useState('Sore (16.00 – 18.00 WIB)')
@@ -281,6 +285,7 @@ export function AdminDashboardClient() {
       if (data.siteSettings) {
         setFirmName(data.siteSettings.firmName || '')
         setShortBrandName(data.siteSettings.shortBrandName || '')
+        setFormerFirmName(data.siteSettings.formerFirmName || '')
         setAddress(data.siteSettings.address || '')
         setWhatsappNumber(data.siteSettings.whatsappNumber || '')
         setWhatsappDisplay(data.siteSettings.whatsappDisplay || '')
@@ -292,6 +297,8 @@ export function AdminDashboardClient() {
             DEFAULT_INSTAGRAM_PROFILE_URL,
           ),
         )
+        setLinkedinUrl(data.siteSettings.linkedinUrl || '')
+        setMapsProfileUrl(data.siteSettings.mapsProfileUrl || '')
         setOfficeHoursPagi(data.siteSettings.officeHours?.pagi || '')
         setOfficeHoursSiang(data.siteSettings.officeHours?.siang || '')
         setOfficeHoursSore(data.siteSettings.officeHours?.sore || '')
@@ -912,8 +919,9 @@ export function AdminDashboardClient() {
               onSubmit={async (e) => {
                 e.preventDefault()
                 const selectedCat = categories.find((c) => c.slug === artCategorySlug)
-                const finalSeoTitle = artSeoTitle.trim() || `${artTitle.trim()} | FS dan Rekan`
-                const finalSeoDesc = artSeoDesc.trim() || artExcerpt.trim().slice(0, 155)
+                const finalSeoTitle = buildArticleSeoTitle(artSeoTitle, artTitle)
+                const finalSeoDesc =
+                  artSeoDesc.trim() || truncateAtWordBoundary(artExcerpt, 155, { stripMarkdown: true })
 
                 const ok = await postCmsMutation(
                   {
@@ -1068,7 +1076,9 @@ export function AdminDashboardClient() {
               <div className="form-group" style={{ marginBottom: '12px' }}>
                 <label htmlFor="artSeoTitleInput" className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Judul untuk Mesin Pencari (SEO Title)</span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Opsional</span>
+                  <span style={{ fontSize: '11px', color: (artSeoTitle.trim() || buildArticleSeoTitle(undefined, artTitle || 'Judul Artikel')).length > 60 ? '#f59e0b' : 'var(--color-text-muted)' }}>
+                    Opsional &middot; {(artSeoTitle.trim() || (artTitle ? buildArticleSeoTitle(undefined, artTitle) : '')).length}/60 karakter
+                  </span>
                 </label>
                 <input
                   id="artSeoTitleInput"
@@ -1077,16 +1087,18 @@ export function AdminDashboardClient() {
                   value={artSeoTitle}
                   onChange={(e) => setArtSeoTitle(e.target.value)}
                   className="form-input"
-                  placeholder={artTitle ? `${artTitle} | FS dan Rekan` : 'Teks yang tampil di Google. Boleh dikosongkan.'}
+                  placeholder={artTitle ? buildArticleSeoTitle(undefined, artTitle) : 'Teks yang tampil di Google (maks. 60 karakter). Boleh dikosongkan.'}
                 />
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
-                  Teks yang tampil di Google. Boleh dikosongkan (otomatis diisi dari judul artikel bila kosong).
+                  Teks yang tampil di Google (disarankan &le; 60 karakter). Boleh dikosongkan agar diringkas otomatis pada batas kata.
                 </span>
               </div>
               <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label htmlFor="artSeoDescInput" className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Deskripsi untuk Mesin Pencari (SEO Description)</span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Opsional</span>
+                  <span style={{ fontSize: '11px', color: (artSeoDesc.trim() || (artExcerpt ? truncateAtWordBoundary(artExcerpt, 155, { stripMarkdown: true }) : '')).length > 160 ? '#f59e0b' : 'var(--color-text-muted)' }}>
+                    Opsional &middot; {(artSeoDesc.trim() || (artExcerpt ? truncateAtWordBoundary(artExcerpt, 155, { stripMarkdown: true }) : '')).length}/160 karakter
+                  </span>
                 </label>
                 <textarea
                   id="artSeoDescInput"
@@ -1095,10 +1107,14 @@ export function AdminDashboardClient() {
                   value={artSeoDesc}
                   onChange={(e) => setArtSeoDesc(e.target.value)}
                   className="form-input"
-                  placeholder={artExcerpt ? artExcerpt.slice(0, 155) : 'Teks yang tampil di Google. Boleh dikosongkan.'}
+                  placeholder={
+                    artExcerpt
+                      ? truncateAtWordBoundary(artExcerpt, 155, { stripMarkdown: true })
+                      : 'Ringkasan untuk hasil pencarian Google (maks. 160 karakter). Boleh dikosongkan.'
+                  }
                 />
                 <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
-                  Teks ringkasan di hasil pencarian Google. Boleh dikosongkan (otomatis diisi dari ringkasan artikel bila kosong).
+                  Teks ringkasan di hasil pencarian Google (disarankan &le; 160 karakter). Boleh dikosongkan agar diambil utuh per kata dari ringkasan.
                 </span>
               </div>
 
@@ -2329,6 +2345,7 @@ export function AdminDashboardClient() {
                   action: 'update',
                   firmName,
                   shortBrandName,
+                  formerFirmName: formerFirmName.trim(),
                   address,
                   whatsappNumber,
                   whatsappDisplay,
@@ -2338,6 +2355,8 @@ export function AdminDashboardClient() {
                     instagramUrl,
                     DEFAULT_INSTAGRAM_PROFILE_URL,
                   ),
+                  linkedinUrl: linkedinUrl.trim(),
+                  mapsProfileUrl: mapsProfileUrl.trim(),
                   officeHoursPagi,
                   officeHoursSiang,
                   officeHoursSore,
@@ -2426,6 +2445,57 @@ export function AdminDashboardClient() {
               />
               <small style={{ display: 'block', marginTop: '4px', color: 'var(--color-text-muted)' }}>
                 Contoh: https://www.instagram.com/fsdanrekan/ atau @fsdanrekan
+              </small>
+            </div>
+            <div className="form-group" style={{ marginBottom: '12px' }}>
+              <label htmlFor="setFormerFirmName" className="form-label">
+                Nama Terdahulu Kantor (Opsional)
+              </label>
+              <input
+                id="setFormerFirmName"
+                type="text"
+                maxLength={160}
+                placeholder="Kosongkan jika belum ada atau tidak ingin ditampilkan"
+                value={formerFirmName}
+                onChange={(e) => setFormerFirmName(e.target.value)}
+                className="form-input"
+              />
+              <small style={{ display: 'block', marginTop: '4px', color: 'var(--color-text-muted)' }}>
+                Hanya tampil di halaman Tentang (&ldquo;Sebelumnya dikenal sebagai ...&rdquo;) dan Schema alternateName bila kolom ini diisi.
+              </small>
+            </div>
+            <div className="form-group" style={{ marginBottom: '12px' }}>
+              <label htmlFor="setLinkedinUrl" className="form-label">
+                URL Profil Resmi LinkedIn Kantor (Opsional)
+              </label>
+              <input
+                id="setLinkedinUrl"
+                type="url"
+                maxLength={300}
+                placeholder="https://www.linkedin.com/company/..."
+                value={linkedinUrl}
+                onChange={(e) => setLinkedinUrl(e.target.value)}
+                className="form-input"
+              />
+              <small style={{ display: 'block', marginTop: '4px', color: 'var(--color-text-muted)' }}>
+                Kosongkan jika belum tersedia. Jika diisi, hanya menerima URL resmi domain linkedin.com dan otomatis masuk ke footer serta Schema sameAs.
+              </small>
+            </div>
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label htmlFor="setMapsProfileUrl" className="form-label">
+                URL Profil Resmi Google Maps Kantor (Opsional)
+              </label>
+              <input
+                id="setMapsProfileUrl"
+                type="url"
+                maxLength={500}
+                placeholder="https://maps.app.goo.gl/... atau https://www.google.com/maps/..."
+                value={mapsProfileUrl}
+                onChange={(e) => setMapsProfileUrl(e.target.value)}
+                className="form-input"
+              />
+              <small style={{ display: 'block', marginTop: '4px', color: 'var(--color-text-muted)' }}>
+                Kosongkan jika menggunakan tautan pencarian alamat standar. Jika diisi, tampil pada tombol peta, footer, dan Schema hasMap / sameAs.
               </small>
             </div>
             <button type="submit" className="btn-gold" disabled={busy}>

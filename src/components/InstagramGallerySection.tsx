@@ -20,9 +20,9 @@ interface InstagramGallerySectionProps {
 }
 
 /**
- * SK-13 & PRD V3 (Phase 2):
- * Official Instagram Gallery section with live post embeds, profile spotlight,
- * and curated dark-gold cards when Instagram /embed/ framing is unavailable.
+ * SK-13 & Performance Optimization:
+ * Renders lightweight static editorial preview cards on initial load (zero third-party iframe requests),
+ * loading interactive Instagram embeds strictly on-demand when clicked by the visitor.
  */
 export function InstagramGallerySection({
   items,
@@ -31,6 +31,7 @@ export function InstagramGallerySection({
 }: InstagramGallerySectionProps) {
   const cleanUrl = normalizeInstagramProfileUrl(instagramUrl, DEFAULT_INSTAGRAM_PROFILE_URL)
   const igHandle = extractInstagramHandle(cleanUrl) || DEFAULT_INSTAGRAM_HANDLE
+  const [activatedEmbeds, setActivatedEmbeds] = useState<Record<string, boolean>>({})
   const [loadedFrames, setLoadedFrames] = useState<Record<string, boolean>>({})
 
   const sourceItems = items.length > 0 ? items : INITIAL_INSTAGRAM_GALLERY
@@ -47,6 +48,15 @@ export function InstagramGallerySection({
     const localImageUrl =
       rawLocalImg.startsWith('/') && !rawLocalImg.startsWith('//') ? rawLocalImg : null
 
+    const rawCategory = (it.category || '').trim()
+    const displayCategory =
+      !rawCategory || rawCategory === 'Publikasi Resmi'
+        ? fallbackItem?.category || 'Wawasan Hukum'
+        : rawCategory
+
+    const rawDate = (it.publishedDate || '').trim()
+    const displayDate = rawDate === 'Instagram Live' || rawDate === 'Publikasi Resmi' ? '' : rawDate
+
     return {
       id: it.id,
       shortcode,
@@ -55,10 +65,10 @@ export function InstagramGallerySection({
       embedUrl,
       alt: it.alt,
       localImageUrl,
-      category: it.category || 'Publikasi Resmi',
-      publishedDate: it.publishedDate || 'Publikasi Resmi',
+      category: displayCategory,
+      publishedDate: displayDate,
       caption: normalizeInstagramHandleMentions(
-        it.caption || `Publikasi resmi akun Instagram ${igHandle}.`,
+        it.caption || `Catatan hukum dari akun ${igHandle}.`,
         igHandle,
       ),
     }
@@ -73,10 +83,10 @@ export function InstagramGallerySection({
       <div className="container">
         <div className="section-header-row">
           <div>
-            <div className="eyebrow-tag">PUBLIKASI &amp; MEDIA SOSIAL RESMI — {SHORT_BRAND_NAME}</div>
+            <div className="eyebrow-tag">MEDIA SOSIAL &amp; EDUKASI — {SHORT_BRAND_NAME}</div>
             <h2 id="instagram-gallery-heading">Publikasi &amp; Dokumentasi Media Sosial</h2>
             <p className="section-subtitle">
-              Ikuti publikasi resmi, wawasan yuridis, dan dokumentasi advokasi dari akun Instagram {igHandle}.
+              Ikuti wawasan yuridis dan agenda advokasi dari akun Instagram {igHandle}.
             </p>
           </div>
           <a
@@ -153,7 +163,7 @@ export function InstagramGallerySection({
                     fontWeight: 600,
                   }}
                 >
-                  Akun Resmi Instagram
+                  Instagram Resmi
                 </span>
               </div>
               <p
@@ -165,7 +175,7 @@ export function InstagramGallerySection({
                   lineHeight: 1.5,
                 }}
               >
-                Kanal publikasi wawasan hukum, agenda persidangan, dan edukasi hukum resmi {OFFICIAL_FIRM_NAME}.
+                Kanal informasi wawasan hukum dan kegiatan advokasi {OFFICIAL_FIRM_NAME}.
               </p>
             </div>
           </div>
@@ -182,7 +192,7 @@ export function InstagramGallerySection({
           </div>
         </div>
 
-        {/* Official Instagram Feed Grid (Live Embeds or Curated Editorial Fallback Cards) */}
+        {/* Static Editorial Preview Cards with Click-to-Load Embed */}
         <div
           className="instagram-embed-grid"
           style={{
@@ -193,7 +203,9 @@ export function InstagramGallerySection({
           }}
         >
           {activePosts.map((post) => {
+            const isEmbedActive = embedAvailable && Boolean(activatedEmbeds[post.id])
             const isLoaded = Boolean(loadedFrames[post.id])
+
             return (
               <article
                 key={post.id}
@@ -206,45 +218,18 @@ export function InstagramGallerySection({
                   overflow: 'hidden',
                   display: 'flex',
                   flexDirection: 'column',
-                  minHeight: embedAvailable ? '540px' : '300px',
+                  minHeight: isEmbedActive ? '540px' : '260px',
                 }}
               >
-                {embedAvailable ? (
-                  <div style={{ position: 'relative', width: '100%', height: '540px', background: 'var(--color-bg)' }}>
-                    <div
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        padding: '28px 24px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        background: 'linear-gradient(160deg, #0E131D 0%, #090C12 100%)',
-                        color: 'var(--color-text-secondary)',
-                      }}
-                    >
-                      <div>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            color: 'var(--color-gold-strong)',
-                            borderLeft: '2px solid var(--color-gold)',
-                            paddingLeft: '8px',
-                            marginBottom: '12px',
-                          }}
-                        >
-                          {post.category} · {igHandle}
-                        </span>
-                        <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.6, color: '#F1F5F9' }}>
-                          {post.caption}
-                        </p>
-                      </div>
-                      <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                        Memuat pratinjau Instagram {igHandle}...
-                      </div>
-                    </div>
+                {isEmbedActive ? (
+                  <div
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '540px',
+                      background: 'var(--color-bg)',
+                    }}
+                  >
                     <iframe
                       src={post.embedUrl}
                       style={{
@@ -255,10 +240,10 @@ export function InstagramGallerySection({
                         border: 'none',
                         overflow: 'hidden',
                         background: 'transparent',
-                        opacity: isLoaded ? 1 : 0,
+                        opacity: isLoaded ? 1 : 0.05,
                         transition: 'opacity 0.25s ease',
                       }}
-                      loading="eager"
+                      loading="lazy"
                       onLoad={() =>
                         setLoadedFrames((prev) => (prev[post.id] ? prev : { ...prev, [post.id]: true }))
                       }
@@ -304,9 +289,11 @@ export function InstagramGallerySection({
                         >
                           {post.category}
                         </span>
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                          {post.publishedDate}
-                        </span>
+                        {post.publishedDate ? (
+                          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                            {post.publishedDate}
+                          </span>
+                        ) : null}
                       </div>
 
                       {post.localImageUrl ? (
@@ -324,7 +311,14 @@ export function InstagramGallerySection({
                           <img
                             src={post.localImageUrl}
                             alt={post.alt}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            loading="lazy"
+                            decoding="async"
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              display: 'block',
+                            }}
                           />
                         </div>
                       ) : null}
@@ -342,22 +336,9 @@ export function InstagramGallerySection({
                         {post.caption}
                       </p>
                     </div>
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '8px',
-                        fontSize: '12.5px',
-                        color: 'var(--color-text-muted)',
-                      }}
-                    >
-                      <span>{post.type === 'reel' ? 'Reels Instagram' : 'Kiriman Instagram'}</span>
-                      <span>Kode: {post.shortcode}</span>
-                    </div>
                   </div>
                 )}
+
                 <div
                   style={{
                     padding: '12px 16px',
@@ -367,11 +348,25 @@ export function InstagramGallerySection({
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     gap: '12px',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
-                    Unggahan Resmi {igHandle}
-                  </span>
+                  {embedAvailable && !isEmbedActive ? (
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      style={{ padding: '6px 12px', fontSize: '12.5px', minHeight: '36px' }}
+                      onClick={() =>
+                        setActivatedEmbeds((prev) => ({ ...prev, [post.id]: true }))
+                      }
+                    >
+                      Muat Pratinjau
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+                      {igHandle}
+                    </span>
+                  )}
                   <a
                     href={post.url}
                     target="_blank"

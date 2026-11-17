@@ -5,10 +5,16 @@ import { OFFICIAL_FIRM_NAME } from '@/lib/seo'
 
 interface AboutSectionProps {
   founder: TeamMemberData
+  formerFirmName?: string
   onOpenFounderProfile?: (founder: TeamMemberData, triggerEl: HTMLButtonElement) => void
 }
 
-export function AboutSection({ founder, onOpenFounderProfile }: AboutSectionProps) {
+export function AboutSection({
+  founder,
+  formerFirmName,
+  onOpenFounderProfile,
+}: AboutSectionProps) {
+  const cleanFormerFirmName = (formerFirmName || '').trim()
   return (
     <section id="tentang" className="section-gap" aria-labelledby="about-heading">
       <div className="container">
@@ -46,6 +52,12 @@ export function AboutSection({ founder, onOpenFounderProfile }: AboutSectionProp
               menghadirkan pendampingan hukum yang terpercaya, mudah diakses, dan profesional bagi
               individu, pelaku usaha, maupun masyarakat yang membutuhkan.
             </p>
+
+            {cleanFormerFirmName ? (
+              <p className="about-paragraph">
+                Sebelumnya dikenal sebagai <strong>{cleanFormerFirmName}</strong>.
+              </p>
+            ) : null}
 
             {/* DESIGN.md Section 9 #5: Factual, verifiable points without unverified encryption or superlative claims */}
             <div className="credentials-spec-grid">

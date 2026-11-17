@@ -3,11 +3,19 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchPublishedArticleBySlugFromDb, fetchSiteSettingsFromDb } from '@/lib/content'
-import { buildArticleJsonLd, buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
+import {
+  buildArticleJsonLd,
+  buildArticleSeoDescription,
+  buildArticleSeoTitle,
+  buildPageMetadata,
+  OFFICIAL_FIRM_NAME,
+  resolvePublicSiteUrl,
+  SHORT_BRAND_NAME,
+} from '@/lib/seo'
 import { waLink } from '@/lib/whatsapp'
 import { ArticleBody } from '@/components/ArticleBody'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 interface ArticleDetailProps {
   params: Promise<{
@@ -20,14 +28,15 @@ export async function generateMetadata({ params }: ArticleDetailProps): Promise<
   const article = await fetchPublishedArticleBySlugFromDb(slug)
   if (!article) {
     return {
-      title: `Artikel Tidak Ditemukan | ${OFFICIAL_FIRM_NAME}`,
+      title: `Artikel Tidak Ditemukan | ${SHORT_BRAND_NAME}`,
     }
   }
   return buildPageMetadata({
-    title: article.seoTitle || `${article.title} | ${OFFICIAL_FIRM_NAME}`,
-    description: article.seoDescription || article.excerpt,
+    title: buildArticleSeoTitle(article.seoTitle, article.title),
+    description: buildArticleSeoDescription(article.seoDescription, article.excerpt),
     path: `/artikel/${article.slug}`,
     ogImage: article.coverImage.url,
+    ogImageAlt: article.coverImage.alt || `Ilustrasi ${article.title} — ${OFFICIAL_FIRM_NAME}`,
   })
 }
 
@@ -60,6 +69,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailProps) 
     publishedAt: article.publishedAt,
     coverUrl: article.coverImage.url,
     authorName: article.authorName,
+    siteUrl: resolvePublicSiteUrl(),
   })
 
   return (

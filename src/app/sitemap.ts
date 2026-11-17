@@ -4,11 +4,12 @@ import {
   fetchPublishedPracticeAreasFromDb,
   fetchPublishedTeamMembersFromDb,
 } from '@/lib/content'
+import { resolvePublicSiteUrl } from '@/lib/seo'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fsdanrekan.com'
+  const siteUrl = resolvePublicSiteUrl()
   // SK-07 & FR-9.2: Only published articles are included in sitemap; drafts are strictly excluded
   const [publishedArticles, practiceAreas, teamMembers] = await Promise.all([
     fetchPublishedArticlesFromDb(),

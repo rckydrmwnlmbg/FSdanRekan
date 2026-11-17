@@ -1,12 +1,18 @@
 import React from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { buildPageMetadata, OFFICIAL_ADDRESS, OFFICIAL_FIRM_NAME } from '@/lib/seo'
+import {
+  buildPageMetadata,
+  OFFICIAL_ADDRESS,
+  OFFICIAL_FIRM_NAME,
+  PRIVACY_POLICY_SEO,
+} from '@/lib/seo'
+
+export const revalidate = 60
 
 export const metadata: Metadata = buildPageMetadata({
-  title: `Kebijakan Privasi & Disclaimer | ${OFFICIAL_FIRM_NAME}`,
-  description:
-    'Kebijakan Pelindungan Data Pribadi (UU No. 27 Tahun 2022) dan Disclaimer informasi hukum pada website resmi Ferdinan Silalahi dan Rekan Law Firm.',
+  title: PRIVACY_POLICY_SEO.title,
+  description: PRIVACY_POLICY_SEO.description,
   path: '/kebijakan-privasi',
 })
 

@@ -53,12 +53,11 @@ export function Header({ whatsappNumber, defaultWaMessage }: HeaderProps) {
       <div className="container nav-wrapper">
         <Link href="/#beranda" className="brand-link">
           <img
-            src="/logo-seal-transparent.png"
+            src="/logo-seal.webp"
             alt={`Logo ${OFFICIAL_FIRM_NAME}`}
             className="brand-logo-img"
             width={48}
             height={48}
-            fetchPriority="high"
           />
           <div>
             <div className="brand-text-name">{SHORT_BRAND_NAME}</div>

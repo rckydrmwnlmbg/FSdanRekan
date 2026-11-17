@@ -838,5 +838,112 @@ describe('Real MariaDB End-to-End Integration Suite (Migrations, Auth, CRUD, Upl
     await callCms({ module: 'case_record', action: 'delete', id: 'case-multi-e2e' })
     await callCms({ module: 'case_record', action: 'delete', id: 'case-legacy-compat' })
   })
+
+  it('Step 9: persists optional formerFirmName/linkedinUrl/mapsProfileUrl, enforces no-store & draft isolation, and validates URL domains', async () => {
+    process.env.DATABASE_URL = e2eDatabaseUrl
+    await resetDbPoolForTest()
+
+    const callCms = async (payload: Record<string, unknown>) => {
+      const req = new Request('https://fsdanrekan.com/api/admin/cms', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'https://fsdanrekan.com',
+          cookie: sessionCookie,
+          'x-csrf-token': csrfToken,
+        },
+        body: JSON.stringify(payload),
+      })
+      return adminCmsPost(req)
+    }
+
+    const baseSettings = {
+      module: 'site_settings',
+      action: 'update',
+      firmName: 'Ferdinan Silalahi dan Rekan Law Firm',
+      shortBrandName: 'FS dan Rekan',
+      address:
+        'Gedung Mandira Lt. 4, Jl. RP Soeroso No. 33, RT 002 RW 002, Gondangdia, Menteng, Jakarta Pusat 10350',
+      whatsappNumber: '62811830991',
+      whatsappDisplay: '+62 811-830-991',
+      defaultWaMessage: 'Halo, saya ingin menjadwalkan konsultasi hukum dengan FS dan Rekan.',
+      inquiryRecipientEmail: 'konsultasi@fsdanrekan.com',
+      instagramUrl: 'https://www.instagram.com/fsdanrekan/',
+      officeHoursPagi: 'Pagi (09.30 – 12.00 WIB)',
+      officeHoursSiang: 'Siang (13.30 – 15.30 WIB)',
+      officeHoursSore: 'Sore (16.00 – 18.00 WIB)',
+    }
+
+    // 1. Reject untrusted LinkedIn/Maps URL domains via Zod
+    const badLinkedinRes = await callCms({
+      ...baseSettings,
+      linkedinUrl: 'https://evil.example/company/fsdanrekan',
+    })
+    expect(badLinkedinRes.status).toBe(400)
+
+    const badMapsRes = await callCms({
+      ...baseSettings,
+      mapsProfileUrl: 'https://evil.example/maps',
+    })
+    expect(badMapsRes.status).toBe(400)
+
+    // 2. Save optional formerFirmName, linkedinUrl, mapsProfileUrl and verify Cache-Control no-store
+    const updateRes = await callCms({
+      ...baseSettings,
+      formerFirmName: 'Kantor Advokat Terdahulu Uji',
+      linkedinUrl: 'https://www.linkedin.com/company/fsdanrekan/',
+      mapsProfileUrl: 'https://maps.app.goo.gl/contohPeta',
+    })
+    expect(updateRes.status).toBe(200)
+    expect(updateRes.headers.get('cache-control')).toContain('no-store')
+
+    const getReq = new Request('https://fsdanrekan.com/api/admin/cms', {
+      method: 'GET',
+      headers: {
+        cookie: sessionCookie,
+      },
+    })
+    const getRes = await adminCmsGet(getReq)
+    expect(getRes.status).toBe(200)
+    expect(getRes.headers.get('cache-control')).toContain('no-store')
+
+    const loadedSettings = await fetchSiteSettingsFromDb()
+    expect(loadedSettings.formerFirmName).toBe('Kantor Advokat Terdahulu Uji')
+    expect(loadedSettings.linkedinUrl).toBe('https://www.linkedin.com/company/fsdanrekan/')
+    expect(loadedSettings.mapsProfileUrl).toBe('https://maps.app.goo.gl/contohPeta')
+    expect(loadedSettings.inquiryRecipientEmail).toBe('konsultasi@fsdanrekan.com')
+
+    // 3. Draft articles remain strictly hidden from public fetchers
+    const draftSaveRes = await callCms({
+      module: 'article',
+      action: 'upsert',
+      id: 'art-draft-seo-test',
+      slug: 'draf-uji-privasi-seo',
+      title: 'Draf Uji Rahasia Tidak Boleh Tayang Publik Sebelum Diterbitkan Resmi',
+      excerpt:
+        'Ringkasan artikel uji coba yang panjangnya melebihi batas karakter biasa supaya pemotongan otomatis tidak memutus kata di tengah.',
+      bodyHtml: '<p>Konten draf uji internal yang tidak boleh tampil ke publik.</p>',
+      categorySlug: 'hukum-korporasi',
+      categoryName: 'Hukum Korporasi & Bisnis',
+      authorName: 'Tim Redaksi FS dan Rekan',
+      status: 'draft',
+    })
+    expect(draftSaveRes.status).toBe(200)
+    expect(await fetchPublishedArticleBySlugFromDb('draf-uji-privasi-seo')).toBeNull()
+
+    // Cleanup draft article & reset optional site settings back to empty defaults
+    await callCms({ module: 'article', action: 'delete', id: 'art-draft-seo-test' })
+    const resetRes = await callCms({
+      ...baseSettings,
+      formerFirmName: '',
+      linkedinUrl: '',
+      mapsProfileUrl: '',
+    })
+    expect(resetRes.status).toBe(200)
+    const clearedSettings = await fetchSiteSettingsFromDb()
+    expect(clearedSettings.formerFirmName).toBe('')
+    expect(clearedSettings.linkedinUrl).toBe('')
+    expect(clearedSettings.mapsProfileUrl).toBe('')
+  })
 })
 

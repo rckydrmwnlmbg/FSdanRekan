@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { RowDataPacket } from 'mysql2/promise'
 import { z } from 'zod'
 import { getAdminSessionFromRequest, verifyAdminCsrf } from '@/lib/admin-auth'
+import { revalidateCmsPublicPages } from '@/lib/cache'
 import {
   DEFAULT_SITE_SETTINGS,
   getAllNormalizedArticles,
@@ -14,11 +15,28 @@ import { normalizeInstagramProfileUrl } from '@/lib/instagram-helpers'
 import { assertSameOrigin } from '@/lib/security/origin'
 import { hashPassword, validatePasswordStrength } from '@/lib/security/password'
 import { cleanHtml } from '@/lib/security/sanitize'
+import {
+  buildArticleSeoTitle,
+  normalizeLinkedinUrl,
+  normalizeMapsProfileUrl,
+  normalizePublicContactEmail,
+  truncateAtWordBoundary,
+} from '@/lib/seo'
 import { isValidIndonesianWaNumber } from '@/lib/whatsapp'
 import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+
+function jsonNoStore(body: unknown, init?: ResponseInit): NextResponse {
+  const headers = new Headers(init?.headers)
+  headers.set('Cache-Control', 'private, no-store, no-cache, must-revalidate')
+  headers.set('Pragma', 'no-cache')
+  return NextResponse.json(body, {
+    ...init,
+    headers,
+  })
+}
 
 function slugify(input: string): string {
   return input
@@ -201,6 +219,7 @@ const SiteSettingsUpdateSchema = z
     action: z.literal('update'),
     firmName: z.string().trim().min(3).max(160),
     shortBrandName: z.string().trim().min(2).max(80),
+    formerFirmName: z.string().trim().max(160).optional().default(''),
     address: z.string().trim().min(10).max(400),
     whatsappNumber: z.string().trim().min(9).max(20),
     whatsappDisplay: z.string().trim().min(6).max(32),
@@ -228,6 +247,29 @@ const SiteSettingsUpdateSchema = z
           }
         },
         { message: 'URL atau username Instagram tidak valid.' },
+      ),
+    linkedinUrl: z
+      .string()
+      .trim()
+      .max(300)
+      .optional()
+      .default('')
+      .refine(
+        (val) => !val || normalizeLinkedinUrl(val) !== '',
+        { message: 'URL LinkedIn harus berasal dari domain linkedin.com yang valid.' },
+      ),
+    mapsProfileUrl: z
+      .string()
+      .trim()
+      .max(500)
+      .optional()
+      .default('')
+      .refine(
+        (val) => !val || normalizeMapsProfileUrl(val) !== '',
+        {
+          message:
+            'URL Google Maps harus berasal dari domain Google Maps (maps.app.goo.gl, g.page, google.com/maps).',
+        },
       ),
     officeHoursPagi: z.string().trim().min(3).max(120),
     officeHoursSiang: z.string().trim().min(3).max(120),
@@ -427,17 +469,20 @@ export async function GET(req: Request): Promise<Response> {
     const siteSettings = {
       firmName: String(rawSettings.officialFirmName || rawSettings.firmName || DEFAULT_SITE_SETTINGS.firmName),
       shortBrandName: String(rawSettings.shortBrandName || DEFAULT_SITE_SETTINGS.shortBrandName),
+      formerFirmName: String(rawSettings.formerFirmName || DEFAULT_SITE_SETTINGS.formerFirmName),
       address: String(rawSettings.address || DEFAULT_SITE_SETTINGS.address),
       whatsappNumber: String(rawSettings.whatsappNumber || DEFAULT_SITE_SETTINGS.whatsappNumber),
       whatsappDisplay: String(rawSettings.whatsappDisplay || DEFAULT_SITE_SETTINGS.whatsappDisplay),
       defaultWaMessage: String(rawSettings.defaultWaMessage || DEFAULT_SITE_SETTINGS.defaultWaMessage),
-      inquiryRecipientEmail: String(
-        rawSettings.inquiryRecipientEmail || DEFAULT_SITE_SETTINGS.inquiryRecipientEmail,
+      inquiryRecipientEmail: normalizePublicContactEmail(
+        String(rawSettings.inquiryRecipientEmail || DEFAULT_SITE_SETTINGS.inquiryRecipientEmail),
       ),
       instagramUrl: normalizeInstagramProfileUrl(
         rawSettings.instagramUrl,
         DEFAULT_SITE_SETTINGS.instagramUrl,
       ),
+      linkedinUrl: normalizeLinkedinUrl(rawSettings.linkedinUrl),
+      mapsProfileUrl: normalizeMapsProfileUrl(rawSettings.mapsProfileUrl),
       officeHours: {
         pagi: String(rawSettings.officeHoursPagi || DEFAULT_SITE_SETTINGS.officeHours.pagi),
         siang: String(rawSettings.officeHoursSiang || DEFAULT_SITE_SETTINGS.officeHours.siang),
@@ -571,7 +616,7 @@ export async function GET(req: Request): Promise<Response> {
         m.created_at instanceof Date ? m.created_at.toISOString() : String(m.created_at || ''),
     }))
 
-    return NextResponse.json({
+    return jsonNoStore({
       ok: true,
       dbHealth,
       user: session,
@@ -665,17 +710,33 @@ export async function POST(req: Request): Promise<Response> {
         'database',
         `Sinkronisasi data bawaan selesai (${summary.articlesUpserted} artikel, ${summary.teamMembersUpserted} tim)`,
       )
-      return NextResponse.json({ ok: true, summary })
+      revalidateCmsPublicPages('system')
+      return jsonNoStore({ ok: true, summary })
     }
 
     if (data.module === 'article') {
       if (data.action === 'delete') {
+        const [oldRows] = await pool.query<RowDataPacket[]>(
+          'SELECT `slug` FROM `articles` WHERE `id` = ? LIMIT 1',
+          [data.id],
+        )
+        const oldSlug = oldRows[0]?.slug ? String(oldRows[0].slug) : undefined
         await pool.query('DELETE FROM `articles` WHERE `id` = ?', [data.id])
         await writeAuditLog(session.email, 'DELETE_ARTICLE', 'articles', data.id, 'Hapus artikel')
-        return NextResponse.json({ ok: true })
+        revalidateCmsPublicPages('article', [oldSlug])
+        return jsonNoStore({ ok: true })
       }
 
       const id = data.id && data.id.length > 0 ? data.id : `article-${Date.now()}`
+      let oldSlug: string | undefined
+      if (data.id && data.id.length > 0) {
+        const [prevRows] = await pool.query<RowDataPacket[]>(
+          'SELECT `slug` FROM `articles` WHERE `id` = ? LIMIT 1',
+          [data.id],
+        )
+        oldSlug = prevRows[0]?.slug ? String(prevRows[0].slug) : undefined
+      }
+
       let baseSlug = slugify(data.slug || data.title)
       if (!baseSlug) baseSlug = `artikel-${Date.now()}`
 
@@ -733,8 +794,9 @@ export async function POST(req: Request): Promise<Response> {
           data.authorName,
           data.status,
           pubTime,
-          data.seoTitle || data.title,
-          data.seoDescription || data.excerpt.slice(0, 155),
+          data.seoTitle?.trim() || buildArticleSeoTitle(undefined, data.title),
+          data.seoDescription?.trim() ||
+            truncateAtWordBoundary(data.excerpt, 155, { stripMarkdown: true }),
           session.id,
         ],
       )
@@ -747,7 +809,8 @@ export async function POST(req: Request): Promise<Response> {
         `${data.status.toUpperCase()}: ${data.title}`,
       )
 
-      return NextResponse.json({ ok: true, id, slug: finalSlug, warning: slugWarning })
+      revalidateCmsPublicPages('article', [oldSlug, finalSlug])
+      return jsonNoStore({ ok: true, id, slug: finalSlug, warning: slugWarning })
     }
 
     if (data.module === 'category') {
@@ -768,7 +831,8 @@ export async function POST(req: Request): Promise<Response> {
         }
         await pool.query('DELETE FROM `categories` WHERE `id` = ?', [data.id])
         await writeAuditLog(session.email, 'DELETE_CATEGORY', 'categories', data.id, data.slug)
-        return NextResponse.json({ ok: true })
+        revalidateCmsPublicPages('category')
+        return jsonNoStore({ ok: true })
       }
 
       const slug = slugify(data.slug || data.name)
@@ -782,7 +846,8 @@ export async function POST(req: Request): Promise<Response> {
         [id, slug, data.name, data.description],
       )
       await writeAuditLog(session.email, 'UPSERT_CATEGORY', 'categories', id, data.name)
-      return NextResponse.json({ ok: true, id, slug })
+      revalidateCmsPublicPages('category')
+      return jsonNoStore({ ok: true, id, slug })
     }
 
     if (data.module === 'practice_area') {
@@ -816,7 +881,8 @@ export async function POST(req: Request): Promise<Response> {
         ],
       )
       await writeAuditLog(session.email, 'UPSERT_PRACTICE', 'practice_areas', id, data.name)
-      return NextResponse.json({ ok: true, id, slug })
+      revalidateCmsPublicPages('practice_area', [slug])
+      return jsonNoStore({ ok: true, id, slug })
     }
 
     if (data.module === 'team_member') {
@@ -887,14 +953,16 @@ export async function POST(req: Request): Promise<Response> {
         ],
       )
       await writeAuditLog(session.email, 'UPSERT_TEAM', 'team_members', id, displayName)
-      return NextResponse.json({ ok: true, id, slug })
+      revalidateCmsPublicPages('team_member', [slug])
+      return jsonNoStore({ ok: true, id, slug })
     }
 
     if (data.module === 'case_record') {
       if (data.action === 'delete') {
         await pool.query('DELETE FROM `case_records` WHERE `id` = ?', [data.id])
         await writeAuditLog(session.email, 'DELETE_CASE', 'case_records', data.id, 'Hapus perkara')
-        return NextResponse.json({ ok: true })
+        revalidateCmsPublicPages('case_record')
+        return jsonNoStore({ ok: true })
       }
 
       // Anonymity Guard: named displayMode requires explicit consentRef
@@ -973,7 +1041,8 @@ export async function POST(req: Request): Promise<Response> {
         id,
         `${data.caseType} (${data.region})`,
       )
-      return NextResponse.json({ ok: true, id })
+      revalidateCmsPublicPages('case_record')
+      return jsonNoStore({ ok: true, id })
     }
 
     if (data.module === 'inquiry') {
@@ -1017,6 +1086,7 @@ export async function POST(req: Request): Promise<Response> {
       const settingsPayload = {
         officialFirmName: data.firmName,
         shortBrandName: data.shortBrandName,
+        formerFirmName: (data.formerFirmName || '').trim(),
         address: data.address,
         whatsappNumber: data.whatsappNumber,
         whatsappDisplay: data.whatsappDisplay,
@@ -1026,6 +1096,8 @@ export async function POST(req: Request): Promise<Response> {
           data.instagramUrl,
           DEFAULT_SITE_SETTINGS.instagramUrl,
         ),
+        linkedinUrl: normalizeLinkedinUrl(data.linkedinUrl),
+        mapsProfileUrl: normalizeMapsProfileUrl(data.mapsProfileUrl),
         officeHoursPagi: data.officeHoursPagi,
         officeHoursSiang: data.officeHoursSiang,
         officeHoursSore: data.officeHoursSore,
@@ -1044,7 +1116,8 @@ export async function POST(req: Request): Promise<Response> {
         'global',
         'Pembaruan pengaturan global situs',
       )
-      return NextResponse.json({ ok: true })
+      revalidateCmsPublicPages('site_settings')
+      return jsonNoStore({ ok: true })
     }
 
     if (data.module === 'user') {

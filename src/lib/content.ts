@@ -3,6 +3,7 @@ import teamSeed from '../../content/team.json'
 import practiceAreasSeed from '../../content/practice_areas.json'
 import caseRecordsSeed from '../../content/case_records.json'
 import articlesSeed from '../../content/articles.json'
+import { CACHE_TAGS, cachedCmsRead } from '@/lib/cache'
 import { getDbPool } from '@/lib/db'
 import {
   DEFAULT_INSTAGRAM_PROFILE_URL,
@@ -11,7 +12,15 @@ import {
   normalizeInstagramProfileUrl,
   type InstagramGalleryItem,
 } from '@/lib/instagram-helpers'
-import { OFFICIAL_ADDRESS, OFFICIAL_FIRM_NAME, SHORT_BRAND_NAME } from '@/lib/seo'
+import {
+  normalizeLinkedinUrl,
+  normalizeMapsProfileUrl,
+  normalizePublicContactEmail,
+  OFFICIAL_ADDRESS,
+  OFFICIAL_CONTACT_EMAIL,
+  OFFICIAL_FIRM_NAME,
+  SHORT_BRAND_NAME,
+} from '@/lib/seo'
 
 export interface TeamPhotoData {
   id: string
@@ -123,12 +132,15 @@ export interface ArticlePublicData {
 export interface SiteSettingsData {
   firmName: string
   shortBrandName: string
+  formerFirmName: string
   address: string
   whatsappNumber: string
   whatsappDisplay: string
   defaultWaMessage: string
   inquiryRecipientEmail: string
   instagramUrl: string
+  linkedinUrl: string
+  mapsProfileUrl: string
   mapEmbedUrl: string
   mapsDirectUrl: string
   officeHours: {
@@ -263,15 +275,18 @@ const PRACTICE_PRESENTATION_BY_SLUG: Record<
 export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
   firmName: OFFICIAL_FIRM_NAME,
   shortBrandName: SHORT_BRAND_NAME,
+  formerFirmName: '',
   address: OFFICIAL_ADDRESS,
   whatsappNumber: '62811830991',
   whatsappDisplay: '+62 811-830-991',
   defaultWaMessage: 'Halo FS dan Rekan, saya ingin konsultasi hukum.',
-  inquiryRecipientEmail: 'kontak@fsdanrekan.id',
+  inquiryRecipientEmail: OFFICIAL_CONTACT_EMAIL,
   instagramUrl: normalizeInstagramProfileUrl(
     process.env.INSTAGRAM_PROFILE_URL,
     DEFAULT_INSTAGRAM_PROFILE_URL,
   ),
+  linkedinUrl: '',
+  mapsProfileUrl: '',
   mapEmbedUrl:
     'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5357334624136!2d106.83636290000001!3d-6.192815!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f43e979ba7b9%3A0x367501a082936e59!2sJl.%20RP.%20Soeroso%20No.33%2C%20RT.2%2FRW.2%2C%20Cikini%2C%20Kec.%20Menteng%2C%20Kota%20Jakarta%20Pusat%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2010350!5e0!3m2!1sen!2sid!4v1793080293609!5m2!1sen!2sid',
   mapsDirectUrl:
@@ -600,8 +615,9 @@ function safeParseJson<T>(raw: unknown, fallback: T): T {
 
 /**
  * Fetch global site settings from MySQL `site_settings` table with fallback to DEFAULT_SITE_SETTINGS.
+ * Cached with Next.js Data Cache (`cms-site-settings`) and invalidated immediately on admin save.
  */
-export async function fetchSiteSettingsFromDb(): Promise<SiteSettingsData> {
+async function querySiteSettingsFromDb(): Promise<SiteSettingsData> {
   const pool = getDbPool()
   if (!pool) {
     return DEFAULT_SITE_SETTINGS
@@ -617,17 +633,22 @@ export async function fetchSiteSettingsFromDb(): Promise<SiteSettingsData> {
     return {
       firmName: String(raw.officialFirmName || raw.firmName || DEFAULT_SITE_SETTINGS.firmName),
       shortBrandName: String(raw.shortBrandName || DEFAULT_SITE_SETTINGS.shortBrandName),
+      formerFirmName: typeof raw.formerFirmName === 'string' ? raw.formerFirmName.trim() : '',
       address: String(raw.address || DEFAULT_SITE_SETTINGS.address),
       whatsappNumber: String(raw.whatsappNumber || DEFAULT_SITE_SETTINGS.whatsappNumber),
       whatsappDisplay: String(raw.whatsappDisplay || DEFAULT_SITE_SETTINGS.whatsappDisplay),
       defaultWaMessage: String(raw.defaultWaMessage || DEFAULT_SITE_SETTINGS.defaultWaMessage),
-      inquiryRecipientEmail: String(
-        raw.inquiryRecipientEmail || DEFAULT_SITE_SETTINGS.inquiryRecipientEmail,
+      inquiryRecipientEmail: normalizePublicContactEmail(
+        typeof raw.inquiryRecipientEmail === 'string'
+          ? raw.inquiryRecipientEmail
+          : DEFAULT_SITE_SETTINGS.inquiryRecipientEmail,
       ),
       instagramUrl: normalizeInstagramProfileUrl(
         raw.instagramUrl || process.env.INSTAGRAM_PROFILE_URL,
         DEFAULT_SITE_SETTINGS.instagramUrl,
       ),
+      linkedinUrl: normalizeLinkedinUrl(raw.linkedinUrl),
+      mapsProfileUrl: normalizeMapsProfileUrl(raw.mapsProfileUrl),
       mapEmbedUrl: String(raw.mapEmbedUrl || DEFAULT_SITE_SETTINGS.mapEmbedUrl),
       mapsDirectUrl: String(raw.mapsDirectUrl || DEFAULT_SITE_SETTINGS.mapsDirectUrl),
       officeHours: {
@@ -639,6 +660,10 @@ export async function fetchSiteSettingsFromDb(): Promise<SiteSettingsData> {
   } catch {
     return DEFAULT_SITE_SETTINGS
   }
+}
+
+export async function fetchSiteSettingsFromDb(): Promise<SiteSettingsData> {
+  return cachedCmsRead(['site-settings-global'], querySiteSettingsFromDb, [CACHE_TAGS.siteSettings])
 }
 
 function mapRowToTeamMember(row: RowDataPacket): TeamMemberData {
@@ -691,7 +716,7 @@ function mapRowToTeamMember(row: RowDataPacket): TeamMemberData {
 /**
  * Fetch published team members from MySQL `team_members` table with fallback to JSON seed.
  */
-export async function fetchPublishedTeamMembersFromDb(): Promise<TeamMemberData[]> {
+async function queryPublishedTeamMembersFromDb(): Promise<TeamMemberData[]> {
   const pool = getDbPool()
   if (!pool) {
     return getPublishedTeamMembers()
@@ -709,7 +734,15 @@ export async function fetchPublishedTeamMembersFromDb(): Promise<TeamMemberData[
   }
 }
 
-export async function fetchTeamMemberBySlugFromDb(slug: string): Promise<TeamMemberData | null> {
+export async function fetchPublishedTeamMembersFromDb(): Promise<TeamMemberData[]> {
+  return cachedCmsRead(
+    ['team-members-published'],
+    queryPublishedTeamMembersFromDb,
+    [CACHE_TAGS.teamMembers],
+  )
+}
+
+async function queryTeamMemberBySlugFromDb(slug: string): Promise<TeamMemberData | null> {
   const pool = getDbPool()
   if (!pool) {
     return getTeamMemberBySlug(slug)
@@ -732,6 +765,14 @@ export async function fetchTeamMemberBySlugFromDb(slug: string): Promise<TeamMem
   } catch {
     return getTeamMemberBySlug(slug)
   }
+}
+
+export async function fetchTeamMemberBySlugFromDb(slug: string): Promise<TeamMemberData | null> {
+  return cachedCmsRead(
+    ['team-member-by-slug', slug],
+    () => queryTeamMemberBySlugFromDb(slug),
+    [CACHE_TAGS.teamMembers],
+  )
 }
 
 function mapRowToPracticeArea(row: RowDataPacket): PracticeAreaData {
@@ -763,7 +804,7 @@ function mapRowToPracticeArea(row: RowDataPacket): PracticeAreaData {
 /**
  * Fetch published practice areas from MySQL `practice_areas` table with fallback to JSON seed.
  */
-export async function fetchPublishedPracticeAreasFromDb(): Promise<PracticeAreaData[]> {
+async function queryPublishedPracticeAreasFromDb(): Promise<PracticeAreaData[]> {
   const pool = getDbPool()
   if (!pool) {
     return getPublishedPracticeAreas()
@@ -781,7 +822,15 @@ export async function fetchPublishedPracticeAreasFromDb(): Promise<PracticeAreaD
   }
 }
 
-export async function fetchPracticeAreaBySlugFromDb(
+export async function fetchPublishedPracticeAreasFromDb(): Promise<PracticeAreaData[]> {
+  return cachedCmsRead(
+    ['practice-areas-published'],
+    queryPublishedPracticeAreasFromDb,
+    [CACHE_TAGS.practiceAreas],
+  )
+}
+
+async function queryPracticeAreaBySlugFromDb(
   slug: string,
 ): Promise<PracticeAreaData | null> {
   const pool = getDbPool()
@@ -808,10 +857,20 @@ export async function fetchPracticeAreaBySlugFromDb(
   }
 }
 
+export async function fetchPracticeAreaBySlugFromDb(
+  slug: string,
+): Promise<PracticeAreaData | null> {
+  return cachedCmsRead(
+    ['practice-area-by-slug', slug],
+    () => queryPracticeAreaBySlugFromDb(slug),
+    [CACHE_TAGS.practiceAreas],
+  )
+}
+
 /**
  * Fetch published case records from MySQL `case_records` table (enforcing SK-14 anonymity guard).
  */
-export async function fetchPublicCaseRecordsFromDb(): Promise<PublicCaseRecord[]> {
+async function queryPublicCaseRecordsFromDb(): Promise<PublicCaseRecord[]> {
   const pool = getDbPool()
   if (!pool) {
     return getPublicCaseRecords()
@@ -842,6 +901,14 @@ export async function fetchPublicCaseRecordsFromDb(): Promise<PublicCaseRecord[]
   } catch {
     return getPublicCaseRecords()
   }
+}
+
+export async function fetchPublicCaseRecordsFromDb(): Promise<PublicCaseRecord[]> {
+  return cachedCmsRead(
+    ['case-records-published'],
+    queryPublicCaseRecordsFromDb,
+    [CACHE_TAGS.caseRecords],
+  )
 }
 
 function mapRowToArticle(row: RowDataPacket): ArticlePublicData {
@@ -876,45 +943,50 @@ function mapRowToArticle(row: RowDataPacket): ArticlePublicData {
  * Fetch published articles (where status = 'published' AND published_at <= NOW()) from MySQL `articles` table.
  * Strictly excludes drafts (SEC-008 / FR-5.3).
  */
-export async function fetchPublishedArticlesFromDb(
-  categorySlug?: string,
-  searchQuery?: string,
-): Promise<ArticlePublicData[]> {
+async function queryAllPublishedArticlesFromDb(): Promise<ArticlePublicData[]> {
   const pool = getDbPool()
   if (!pool) {
-    return getPublishedArticles(categorySlug, searchQuery)
+    return getPublishedArticles()
   }
   try {
     const [countRows] = await pool.query<RowDataPacket[]>('SELECT COUNT(*) AS cnt FROM `articles`')
     if (Number(countRows[0]?.cnt ?? 0) === 0) {
-      return getPublishedArticles(categorySlug, searchQuery)
+      return getPublishedArticles()
     }
 
-    const params: unknown[] = []
-    let sql =
-      "SELECT * FROM `articles` WHERE `status` = 'published' AND `published_at` <= UTC_TIMESTAMP()"
-
-    if (categorySlug) {
-      sql += ' AND `category_slug` = ?'
-      params.push(categorySlug)
-    }
-    if (searchQuery && searchQuery.trim().length > 0) {
-      const likeTerm = `%${searchQuery.trim()}%`
-      sql +=
-        ' AND (`title` LIKE ? OR `excerpt` LIKE ? OR `category_name` LIKE ? OR `body_html` LIKE ?)'
-      params.push(likeTerm, likeTerm, likeTerm, likeTerm)
-    }
-
-    sql += ' ORDER BY `published_at` DESC'
-
-    const [rows] = await pool.query<RowDataPacket[]>(sql, params)
+    const [rows] = await pool.query<RowDataPacket[]>(
+      "SELECT * FROM `articles` WHERE `status` = 'published' AND `published_at` <= UTC_TIMESTAMP() ORDER BY `published_at` DESC",
+    )
     return rows.map(mapRowToArticle)
   } catch {
-    return getPublishedArticles(categorySlug, searchQuery)
+    return getPublishedArticles()
   }
 }
 
-export async function fetchPublishedArticleBySlugFromDb(
+export async function fetchPublishedArticlesFromDb(
+  categorySlug?: string,
+  searchQuery?: string,
+): Promise<ArticlePublicData[]> {
+  const allPublished = await cachedCmsRead(
+    ['articles-published-all'],
+    queryAllPublishedArticlesFromDb,
+    [CACHE_TAGS.articles],
+  )
+  const nowIso = new Date().toISOString()
+  const q = searchQuery?.trim().toLowerCase() ?? ''
+
+  return allPublished.filter((a) => {
+    if (a.status !== 'published' || a.publishedAt > nowIso) return false
+    if (categorySlug && a.category.slug !== categorySlug) return false
+    if (q) {
+      const haystack = `${a.title} ${a.excerpt} ${a.category.name} ${a.bodyHtml}`.toLowerCase()
+      if (!haystack.includes(q)) return false
+    }
+    return true
+  })
+}
+
+async function queryPublishedArticleBySlugFromDb(
   slug: string,
 ): Promise<ArticlePublicData | null> {
   const pool = getDbPool()
@@ -939,10 +1011,26 @@ export async function fetchPublishedArticleBySlugFromDb(
   }
 }
 
+export async function fetchPublishedArticleBySlugFromDb(
+  slug: string,
+): Promise<ArticlePublicData | null> {
+  const article = await cachedCmsRead(
+    ['article-by-slug', slug],
+    () => queryPublishedArticleBySlugFromDb(slug),
+    [CACHE_TAGS.articles],
+  )
+  if (!article) return null
+  const nowIso = new Date().toISOString()
+  if (article.status !== 'published' || article.publishedAt > nowIso) {
+    return null
+  }
+  return article
+}
+
 /**
  * Fetch curated Instagram items from MySQL `instagram_gallery` table with fallback to INITIAL_INSTAGRAM_GALLERY.
  */
-export async function fetchInstagramGalleryFromDb(): Promise<InstagramGalleryItem[]> {
+async function queryInstagramGalleryFromDb(): Promise<InstagramGalleryItem[]> {
   const pool = getDbPool()
   if (!pool) {
     return getInstagramGalleryItems()
@@ -958,9 +1046,9 @@ export async function fetchInstagramGalleryFromDb(): Promise<InstagramGalleryIte
       id: String(r.id),
       imageUrl: String(r.image_url || ''),
       alt: normalizeInstagramHandleMentions(String(r.alt_text || '')),
-      category: String(r.category || 'Publikasi Resmi'),
+      category: String(r.category || 'Wawasan Hukum'),
       caption: normalizeInstagramHandleMentions(String(r.caption || '')),
-      publishedDate: String(r.published_date || 'Instagram Live'),
+      publishedDate: String(r.published_date || ''),
       permalink: String(r.permalink || ''),
       displayOrder: Number(r.display_order) || 1,
       isPublished: Boolean(r.is_published),
@@ -968,4 +1056,12 @@ export async function fetchInstagramGalleryFromDb(): Promise<InstagramGalleryIte
   } catch {
     return getInstagramGalleryItems()
   }
+}
+
+export async function fetchInstagramGalleryFromDb(): Promise<InstagramGalleryItem[]> {
+  return cachedCmsRead(
+    ['instagram-gallery-published'],
+    queryInstagramGalleryFromDb,
+    [CACHE_TAGS.instagramGallery],
+  )
 }

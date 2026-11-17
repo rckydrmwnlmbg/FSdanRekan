@@ -78,6 +78,7 @@ export function HomePageClient({
       {founder ? (
         <AboutSection
           founder={founder}
+          formerFirmName={settings.formerFirmName}
           onOpenFounderProfile={(member, triggerEl) => {
             lastTriggerRef.current = triggerEl
             setActiveProfile(member)

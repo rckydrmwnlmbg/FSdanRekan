@@ -2,14 +2,11 @@ import React from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { fetchPublishedArticlesFromDb } from '@/lib/content'
-import { buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
-
-export const dynamic = 'force-dynamic'
+import { ARTICLES_INDEX_SEO, buildPageMetadata, OFFICIAL_FIRM_NAME } from '@/lib/seo'
 
 export const metadata: Metadata = buildPageMetadata({
-  title: `Artikel & Wawasan Hukum | ${OFFICIAL_FIRM_NAME}`,
-  description:
-    'Kumpulan artikel dan kajian hukum umum dari Ferdinan Silalahi dan Rekan Law Firm mengenai hukum korporasi, pertanahan, kontrak, dan perdata.',
+  title: ARTICLES_INDEX_SEO.title,
+  description: ARTICLES_INDEX_SEO.description,
   path: '/artikel',
 })
 
